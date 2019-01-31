@@ -1,20 +1,22 @@
 %% Changes
 %This is the working file from MarketModel
 
-%
+%%%%% One major change that I should make to this model in the near term is
+%%%%% the separation of solar from "Other" given how much of our work is
+%%%%% centered around solar. 
 
 %% Setup
 % Start from a Clean Slate
-clear all
+clear
 close all
 clc
 tic
 %% Add Paths
 %Create a path to the 5 minute NYISO Load Data Stock
-path_5minLoad = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/NYISO Data/ActualLoad5min';
+path_5minLoad = '../NYISO Data/ActualLoad5min';
 addpath(genpath(path_5minLoad))
 %Create a path to the Renewable Data
-path_ren = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/NYISO Data/renewableData';
+path_ren = '../NYISO Data/renewableData';
 addpath(genpath(path_ren))
 %Create a path to the Matpower application
 %         path_Matpower = 'C:\Users\steph\Documents\SMB\RPI\NYISO\MatPower';
@@ -26,20 +28,21 @@ addpath(genpath(path_ren))
 %         path_Gurobi = 'C:\gurobi751\win64\matlab';
 %         addpath(genpath(path_Gurobi))
 %Create paths for this file and its subfunctions
-path_this_file = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Matlab Files';
-addpath(genpath(path_this_file))
+% path_this_file = './Matlab Files';
+% addpath(genpath(path_this_file))
 %Create paths for this file
-path_fxns = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Matlab Files/Functions';
-addpath(genpath(path_fxns))
+% path_fxns = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Matlab Files/Functions';
+% addpath(genpath(path_fxns))
 %Create paths for Data Files
-path_data = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Matlab Files/Program_Files';
-addpath(genpath(path_data))
-%% Font Size for publishing
+% path_data = './Program_Files';
+% addpath(genpath(path_data))
 
+%% Font Size for publishing
 set(0,'DefaultAxesFontSize',14)
 set(0,'DefaultTextFontSize',14)
 set(0,'DefaultLineLinewidth',1)
 disp('changing font sizes to 14 and line width = 1.5')
+
 %% Define Initial Variables
 %Define Load Buses by zone
 %     A2F_Load_buses = [1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
@@ -58,6 +61,7 @@ A2F_load_bus_count = length(A2F_Load_buses);
 GHI_load_bus_count = length(GHI_Load_buses);
 NYC_load_bus_count = length(NYC_Load_buses);
 LIs_load_bus_count = length(LIs_Load_buses);
+
 %Define Gen Buses by zone
 %   A2F_Gen_buses = [62; 63; 64; 65; 66; 67; 68;]; %removed gen at bus 62 for ref bus and bus 63 for no ITM in base case
 A2F_Gen_buses = [        64; 65; 66; 67; 68;];
@@ -75,7 +79,8 @@ RTD_Load_Storage = zeros(68,288);
 RTD_Gen_Storage = zeros(59,288);
 RTD_RenGen_Max_Storage = zeros(45,288);
 RTD_RenGen_Min_Storage = zeros(45,288);
-%% Add transmission interface limits
+
+%% Add Transmission Interface Limits
 map_Array  = [  1 -16;...
     1   1;...
     2 -16;...
@@ -93,28 +98,41 @@ lims_Array   = [1 -2700 2700;...
     2 -9000 9000;...
     3 -9000 9000;...
     4 -9000 9000;];
+
 %% Set Simulation Control Parameters
+%%%%% I need to brainstorm how to expand this section to make it more date
+%%%%% flexible. I don't want the dates to be hard coded into the section. 
+%%%%% If anything I want the program to determine which dates are being fed  
+%%%%% to it and run based upon these input dates... 
+
 %Pick Date Range
 d_start = 1;
-d_end   = 4;
+d_end   = 1;
 date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
 ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
-%Pick Case    %0 = Base Case,   1 = 2030 Case,      2 = 2X2030 Case,        3 = 3X2030 Case
+%Pick Case    %0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
+%%%%% I need to figure out what exactly went into developing the 2030 case.
+%%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
+%%%%% numbered variables the way to go on these cases? 
 case_start = 0;
 case_end   = 1;
 %Interface Flow Limits Enforced?
-IFlims = 0; %"1" is on, "0" is off. ADDED BY JS 1/22/19
+IFlims = 0; %"1" is on, "0" is off. 
 printCurt = 1;
 %Pick number of RTC points.
+%%%%% I should ask Steve about the number of RTC points. I.e., he says they
+%%%%% should be divislble by 3 and 12 below, but he has the number set to
+%%%%% 30. Also, how does this translate into 260 RT_int?
 RTC_periods = 30; %should be divisible by 3 and 12.
 RTC_hrs = RTC_periods/12;
 %REC Cost
 REC_Cost =  0; %set to negative number ($-5/MWh) for Renewable Energy Credit
 REC_hydro = 0;
 RenInOpCost = 0;
-%EVSE Load? What is this??????
+%EVSE Load? 
+%%%%% What is this?
 EVSE = 0; %"1" is on, "0" is off.
-EVSEfactor = 1; %"1" is 1x NYISO estimate.  "2" will double MW and MWh estimates
+EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
 
 %% Run Simulation
 for Case = case_start:case_end
@@ -169,7 +187,7 @@ for Case = case_start:case_end
         %% NET LOAD
         %% Get Net Load from OASIS
         %Define the filename
-        m_file_loc =     '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/NYISO Data/ActualLoad5min/';
+        m_file_loc =     '../NYISO Data/ActualLoad5min/';
         %Get data file
         RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
         %Initialize
@@ -1342,7 +1360,7 @@ for Case = case_start:case_end
             else
                 fig_cnt = 1;
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigA, '-dpdf', filestr)
+                print(hFigA, '-dpdf',-bestfit, filestr)
                 fig_cnt = fig_cnt + 1;
             end
             %Otherwise grab the existing word or ps document and paste in there.
@@ -1358,7 +1376,7 @@ for Case = case_start:case_end
                 invoke(word.Selection,'Paste');
             else
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigA, '-dpdf', filestr)
+                print(hFigA, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
         end
@@ -1523,7 +1541,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigLMP, '-dpdf', filestr)
+            print(hFigLMP, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -1595,7 +1613,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigLoad, '-dpdf', filestr)
+            print(hFigLoad, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -1708,7 +1726,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigCC, '-dpdf', filestr)
+            print(hFigCC, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -1843,7 +1861,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigA, '-dpdf', filestr)
+            print(hFigA, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -1908,10 +1926,10 @@ for Case = case_start:case_end
             %                     invoke(word.Selection,'Paste');
             %             else
             %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            %                 export_fig(hFigE, '-dpdf', filestr)
+            %                 print(hFigE, '-dpdf','-bestfit', filestr)
             %                 fig_cnt = fig_cnt + 1;
             %             end
-            %             close all
+            close all
             
         end
         
@@ -2012,7 +2030,7 @@ for Case = case_start:case_end
             %                     invoke(word.Selection,'Paste');
             %             else
             %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            %                     export_fig(hFigE, '-dpdf', filestr)
+            %                     print(hFigE, '-dpdf','-bestfit', filestr)
             %                     fig_cnt = fig_cnt + 1;
             %             end
             %             close all
@@ -2682,7 +2700,7 @@ for Case = case_start:case_end
                 invoke(word.Selection,'Paste');
             else
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigA, '-dpdf', filestr)
+                print(hFigA, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
             close all
@@ -2721,7 +2739,7 @@ for Case = case_start:case_end
                     invoke(word.Selection,'Paste');
                 else
                     filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    export_fig(hFigE, '-dpdf', filestr)
+                    print(hFigE, '-dpdf','-bestfit', filestr)
                     fig_cnt = fig_cnt + 1;
                 end
                 close all
@@ -3544,7 +3562,7 @@ for Case = case_start:case_end
                 invoke(word.Selection,'Paste');
             else
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigA, '-dpdf', filestr)
+                print(hFigA, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
             close all
@@ -3582,7 +3600,7 @@ for Case = case_start:case_end
                     invoke(word.Selection,'Paste');
                 else
                     filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    export_fig(hFigE, '-dpdf', filestr)
+                    print(hFigE, '-dpdf','-bestfit', filestr)
                     fig_cnt = fig_cnt + 1;
                 end
                 close all
@@ -3662,7 +3680,7 @@ for Case = case_start:case_end
                     invoke(word.Selection,'Paste');
                 else
                     %                                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    %                     export_fig(hFigA, '-dpdf', filestr)
+                    %                     print(hFigA, '-dpdf','-bestfit', filestr)
                     %                     fig_cnt = fig_cnt + 1; %!!!!!!!! I don't know the
                     %                                 correct figure handle for this
                 end
@@ -3700,7 +3718,7 @@ for Case = case_start:case_end
                     invoke(word.Selection,'Paste');
                 else
                     filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    export_fig(hFigE, '-dpdf', filestr)
+                    print(hFigE, '-dpdf','-bestfit', filestr)
                     fig_cnt = fig_cnt + 1;
                 end
                 close all
@@ -3752,7 +3770,7 @@ for Case = case_start:case_end
                 invoke(word.Selection,'Paste');
             else
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigE, '-dpdf', filestr)
+                print(hFigE, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
             close all
@@ -3911,7 +3929,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigA, '-dpdf', filestr)
+            print(hFigA, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -4049,7 +4067,7 @@ for Case = case_start:case_end
         %                     invoke(word.Selection,'Paste');
         %             else
         %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        %                     export_fig(hFigB, '-dpdf', filestr)
+        %                     print(hFigB, '-dpdf','-bestfit', filestr)
         %                     fig_cnt = fig_cnt + 1;
         %             end
         %             close all
@@ -4169,7 +4187,7 @@ for Case = case_start:case_end
         %                     invoke(word.Selection,'Paste');
         %             else
         %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        %                     export_fig(hFigC, '-dpdf', filestr)
+        %                     print(hFigC, '-dpdf','-bestfit', filestr)
         %                     fig_cnt = fig_cnt + 1;
         %             end
         %             close all
@@ -4260,7 +4278,7 @@ for Case = case_start:case_end
         %                     invoke(word.Selection,'Paste');
         %             else
         %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        %                     export_fig(hFigD, '-dpdf', filestr)
+        %                     print(hFigD, '-dpdf','-bestfit', filestr)
         %                     fig_cnt = fig_cnt + 1;
         %             end
         %             close all
@@ -4325,7 +4343,7 @@ for Case = case_start:case_end
             invoke(word.Selection,'Paste');
         else
             filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            export_fig(hFigE, '-dpdf', filestr)
+            print(hFigE, '-dpdf','-bestfit', filestr)
             fig_cnt = fig_cnt + 1;
         end
         close all
@@ -4418,7 +4436,7 @@ for Case = case_start:case_end
                 invoke(word.Selection,'Paste');
             else
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                export_fig(hFigE, '-dpdf', filestr)
+                print(hFigE, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
             close all
