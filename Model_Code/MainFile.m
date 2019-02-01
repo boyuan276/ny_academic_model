@@ -1,9 +1,16 @@
 %% Changes
-%This is the working file from MarketModel
+%This is the working file from MarketModel. You MUST run this file from the
+%current working directory (ny_marketmodel/Model_Code).
 
+
+%% Known Issues
+
+<<<<<<< HEAD
 %%%%% One major change that I should make to this model in the near term is
 %%%%% the separation of solar from "Other" given how much of our work is
 %%%%% centered around solar. 
+=======
+>>>>>>> path_compat
 
 %% Setup
 % Start from a Clean Slate
@@ -28,6 +35,7 @@ addpath(genpath(path_ren))
 %         path_Gurobi = 'C:\gurobi751\win64\matlab';
 %         addpath(genpath(path_Gurobi))
 %Create paths for this file and its subfunctions
+<<<<<<< HEAD
 % path_this_file = './Matlab Files';
 % addpath(genpath(path_this_file))
 %Create paths for this file
@@ -36,6 +44,17 @@ addpath(genpath(path_ren))
 %Create paths for Data Files
 % path_data = './Program_Files';
 % addpath(genpath(path_data))
+=======
+% path_this_file = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Model_Code';
+% addpath(genpath(path_this_file))
+%Create paths for supporting functions
+path_fxns = './Functions';
+addpath(genpath(path_fxns))
+%Create paths for Data Files
+path_data = './Program_Files';
+addpath(genpath(path_data))
+%% Font Size for publishing
+>>>>>>> path_compat
 
 %% Font Size for publishing
 set(0,'DefaultAxesFontSize',14)
@@ -115,9 +134,13 @@ ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 %%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
 %%%%% numbered variables the way to go on these cases? 
 case_start = 0;
-case_end   = 1;
+case_end   = 0;
 %Interface Flow Limits Enforced?
+<<<<<<< HEAD
 IFlims = 0; %"1" is on, "0" is off. 
+=======
+IFlims = 0; %"1" is on, "0" is off.
+>>>>>>> path_compat
 printCurt = 1;
 %Pick number of RTC points.
 %%%%% I should ask Steve about the number of RTC points. I.e., he says they
@@ -187,7 +210,11 @@ for Case = case_start:case_end
         %% NET LOAD
         %% Get Net Load from OASIS
         %Define the filename
+<<<<<<< HEAD
         m_file_loc =     '../NYISO Data/ActualLoad5min/';
+=======
+        m_file_loc = '../NYISO Data/ActualLoad5min/';
+>>>>>>> path_compat
         %Get data file
         RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
         %Initialize
