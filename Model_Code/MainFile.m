@@ -106,62 +106,140 @@ ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 %Pick Case    %0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
 %%%%% I need to figure out what exactly went into developing the 2030 case.
 %%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
-%%%%% numbered variables the way to go on these cases? 
+%%%%% numbered variables the way to go on these cases????? 
 case_start = 0;
 case_end   = 0;
+
 %Interface Flow Limits Enforced?
-IFlims = 0; %"1" is on, "0" is off.
-printCurt = 1;
-%Pick number of RTC points.
-%%%%% I should ask Steve about the number of RTC points. I.e., he says they
+IFlims = 0; %%[1 = yes; 0 = no]
+
+%Plot curtailment and Central-East interface flow? 
+printCurt = 1; %[1 = yes; 0 = no]
+
+%Pick number of RTC periods.
+%%%%% I should ask Steve about the number of RTC periods. I.e. he says they
 %%%%% should be divislble by 3 and 12 below, but he has the number set to
-%%%%% 30. Also, how does this translate into 260 RT_int?
+%%%%% 30. Also, how does this translate into 260 RT_int?????
 RTC_periods = 30; %should be divisible by 3 and 12.
 RTC_hrs = RTC_periods/12;
+
 %REC Cost
+%%%%% Should I add a separate REC for Wind and Solar?????
 REC_Cost =  0; %set to negative number ($-5/MWh) for Renewable Energy Credit
 REC_hydro = 0;
 RenInOpCost = 0;
-%EVSE Load? 
-%%%%% What is this?
-EVSE = 0; %"1" is on, "0" is off.
+
+%EVSE Load? %%%%% What is this?????
+EVSE = 0; %[1 = ON; 0 = OFF]
 EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
+
+%Is Renewable Curtailable in DAM? 
+%[1 = mingen is zero; 0 = mingen is maxgen]
+windyCurt = 1;
+hydroCurt = 1;
+otherCurt = 1;
+
+%Reduce mingen from maxgen by a factor
+%[Value between 0 (full curtailment allowed) and 1 (No curtailment allowed)]
+windyCurtFactor = 0;
+hydroCurtFactor = 0;
+otherCurtFactor = 0;
+
+%Increase the Ramp Rate: [1 = yes; 0 = no]
+IncreasedDAMramp = 1; %reduces Steam and CC units ramp rate in DAM
+IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTDramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
+
+%How much should we increase Ramp Rate beyond original mpc.gen input from 
+%"Matpower Input Data" excel file?
+DAMrampFactor = 1.0; %Don't ever change this from 1.0   WHY????????????
+RTCrampFactor_Steam = 1.1;
+RTDrampFactor_Steam = 1.1;
+RTCrampFactor_CC = 1.1;
+RTDrampFactor_CC = 1.1;
+
+%Retire a Nuclear Unit?
+%[ 2 = eliminate one of the GHI nuke plants; 1 = allow all nukes to
+%operate]
+killNuke = 1;
+
+%Should we make mingen(s) even lower? [1 = yes; 0 = no]
+droppit = 0;
+
+%Want to print every RTC result? [1 = yes; 0 = no]
+printRTC = 0;
+
+%Shall we cut the min run time in half? [1 = yes; 0 = no]
+minrunshorter = 0;
+
+%Use average across hour or first instant of the hour for DAM forcast?
+%[1 = average; 0 = first instant]
+useinstant = 0;
+
+%Make DAM committed NUKE & STEAM units 'Must Run' during RTC? [1 = yes; 0 =
+%no]
+mustRun = 1; %This should always be set to 1 for all units.
+
+%Reduce by 100*(1 - undrbidfac) percent to account for underbidding of load
+undrbidfac = 1; %This factor should be between 0 - 1: [1 = no underbidding]
+
+% Determine Number of Periods. I also replaced fivemin_period_count with
+% this variable because it was also hard-coded to 288.
+most_period_count = 288; %%%%% Whis is this hard-coded?????
+
+%Given: Incremental BTM Capacity. Are these for a future case? Are
+%they only for solar?????
+A2F_BTM_inc_cap = 1358;
+GHI_BTM_inc_cap =  793;
+NYC_BTM_inc_cap =  419;
+LIs_BTM_inc_cap = 1069;
+%Given: 2016 BTM Capacity. Are these from NYISO? Are they only for
+%solar?????
+A2F_BTM_2016_cap =  266;
+GHI_BTM_2016_cap =  155;
+NYC_BTM_2016_cap =   82;
+LIs_BTM_2016_cap =  209;
+
+%Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. Where
+%did these come from?????
+A2F_ITM_inc_wind_cap  = 4189;
+GHI_ITM_inc_wind_cap  =    0;
+NYC_ITM_inc_wind_cap  =  408;
+LIs_ITM_inc_wind_cap  =  591;
+
+%Amount of ITM INCREMENTAL hydro Generation Capacity by Zone. Where
+%did these come from?????
+A2F_ITM_inc_hydro_cap =  542;
+GHI_ITM_inc_hydro_cap =   45;
+NYC_ITM_inc_hydro_cap =    0;
+LIs_ITM_inc_hydro_cap =    0;
+
+%Amount of ITM INCREMENTAL Utility-scale PV Generation Capacity by
+%Zone. Where did these come from?????
+A2F_ITM_inc_PV_cap = 3044;
+GHI_ITM_inc_PV_cap =  438;
+NYC_ITM_inc_PV_cap =    0;
+LIs_ITM_inc_PV_cap =  373;
+
+%Amount of ITM INCREMENTAL Bio Generation Capacity by Zone. Where
+%do these come from????? What does "biomass" mean in this context?????
+A2F_ITM_inc_Bio_cap =  122;
+GHI_ITM_inc_Bio_cap =    0;
+NYC_ITM_inc_Bio_cap =    0;
+LIs_ITM_inc_Bio_cap =    0;
+
+%Amount of ITM INCREMENTAL LFG Generation Capacity by Zone. Where
+%did these come from?????
+A2F_ITM_inc_LFG_cap =   13;
+GHI_ITM_inc_LFG_cap =    3;
+NYC_ITM_inc_LFG_cap =   34;
+LIs_ITM_inc_LFG_cap =    3;
 
 %% Run Simulation
 for Case = case_start:case_end
-    for d = d_start: d_end
-        %Is Renewable Curtailable in DAM? (1 = mingen is zero, 0 = mingen is maxgen)
-        windyCurt = 1;
-        hydroCurt = 1;
-        otherCurt = 1;
-        %Reduce mingen from maxgen by a factor of:  (Value between 0 (full curtailment allowed) and 1(No curtailment allowed).
-        windyCurtFactor = 0;
-        hydroCurtFactor = 0;
-        otherCurtFactor = 0;
-        %Increase the Ramp Rate: Yes or No  (1 = yes, 0 = no)
-        IncreasedDAMramp = 1; %reduces Steam and CC units ramp rate in DAM
-        IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-        IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-        IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
-        IncreasedRTDramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
-        %How much should we increase Ramp Rate beyond original mpc.gen input from "Matpower Input Data" excel file
-        DAMrampFactor = 1.0; %Don't ever change this from 1.0   WHY????????????
-        RTCrampFactor_Steam = 1.1;
-        RTDrampFactor_Steam = 1.1;
-        RTCrampFactor_CC = 1.1;
-        RTDrampFactor_CC = 1.1;
-        %Retire a Nuclear Unit?
-        killNuke = 1;  %!!NOTE: '2' will eliminate one of the GHI nuke plants. '1' will allow all nukes to operate
-        %Should we make mingen(s) even lower? (1 = yes, 0 = no)
-        droppit = 0;
-        %Want to print every RTC result? (1 = yes, 0 = no)
-        printRTC = 0;
-        %Shall we cut the min run time in half? (1 = yes, 0 = no)
-        minrunshorter = 0;
-        %Use average across hour or first instant of the hour for DAM forcast? (1 = average, 0 = first instant)
-        useinstant = 0;
-        %Make DAM committed NUKE & STEAM units 'Must Run' during RTC? (1 = yes, 0 = no)
-        mustRun = 1; %This should always be set to 1 for all units.
+    for d = d_start: d_end      
         %% Create Strings
         %Case
         if Case == 0; Case_Name_String = '2016 Base Case'; end
@@ -177,29 +255,29 @@ for Case = case_start:case_end
         day_str = num2str(day_, '%02i');
         datestring = strcat(year_str,month_str,day_str);
         day_str_print = num2str(day_);
-        %% NET LOAD
+        
         %% Get Net Load from OASIS
         %Define the filename
         m_file_loc = '../NYISO Data/ActualLoad5min/';
         %Get data file
         RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
         %Initialize
-        fivemin_period_count = 288;
-        periods = 0:fivemin_period_count-1;
-        BigTime = fivemin_period_count;
+        periods = 0:most_period_count-1;
+        BigTime = most_period_count;
         Time4Graph = linspace(0,24,BigTime);
         %Given: 2016 Net Load (Source: NYISO OASIS)
-        A2F_2016_net_load = (RT_actual_load.M(1 +(periods)*11,2)+... %Zone A
-            RT_actual_load.M(2 +(periods)*11,2)+... %Zone B
-            RT_actual_load.M(4 +(periods)*11,2)+... %Zone C
-            RT_actual_load.M(7 +(periods)*11,2)+... %Zone D
-            RT_actual_load.M(10+(periods)*11,2)+... %Zone E
-            RT_actual_load.M(11+(periods)*11,2));    %Zone F
-        GHI_2016_net_load = (RT_actual_load.M(3 +(periods)*11,2)+... %Zone G
-            RT_actual_load.M(5 +(periods)*11,2)+... %Zone H
-            RT_actual_load.M(8 +(periods)*11,2));    %Zone I
-        NYC_2016_net_load = (RT_actual_load.M(9 +(periods)*11,2));    %Zone J
-        LIs_2016_net_load = (RT_actual_load.M(6 +(periods)*11,2));    %Zone K
+        A2F_2016_net_load = (RT_actual_load.M(1 +(periods)*11,2)+...%Zone A
+            RT_actual_load.M(2 +(periods)*11,2)+...                 %Zone B
+            RT_actual_load.M(4 +(periods)*11,2)+...                 %Zone C
+            RT_actual_load.M(7 +(periods)*11,2)+...                 %Zone D
+            RT_actual_load.M(10+(periods)*11,2)+...                 %Zone E
+            RT_actual_load.M(11+(periods)*11,2));                   %Zone F
+        GHI_2016_net_load = (RT_actual_load.M(3 +(periods)*11,2)+...%Zone G
+            RT_actual_load.M(5 +(periods)*11,2)+...                 %Zone H
+            RT_actual_load.M(8 +(periods)*11,2));                   %Zone I
+        NYC_2016_net_load = (RT_actual_load.M(9 +(periods)*11,2));  %Zone J
+        LIs_2016_net_load = (RT_actual_load.M(6 +(periods)*11,2));  %Zone K
+        
         %% Calculate Regional Load Only
         %Given: Incremental BTM Generation
         BTM = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C18:KD28');
@@ -207,22 +285,13 @@ for Case = case_start:case_end
         GHI_BTM_inc_gen = sum(BTM(7:9,:));
         NYC_BTM_inc_gen = BTM(10,:);
         LIs_BTM_inc_gen = BTM(11,:);
-        %Given: Incremental BTM Capacity. Are these for a future case? Are they only for solar????????????
-        A2F_BTM_inc_cap = 1358;
-        GHI_BTM_inc_cap =  793;
-        NYC_BTM_inc_cap =  419;
-        LIs_BTM_inc_cap = 1069;
-        %Given: 2016 BTM Capacity. Are these from NYISO? Are they only for solar????????????
-        A2F_BTM_2016_cap =  266;
-        GHI_BTM_2016_cap =  155;
-        NYC_BTM_2016_cap =   82;
-        LIs_BTM_2016_cap =  209;
-        %Calculate: Load Only
+        %Calculate: Load Only (i.e., Net Load + BTM Generation)
         A2F_Load_Only = A2F_2016_net_load + A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*A2F_BTM_2016_cap;
         GHI_Load_Only = GHI_2016_net_load + GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*GHI_BTM_2016_cap;
         NYC_Load_Only = NYC_2016_net_load + NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*NYC_BTM_2016_cap;
         LIs_Load_Only = LIs_2016_net_load + LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*LIs_BTM_2016_cap;
         NYCA_TrueLoad = A2F_Load_Only + GHI_Load_Only+ NYC_Load_Only+ LIs_Load_Only;
+        
         %% Calculate Regional BTM Gen
         %Calculate: 2016 BTM Generation
         A2F_2016_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_2016_cap );
@@ -231,16 +300,17 @@ for Case = case_start:case_end
         LIs_2016_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_2016_cap );
         NYCA_2016_BTM_gen = A2F_2016_BTM_gen + GHI_2016_BTM_gen + NYC_2016_BTM_gen + LIs_2016_BTM_gen;
         %INPUT: NEW BTM Capacity (beyond the incremental needed to reach 2030 case)
-        A2F_BTM_CASE_cap = 1358*Case;
-        GHI_BTM_CASE_cap =  793*Case;
-        NYC_BTM_CASE_cap =  419*Case;
-        LIs_BTM_CASE_cap = 1069*Case;
+        A2F_BTM_CASE_cap = A2F_BTM_inc_cap*Case;
+        GHI_BTM_CASE_cap = GHI_BTM_inc_cap*Case;
+        NYC_BTM_CASE_cap = NYC_BTM_inc_cap*Case;
+        LIs_BTM_CASE_cap = LIs_BTM_inc_cap*Case;
         %Calculate: CASE BTM Generation
         A2F_CASE_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_CASE_cap + A2F_BTM_2016_cap );
         GHI_CASE_BTM_gen = GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*(GHI_BTM_CASE_cap + GHI_BTM_2016_cap );
         NYC_CASE_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_CASE_cap + NYC_BTM_2016_cap );
         LIs_CASE_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_CASE_cap + LIs_BTM_2016_cap );
         NYCA_CASE_BTM_gen = A2F_CASE_BTM_gen + GHI_CASE_BTM_gen + NYC_CASE_BTM_gen + LIs_CASE_BTM_gen;
+        
         %% Calculate Regional Net Load
         %CASE Net Load (includes NEW)
         A2F_CASE_net_load = (A2F_Load_Only - A2F_CASE_BTM_gen);
@@ -248,8 +318,7 @@ for Case = case_start:case_end
         NYC_CASE_net_load = (NYC_Load_Only - NYC_CASE_BTM_gen);
         LIs_CASE_net_load = (LIs_Load_Only - LIs_CASE_BTM_gen);
         NYCA_CASE_net_load = A2F_CASE_net_load + GHI_CASE_net_load + NYC_CASE_net_load + LIs_CASE_net_load;
-        %% DETERMINE NUMBER OF PERIODS
-        most_period_count = 288;
+        
         %% Populate Net Load into MOST
         most_busload = zeros(most_period_count,52);
         int_start = 1;
@@ -265,21 +334,23 @@ for Case = case_start:case_end
             i=1:LIs_load_bus_count;
             most_busload(int, LIs_Load_buses(i)) = LIs_CASE_net_load(int)./LIs_load_bus_count;
         end
+        
         %% Modify for DAM (24 periods)
         %Take average of load values in an hour
         most_period_count_DAM = 24;
         most_busload_DAM = zeros(most_period_count_DAM,52);
         int_start_DAM = 1;
         int_stop_DAM = most_period_count_DAM;
-        for int_DAM = int_start_DAM: int_stop_DAM
+        for int_DAM = int_start_DAM:int_stop_DAM
             if useinstant == 1
                 most_busload_DAM(int_DAM,:) = most_busload(int_DAM*12-11,:);
             else
                 most_busload_DAM(int_DAM,:) = mean(most_busload(int_DAM*12-11:int_DAM*12,:));
             end
         end
-        %         %reduce by 10% to account for underbidding of load
-        %             most_busload_DAM = most_busload_DAM.*1;
+        %Reduce by 100*(1 - undrbidfac)% to account for underbidding of load
+        most_busload_DAM = most_busload_DAM.*undrbidfac;
+        
         %% ITM Renewable Generation
         %Gather ITM Generation for INCREMENTAL generation capacity
         wind  = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C34:KD44');
@@ -287,18 +358,14 @@ for Case = case_start:case_end
         PV = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C64:KD74');
         Bio = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C79:KD89');
         LFG   = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C94:KD104');
-        %% Calculate output per single MW
+        
+        %% Calculate output per MW installed capacity
         %WIND
         %ITM Generation for INCREMENTAL generation capacity by Zone
         A2F_INC_ITM_wind_gen = sum(wind(1:6,:));
         GHI_INC_ITM_wind_gen = sum(wind(7:9,:));
         NYC_INC_ITM_wind_gen =     wind(10,:);
         LIs_INC_ITM_wind_gen =     wind(11,:);
-        %Amount of ITM INCREMENTAL Wind Generation Capacity by Zone
-        A2F_ITM_inc_wind_cap  = 4189;
-        GHI_ITM_inc_wind_cap  =    0;
-        NYC_ITM_inc_wind_cap  =  408;
-        LIs_ITM_inc_wind_cap  =  591;
         %Amount of ITM Wind Generation per MW of ICAP by Zone
         A2F_ITM_wind_gen_per_iCAP_MW  = A2F_INC_ITM_wind_gen./A2F_ITM_inc_wind_cap;
         GHI_ITM_wind_gen_per_iCAP_MW  = GHI_INC_ITM_wind_gen./GHI_ITM_inc_wind_cap;
@@ -309,80 +376,64 @@ for Case = case_start:case_end
         GHI_ITM_wind_gen_per_iCAP_MW(isnan(GHI_ITM_wind_gen_per_iCAP_MW))=0;
         NYC_ITM_wind_gen_per_iCAP_MW(isnan(NYC_ITM_wind_gen_per_iCAP_MW))=0;
         LIs_ITM_wind_gen_per_iCAP_MW(isnan(LIs_ITM_wind_gen_per_iCAP_MW))=0;
+        
         %HYDRO
         %ITM Generation for INCREMENTAL generation capacity by Zone
         A2F_INC_ITM_hydro_gen = sum(hydro(1:6,:));
         GHI_INC_ITM_hydro_gen = sum(hydro(7:9,:));
         NYC_INC_ITM_hydro_gen =     hydro(10,:);
         LIs_INC_ITM_hydro_gen =     hydro(11,:);
-        %Amount of ITM INCREMENTAL hydro Generation Capacity by Zone
-        A2F_ITM_CASE_hydro_cap =  542;
-        GHI_ITM_CASE_hydro_cap =   45;
-        NYC_ITM_CASE_hydro_cap =    0;
-        LIs_ITM_CASE_hydro_cap =    0;
         %Amount of ITM Hydro Generation per MW of ICAP by Zone
-        A2F_ITM_hydro_gen_per_iCAP_MW  = A2F_INC_ITM_hydro_gen./A2F_ITM_CASE_hydro_cap;
-        GHI_ITM_hydro_gen_per_iCAP_MW  = GHI_INC_ITM_hydro_gen./GHI_ITM_CASE_hydro_cap;
-        NYC_ITM_hydro_gen_per_iCAP_MW  = NYC_INC_ITM_hydro_gen./NYC_ITM_CASE_hydro_cap;
-        LIs_ITM_hydro_gen_per_iCAP_MW  = LIs_INC_ITM_hydro_gen./LIs_ITM_CASE_hydro_cap;
+        A2F_ITM_hydro_gen_per_iCAP_MW  = A2F_INC_ITM_hydro_gen./A2F_ITM_inc_hydro_cap;
+        GHI_ITM_hydro_gen_per_iCAP_MW  = GHI_INC_ITM_hydro_gen./GHI_ITM_inc_hydro_cap;
+        NYC_ITM_hydro_gen_per_iCAP_MW  = NYC_INC_ITM_hydro_gen./NYC_ITM_inc_hydro_cap;
+        LIs_ITM_hydro_gen_per_iCAP_MW  = LIs_INC_ITM_hydro_gen./LIs_ITM_inc_hydro_cap;
         %Remove NaN's
         A2F_ITM_hydro_gen_per_iCAP_MW(isnan(A2F_ITM_hydro_gen_per_iCAP_MW))=0;
         GHI_ITM_hydro_gen_per_iCAP_MW(isnan(GHI_ITM_hydro_gen_per_iCAP_MW))=0;
         NYC_ITM_hydro_gen_per_iCAP_MW(isnan(NYC_ITM_hydro_gen_per_iCAP_MW))=0;
         LIs_ITM_hydro_gen_per_iCAP_MW(isnan(LIs_ITM_hydro_gen_per_iCAP_MW))=0;
-        %PV
+        
+        %Utility-Scale PV
         %ITM Generation for INCREMENTAL generation capacity by Zone
         A2F_INC_ITM_PV_gen = sum(PV(1:6,:));
         GHI_INC_ITM_PV_gen = sum(PV(7:9,:));
         NYC_INC_ITM_PV_gen =     PV(10,:);
         LIs_INC_ITM_PV_gen =     PV(11,:);
-        %Amount of ITM INCREMENTAL PV Generation Capacity by Zone
-        A2F_ITM_CASE_PV_cap = 3044;
-        GHI_ITM_CASE_PV_cap =  438;
-        NYC_ITM_CASE_PV_cap =    0;
-        LIs_ITM_CASE_PV_cap =  373;
         %Amount of ITM PV Generation per MW of ICAP by Zone
-        A2F_ITM_PV_gen_per_iCAP_MW  = A2F_INC_ITM_PV_gen./A2F_ITM_CASE_PV_cap;
-        GHI_ITM_PV_gen_per_iCAP_MW  = GHI_INC_ITM_PV_gen./GHI_ITM_CASE_PV_cap;
-        NYC_ITM_PV_gen_per_iCAP_MW  = NYC_INC_ITM_PV_gen./NYC_ITM_CASE_PV_cap;
-        LIs_ITM_PV_gen_per_iCAP_MW  = LIs_INC_ITM_PV_gen./LIs_ITM_CASE_PV_cap;
+        A2F_ITM_PV_gen_per_iCAP_MW  = A2F_INC_ITM_PV_gen./A2F_ITM_inc_PV_cap;
+        GHI_ITM_PV_gen_per_iCAP_MW  = GHI_INC_ITM_PV_gen./GHI_ITM_inc_PV_cap;
+        NYC_ITM_PV_gen_per_iCAP_MW  = NYC_INC_ITM_PV_gen./NYC_ITM_inc_PV_cap;
+        LIs_ITM_PV_gen_per_iCAP_MW  = LIs_INC_ITM_PV_gen./LIs_ITM_inc_PV_cap;
         %Remove NaN's
         A2F_ITM_PV_gen_per_iCAP_MW(isnan(A2F_ITM_PV_gen_per_iCAP_MW))=0;
         GHI_ITM_PV_gen_per_iCAP_MW(isnan(GHI_ITM_PV_gen_per_iCAP_MW))=0;
         NYC_ITM_PV_gen_per_iCAP_MW(isnan(NYC_ITM_PV_gen_per_iCAP_MW))=0;
         LIs_ITM_PV_gen_per_iCAP_MW(isnan(LIs_ITM_PV_gen_per_iCAP_MW))=0;
-        %Bio Mass
+        
+        %BIOMASS
         %ITM Generation for INCREMENTAL generation capacity by Zone
         A2F_INC_ITM_Bio_gen = sum(Bio(1:6,:));
         GHI_INC_ITM_Bio_gen = sum(Bio(7:9,:));
         NYC_INC_ITM_Bio_gen =     Bio(10,:);
         LIs_INC_ITM_Bio_gen =     Bio(11,:);
-        %Amount of ITM INCREMENTAL Bio Generation Capacity by Zone
-        A2F_ITM_CASE_Bio_cap =  122;
-        GHI_ITM_CASE_Bio_cap =    0;
-        NYC_ITM_CASE_Bio_cap =    0;
-        LIs_ITM_CASE_Bio_cap =    0;
         %Amount of ITM Bio Generation per MW of ICAP by Zone
-        A2F_ITM_Bio_gen_per_iCAP_MW  = A2F_INC_ITM_Bio_gen./A2F_ITM_CASE_Bio_cap;
-        GHI_ITM_Bio_gen_per_iCAP_MW  = GHI_INC_ITM_Bio_gen./GHI_ITM_CASE_Bio_cap;
-        NYC_ITM_Bio_gen_per_iCAP_MW  = NYC_INC_ITM_Bio_gen./NYC_ITM_CASE_Bio_cap;
-        LIs_ITM_Bio_gen_per_iCAP_MW  = LIs_INC_ITM_Bio_gen./LIs_ITM_CASE_Bio_cap;
+        A2F_ITM_Bio_gen_per_iCAP_MW  = A2F_INC_ITM_Bio_gen./A2F_ITM_inc_Bio_cap;
+        GHI_ITM_Bio_gen_per_iCAP_MW  = GHI_INC_ITM_Bio_gen./GHI_ITM_inc_Bio_cap;
+        NYC_ITM_Bio_gen_per_iCAP_MW  = NYC_INC_ITM_Bio_gen./NYC_ITM_inc_Bio_cap;
+        LIs_ITM_Bio_gen_per_iCAP_MW  = LIs_INC_ITM_Bio_gen./LIs_ITM_inc_Bio_cap;
         %Remove NaN's
         A2F_ITM_Bio_gen_per_iCAP_MW(isnan(A2F_ITM_Bio_gen_per_iCAP_MW))=0;
         GHI_ITM_Bio_gen_per_iCAP_MW(isnan(GHI_ITM_Bio_gen_per_iCAP_MW))=0;
         NYC_ITM_Bio_gen_per_iCAP_MW(isnan(NYC_ITM_Bio_gen_per_iCAP_MW))=0;
         LIs_ITM_Bio_gen_per_iCAP_MW(isnan(LIs_ITM_Bio_gen_per_iCAP_MW))=0;
-        %LFG
+        
+        %Landfill Gas (LFG)
         %ITM Generation for INCREMENTAL generation capacity by Zone
         A2F_INC_ITM_LFG_gen = sum(LFG(1:6,:));
         GHI_INC_ITM_LFG_gen = sum(LFG(7:9,:));
         NYC_INC_ITM_LFG_gen =     LFG(10,:);
         LIs_INC_ITM_LFG_gen =     LFG(11,:);
-        %Amount of ITM INCREMENTAL LFG Generation Capacity by Zone
-        A2F_ITM_inc_LFG_cap =   13;
-        GHI_ITM_inc_LFG_cap =    3;
-        NYC_ITM_inc_LFG_cap =   34;
-        LIs_ITM_inc_LFG_cap =    3;
         %Amount of ITM LFG Generation per MW of ICAP by Zone
         A2F_ITM_LFG_gen_per_iCAP_MW  = A2F_INC_ITM_LFG_gen./A2F_ITM_inc_LFG_cap;
         GHI_ITM_LFG_gen_per_iCAP_MW  = GHI_INC_ITM_LFG_gen./GHI_ITM_inc_LFG_cap;
@@ -393,33 +444,35 @@ for Case = case_start:case_end
         GHI_ITM_LFG_gen_per_iCAP_MW(isnan(GHI_ITM_LFG_gen_per_iCAP_MW))=0;
         NYC_ITM_LFG_gen_per_iCAP_MW(isnan(NYC_ITM_LFG_gen_per_iCAP_MW))=0;
         LIs_ITM_LFG_gen_per_iCAP_MW(isnan(LIs_ITM_LFG_gen_per_iCAP_MW))=0;
+        
         %% Incremental Generation
-        %% Calculate ITM Capacity under current Case
-        A2F_ITM_CASE_wind_cap  = Case*4189;
-        GHI_ITM_CASE_wind_cap  = Case*   0;
-        NYC_ITM_CASE_wind_cap  = Case* 408;
-        LIs_ITM_CASE_wind_cap  = Case* 591;
+        % Calculate ITM Capacity under current Case
+        A2F_ITM_CASE_wind_cap  = Case*A2F_ITM_inc_wind_cap;
+        GHI_ITM_CASE_wind_cap  = Case*GHI_ITM_inc_wind_cap;
+        NYC_ITM_CASE_wind_cap  = Case*NYC_ITM_inc_wind_cap;
+        LIs_ITM_CASE_wind_cap  = Case*LIs_ITM_inc_wind_cap;
         
-        A2F_ITM_CASE_hydro_cap = Case* 542;
-        GHI_ITM_CASE_hydro_cap = Case*  45;
-        NYC_ITM_CASE_hydro_cap = Case*   0;
-        LIs_ITM_CASE_hydro_cap = Case*   0;
+        A2F_ITM_CASE_hydro_cap = Case*A2F_ITM_inc_hydro_cap;
+        GHI_ITM_CASE_hydro_cap = Case*GHI_ITM_inc_hydro_cap;
+        NYC_ITM_CASE_hydro_cap = Case*NYC_ITM_inc_hydro_cap;
+        LIs_ITM_CASE_hydro_cap = Case*LIs_ITM_inc_hydro_cap;
         
-        A2F_ITM_CASE_PV_cap    = Case*3044;
-        GHI_ITM_CASE_PV_cap    = Case* 438;
-        NYC_ITM_CASE_PV_cap    = Case*   0;
-        LIs_ITM_CASE_PV_cap    = Case* 373;
+        A2F_ITM_CASE_PV_cap    = Case*A2F_ITM_inc_PV_cap;
+        GHI_ITM_CASE_PV_cap    = Case*GHI_ITM_inc_PV_cap;
+        NYC_ITM_CASE_PV_cap    = Case*NYC_ITM_inc_PV_cap;
+        LIs_ITM_CASE_PV_cap    = Case*LIs_ITM_inc_PV_cap;
         
-        A2F_ITM_CASE_Bio_cap   = Case* 122;
-        GHI_ITM_CASE_Bio_cap   = Case*   0;
-        NYC_ITM_CASE_Bio_cap   = Case*   0;
-        LIs_ITM_CASE_Bio_cap   = Case*   0;
+        A2F_ITM_CASE_Bio_cap   = Case*A2F_ITM_inc_Bio_cap;
+        GHI_ITM_CASE_Bio_cap   = Case*GHI_ITM_inc_Bio_cap;
+        NYC_ITM_CASE_Bio_cap   = Case*NYC_ITM_inc_Bio_cap;
+        LIs_ITM_CASE_Bio_cap   = Case*LIs_ITM_inc_Bio_cap;
         
-        A2F_ITM_CASE_LFG_cap   = Case*  13;
-        GHI_ITM_CASE_LFG_cap   = Case*   3;
-        NYC_ITM_CASE_LFG_cap   = Case*  34;
-        LIs_ITM_CASE_LFG_cap   = Case*   3;
-        %% Calculate ITM Output profile under current Case
+        A2F_ITM_CASE_LFG_cap   = Case*A2F_ITM_inc_LFG_cap;
+        GHI_ITM_CASE_LFG_cap   = Case*GHI_ITM_inc_LFG_cap;
+        NYC_ITM_CASE_LFG_cap   = Case*NYC_ITM_inc_LFG_cap;
+        LIs_ITM_CASE_LFG_cap   = Case*LIs_ITM_inc_LFG_cap;
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Calculate ITM Output profile under current Case
         A2F_ITM_CASE_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_ITM_CASE_wind_cap;
         A2F_ITM_CASE_hydro_Gen = A2F_ITM_hydro_gen_per_iCAP_MW .*A2F_ITM_CASE_hydro_cap;
         A2F_ITM_CASE_other_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_ITM_CASE_PV_cap + ...
@@ -449,6 +502,7 @@ for Case = case_start:case_end
         LIs_ITM_CASE_Gen = LIs_ITM_CASE_windy_Gen + LIs_ITM_CASE_hydro_Gen + LIs_ITM_CASE_other_Gen;
         
         Tot_ITM_CASE_Gen = A2F_ITM_CASE_Gen + GHI_ITM_CASE_Gen + NYC_ITM_CASE_Gen + LIs_ITM_CASE_Gen;
+        
         %% 2016 Generation
         %Existing renewable capacity in A2F (other locations ignored due  to low penetration
         A2F_2016_ITM_wind_ICAP  = 1755;
@@ -1898,7 +1952,7 @@ for Case = case_start:case_end
             ylabel('Real Power (MW)')
             axis([0.5,24.5,0,1000]);
             axis 'auto y';
-            A3 = legend('A2F','GHI','NYC','LIs')
+            A3 = legend('A2F','GHI','NYC','LIs');
             reorderLegendbar([1 2 3 4])
             rect = [.8, 0.25, 0.15, .35]; %[left bottom width height]
             set(A3, 'Position', rect)
@@ -1907,21 +1961,21 @@ for Case = case_start:case_end
             %                 set(gca, 'YTick', [0 250 500 1000])
             xlabel('Time (hours)')
             grid on; grid minor; box on; hold off
-            %% Save to a word file
-            %             if ispc
-            %                 % Capture current figure/model into clipboard:
-            %                       matlab.graphics.internal.copyFigureHelper(hFigE)
-            %                 % Find end of document and make it the insertion point:
-            %                     end_of_doc = get(word.activedocument.content,'end');
-            %                     set(word.application.selection,'Start',end_of_doc);
-            %                     set(word.application.selection,'End',end_of_doc);
-            %                 % Paste the contents of the Clipboard:
-            %                     invoke(word.Selection,'Paste');
-            %             else
-            %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            %                 print(hFigE, '-dpdf','-bestfit', filestr)
-            %                 fig_cnt = fig_cnt + 1;
-            %             end
+            %% Save to an output file
+            if ispc
+                % Capture current figure/model into clipboard:
+                matlab.graphics.internal.copyFigureHelper(hFigE)
+                % Find end of document and make it the insertion point:
+                end_of_doc = get(word.activedocument.content,'end');
+                set(word.application.selection,'Start',end_of_doc);
+                set(word.application.selection,'End',end_of_doc);
+                % Paste the contents of the Clipboard:
+                invoke(word.Selection,'Paste');
+            else
+                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+                print(hFigE, '-dpdf','-bestfit', filestr)
+                fig_cnt = fig_cnt + 1;
+            end
             close all
             
         end
@@ -2011,22 +2065,22 @@ for Case = case_start:case_end
             xlabel('Time (hours)')
             ylabel('Real Power (MW)')
             grid on; grid minor; box on; hold off
-            %% Save to a word file
-            %             if ispc
-            %                 % Capture current figure/model into clipboard:
-            %                       matlab.graphics.internal.copyFigureHelper(hFigE)
-            %                 % Find end of document and make it the insertion point:
-            %                     end_of_doc = get(word.activedocument.content,'end');
-            %                     set(word.application.selection,'Start',end_of_doc);
-            %                     set(word.application.selection,'End',end_of_doc);
-            %                 % Paste the contents of the Clipboard:
-            %                     invoke(word.Selection,'Paste');
-            %             else
-            %                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            %                     print(hFigE, '-dpdf','-bestfit', filestr)
-            %                     fig_cnt = fig_cnt + 1;
-            %             end
-            %             close all
+            %% Save to an output file
+            if ispc
+                % Capture current figure/model into clipboard:
+                matlab.graphics.internal.copyFigureHelper(hFigE)
+                % Find end of document and make it the insertion point:
+                end_of_doc = get(word.activedocument.content,'end');
+                set(word.application.selection,'Start',end_of_doc);
+                set(word.application.selection,'End',end_of_doc);
+                % Paste the contents of the Clipboard:
+                invoke(word.Selection,'Paste');
+            else
+                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+                print(hFigE, '-dpdf','-bestfit', filestr)
+                fig_cnt = fig_cnt + 1;
+            end
+            close all
         end
         
         %% Debug MW and LMP values
@@ -2045,7 +2099,9 @@ for Case = case_start:case_end
             end
         end
         %Calculate Error
-        DAM_MW_error = DAM_MW_Load - DAM_MW_Gen
+        DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
+        disp('The mismatch (in MW) between day-ahead load and gen is:')
+        disp(DAM_MW_error)
         
         %% Real Time
         dubugIfNeeded = 1;
@@ -4417,7 +4473,7 @@ for Case = case_start:case_end
             xlabel('Time (Hour Beginning)')
             ylabel('Real Power (MW)')
             grid on; grid minor; box on; hold off
-            %% Save to a word file
+            %% Save to an output file
             if ispc
                 % Capture current figure/model into clipboard:
                 matlab.graphics.internal.copyFigureHelper(hFigE)
