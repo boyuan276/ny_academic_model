@@ -1,16 +1,14 @@
 %% Changes
 %This is the working file from MarketModel. You MUST run this file from the
-%current working directory (ny_marketmodel/Model_Code).
+%current working directory (ny_marketmodel/Model_Code). You must have
+%Matpower, MOST, and GUROBI installed where Matlab can find them. 
 
 
 %% Known Issues
 
-<<<<<<< HEAD
 %%%%% One major change that I should make to this model in the near term is
 %%%%% the separation of solar from "Other" given how much of our work is
 %%%%% centered around solar. 
-=======
->>>>>>> path_compat
 
 %% Setup
 % Start from a Clean Slate
@@ -25,36 +23,12 @@ addpath(genpath(path_5minLoad))
 %Create a path to the Renewable Data
 path_ren = '../NYISO Data/renewableData';
 addpath(genpath(path_ren))
-%Create a path to the Matpower application
-%         path_Matpower = 'C:\Users\steph\Documents\SMB\RPI\NYISO\MatPower';
-%         addpath(genpath(path_Matpower))
-%Create a path to the MOST application
-%         path_MOST = 'C:\Users\steph\Documents\SMB\RPI\NYISO\MatPower\most';
-%         addpath(genpath(path_MOST))
-%Create a path to GUROBI
-%         path_Gurobi = 'C:\gurobi751\win64\matlab';
-%         addpath(genpath(path_Gurobi))
-%Create paths for this file and its subfunctions
-<<<<<<< HEAD
-% path_this_file = './Matlab Files';
-% addpath(genpath(path_this_file))
-%Create paths for this file
-% path_fxns = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Matlab Files/Functions';
-% addpath(genpath(path_fxns))
-%Create paths for Data Files
-% path_data = './Program_Files';
-% addpath(genpath(path_data))
-=======
-% path_this_file = '/Users/swardy9230/Box Sync/01_Research/01_Electricity_System/New_York_Academic_Model/Model_Code';
-% addpath(genpath(path_this_file))
 %Create paths for supporting functions
 path_fxns = './Functions';
 addpath(genpath(path_fxns))
 %Create paths for Data Files
 path_data = './Program_Files';
 addpath(genpath(path_data))
-%% Font Size for publishing
->>>>>>> path_compat
 
 %% Font Size for publishing
 set(0,'DefaultAxesFontSize',14)
@@ -136,11 +110,7 @@ ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 case_start = 0;
 case_end   = 0;
 %Interface Flow Limits Enforced?
-<<<<<<< HEAD
-IFlims = 0; %"1" is on, "0" is off. 
-=======
 IFlims = 0; %"1" is on, "0" is off.
->>>>>>> path_compat
 printCurt = 1;
 %Pick number of RTC points.
 %%%%% I should ask Steve about the number of RTC points. I.e., he says they
@@ -210,11 +180,7 @@ for Case = case_start:case_end
         %% NET LOAD
         %% Get Net Load from OASIS
         %Define the filename
-<<<<<<< HEAD
-        m_file_loc =     '../NYISO Data/ActualLoad5min/';
-=======
         m_file_loc = '../NYISO Data/ActualLoad5min/';
->>>>>>> path_compat
         %Get data file
         RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
         %Initialize
@@ -1371,7 +1337,7 @@ for Case = case_start:case_end
         %             text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
         %                 'center', 'VerticalAlignment', 'top')
         %% Save to a word file
-        outfile = ['Outfile.',date];
+        outfile = ['../../MarketModel_Output/Outfile.',date];
         %If this is the first loop through the iteration, open a new document
         if and(Case == case_start, d == d_start)
             if ispc
@@ -1387,7 +1353,7 @@ for Case = case_start:case_end
             else
                 fig_cnt = 1;
                 filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                print(hFigA, '-dpdf',-bestfit, filestr)
+                print(hFigA, '-dpdf','-bestfit', filestr)
                 fig_cnt = fig_cnt + 1;
             end
             %Otherwise grab the existing word or ps document and paste in there.
@@ -4690,7 +4656,8 @@ for Case = case_start:case_end
 end
 toc
 
-save RunData AllRunsSummary CC_results DAMresults%"load temp" then line above in 'try'
+resultsfilestr = ['../../MarketModel_Output/',datestring,'RunData.mat'];
+save(resultsfilestr, 'AllRunsSummary', 'CC_results', 'DAMresults') %"load temp" then line above in 'try'
 
 
 
