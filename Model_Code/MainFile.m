@@ -1,14 +1,17 @@
-%% Changes
+%% How to Use This Script
 %This is the working file from MarketModel. You MUST run this file from the
 %current working directory (ny_marketmodel/Model_Code). You must have
 %Matpower, MOST, and GUROBI installed where Matlab can find them. 
 
 
-%% Known Issues
+%% Known Issues/Upcomming Changes
 
 %%%%% One major change that I should make to this model in the near term is
 %%%%% the separation of solar from "Other" given how much of our work is
 %%%%% centered around solar. 
+
+%%%%% Need to use the variables defined in Matpower to get data from
+%%%%% structures. Right now, the column numbers are hard-coded.
 
 %% Setup
 % Start from a Clean Slate
@@ -16,6 +19,7 @@ clear
 close all
 clc
 tic
+
 %% Add Paths
 %Create a path to the 5 minute NYISO Load Data Stock
 path_5minLoad = '../NYISO Data/ActualLoad5min';
@@ -36,8 +40,116 @@ set(0,'DefaultTextFontSize',14)
 set(0,'DefaultLineLinewidth',1)
 disp('changing font sizes to 14 and line width = 1.5')
 
+%% Set Simulation Control Parameters
+%%%%% I need to brainstorm how to expand this section to make it more date
+%%%%% flexible. I don't want the dates to be hard coded into the section. 
+%%%%% If anything I want the program to determine which dates are being fed  
+%%%%% to it and run based upon these input dates... 
+
+% Pick Date Range
+d_start = 1;
+d_end   = 1;
+date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
+ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
+
+% Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
+%%%%% I need to figure out what exactly went into developing the 2030 case.
+%%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
+%%%%% numbered variables the way to go on these cases????? 
+case_start = 0;
+case_end   = 0;
+
+% Interface Flow Limits Enforced?
+IFlims = 0; %%[1 = yes; 0 = no]
+
+% Plot curtailment and Central-East interface flow? 
+printCurt = 1; %[1 = yes; 0 = no]
+
+% Pick number of RTC periods.
+%%%%% I should ask Steve about the number of RTC periods. I.e. he says they
+%%%%% should be divislble by 3 and 12 below, but he has the number set to
+%%%%% 30. Also, how does this translate into 260 RT_int?????
+RTC_periods = 30; %should be divisible by 3 and 12.
+RTC_hrs = RTC_periods/12;
+
+% Renewable Energy Credit (REC) Cost
+%%%%% Should add a separate REC for Wind and Solar.
+REC_Cost =  0; %set to negative number ($-5/MWh) for Renewable Energy Credit
+REC_wind = 0; %%%%% this variable doesn't do anything yet
+REC_solar = 0; %%%%% this variable doesn't do anything yet
+REC_hydro = 0;
+
+% Include renewables in the opweraional cost? [1 = yes; 0 = no]
+RenInOpCost = 0;
+
+% Electric Vehicle (EVSE) Load?
+EVSE = 0; %[1 = ON; 0 = OFF]
+EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
+
+% Is Renewable Curtailable in DAM? 
+% [1 = mingen is zero; 0 = mingen is maxgen]
+windyCurt = 1;
+hydroCurt = 1;
+otherCurt = 1;
+
+% Reduce mingen from maxgen by a factor
+% [Value between 0 (full curtailment allowed) and 1 (No curtailment allowed)]
+windyCurtFactor = 0;
+hydroCurtFactor = 0;
+otherCurtFactor = 0;
+
+% Increase the Ramp Rate: [1 = yes; 0 = no]
+IncreasedDAMramp = 1; %reduces Steam and CC units ramp rate in DAM
+IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedRTDramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
+
+% How much should we increase Ramp Rate beyond original mpc.gen input from 
+% "Matpower Input Data" excel file?
+DAMrampFactor = 1.0; %Don't ever change this from 1.0   WHY?????
+RTCrampFactor_Steam = 1.1;
+RTDrampFactor_Steam = 1.1;
+RTCrampFactor_CC = 1.1;
+RTDrampFactor_CC = 1.1;
+
+% Retire a Nuclear Unit?
+% [ 2 = eliminate one of the GHI nuke plants; 1 = allow all nukes to
+% operate]
+killNuke = 1;
+
+% Should we make mingen(s) even lower? [1 = yes; 0 = no]
+droppit = 0;
+
+% Want to print every RTC result? [1 = yes; 0 = no]
+printRTC = 0;
+
+% Want to compare using values from the first 5min period vs the average
+% hourly generation period for renewables? [1 = yes; 0 = no] !!!!!
+Avg5mingencompare = 0;
+
+% Shall we cut the min run time in half? [1 = yes; 0 = no]
+minrunshorter = 0;
+
+% Use average across hour or first instant of the hour for DAM forcast?
+% [1 = average; 0 = first instant]
+useinstant = 0;
+
+% Make DAM committed NUKE & STEAM units 'Must Run' during RTC? [1 = yes;
+% 0 =no]
+mustRun = 1; %This should always be set to 1 for all units.
+
+% Reduce by 100*(1 - undrbidfac) percent to account for underbidding of 
+% load. This factor should be between 0 - 1: [1 = no underbidding]
+undrbidfac = 1; 
+
+% Determine Number of Periods. I also replaced fivemin_period_count with
+% this variable because it was also hard-coded to 288.
+most_period_count = 288; %%%%% Whis is this hard-coded?????
+
 %% Define Initial Variables
-%Define Load Buses by zone
+% Define Load Buses by zone
+
 %     A2F_Load_buses = [1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
 %     GHI_Load_buses = [3 4 7 8 25];
 %     NYC_Load_buses = [12 15 16 18 20 27];
@@ -55,7 +167,7 @@ GHI_load_bus_count = length(GHI_Load_buses);
 NYC_load_bus_count = length(NYC_Load_buses);
 LIs_load_bus_count = length(LIs_Load_buses);
 
-%Define Gen Buses by zone
+% Define Gen Buses by zone
 %   A2F_Gen_buses = [62; 63; 64; 65; 66; 67; 68;]; %removed gen at bus 62 for ref bus and bus 63 for no ITM in base case
 A2F_Gen_buses = [        64; 65; 66; 67; 68;];
 GHI_Gen_buses = [53; 54; 60;];
@@ -73,7 +185,7 @@ RTD_Gen_Storage = zeros(59,288);
 RTD_RenGen_Max_Storage = zeros(45,288);
 RTD_RenGen_Min_Storage = zeros(45,288);
 
-%% Add Transmission Interface Limits
+% Add Transmission Interface Limits
 map_Array  = [  1 -16;...
     1   1;...
     2 -16;...
@@ -92,151 +204,74 @@ lims_Array   = [1 -2700 2700;...
     3 -9000 9000;...
     4 -9000 9000;];
 
-%% Set Simulation Control Parameters
-%%%%% I need to brainstorm how to expand this section to make it more date
-%%%%% flexible. I don't want the dates to be hard coded into the section. 
-%%%%% If anything I want the program to determine which dates are being fed  
-%%%%% to it and run based upon these input dates... 
-
-%Pick Date Range
-d_start = 1;
-d_end   = 1;
-date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
-ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
-%Pick Case    %0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
-%%%%% I need to figure out what exactly went into developing the 2030 case.
-%%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
-%%%%% numbered variables the way to go on these cases????? 
-case_start = 0;
-case_end   = 0;
-
-%Interface Flow Limits Enforced?
-IFlims = 0; %%[1 = yes; 0 = no]
-
-%Plot curtailment and Central-East interface flow? 
-printCurt = 1; %[1 = yes; 0 = no]
-
-%Pick number of RTC periods.
-%%%%% I should ask Steve about the number of RTC periods. I.e. he says they
-%%%%% should be divislble by 3 and 12 below, but he has the number set to
-%%%%% 30. Also, how does this translate into 260 RT_int?????
-RTC_periods = 30; %should be divisible by 3 and 12.
-RTC_hrs = RTC_periods/12;
-
-%REC Cost
-%%%%% Should I add a separate REC for Wind and Solar?????
-REC_Cost =  0; %set to negative number ($-5/MWh) for Renewable Energy Credit
-REC_hydro = 0;
-RenInOpCost = 0;
-
-%EVSE Load? %%%%% What is this?????
-EVSE = 0; %[1 = ON; 0 = OFF]
-EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
-
-%Is Renewable Curtailable in DAM? 
-%[1 = mingen is zero; 0 = mingen is maxgen]
-windyCurt = 1;
-hydroCurt = 1;
-otherCurt = 1;
-
-%Reduce mingen from maxgen by a factor
-%[Value between 0 (full curtailment allowed) and 1 (No curtailment allowed)]
-windyCurtFactor = 0;
-hydroCurtFactor = 0;
-otherCurtFactor = 0;
-
-%Increase the Ramp Rate: [1 = yes; 0 = no]
-IncreasedDAMramp = 1; %reduces Steam and CC units ramp rate in DAM
-IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTDramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
-
-%How much should we increase Ramp Rate beyond original mpc.gen input from 
-%"Matpower Input Data" excel file?
-DAMrampFactor = 1.0; %Don't ever change this from 1.0   WHY????????????
-RTCrampFactor_Steam = 1.1;
-RTDrampFactor_Steam = 1.1;
-RTCrampFactor_CC = 1.1;
-RTDrampFactor_CC = 1.1;
-
-%Retire a Nuclear Unit?
-%[ 2 = eliminate one of the GHI nuke plants; 1 = allow all nukes to
-%operate]
-killNuke = 1;
-
-%Should we make mingen(s) even lower? [1 = yes; 0 = no]
-droppit = 0;
-
-%Want to print every RTC result? [1 = yes; 0 = no]
-printRTC = 0;
-
-%Shall we cut the min run time in half? [1 = yes; 0 = no]
-minrunshorter = 0;
-
-%Use average across hour or first instant of the hour for DAM forcast?
-%[1 = average; 0 = first instant]
-useinstant = 0;
-
-%Make DAM committed NUKE & STEAM units 'Must Run' during RTC? [1 = yes; 0 =
-%no]
-mustRun = 1; %This should always be set to 1 for all units.
-
-%Reduce by 100*(1 - undrbidfac) percent to account for underbidding of load
-undrbidfac = 1; %This factor should be between 0 - 1: [1 = no underbidding]
-
-% Determine Number of Periods. I also replaced fivemin_period_count with
-% this variable because it was also hard-coded to 288.
-most_period_count = 288; %%%%% Whis is this hard-coded?????
-
-%Given: Incremental BTM Capacity. Are these for a future case? Are
-%they only for solar?????
+% Given: Incremental BTM Capacity. Are these for a future case? Are
+% they only for solar?????
 A2F_BTM_inc_cap = 1358;
 GHI_BTM_inc_cap =  793;
 NYC_BTM_inc_cap =  419;
 LIs_BTM_inc_cap = 1069;
-%Given: 2016 BTM Capacity. Are these from NYISO? Are they only for
-%solar?????
+
+% Given: 2016 BTM Capacity. Are these from NYISO? Are they only for
+% solar?????
 A2F_BTM_2016_cap =  266;
 GHI_BTM_2016_cap =  155;
 NYC_BTM_2016_cap =   82;
 LIs_BTM_2016_cap =  209;
 
-%Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. Where
-%did these come from?????
+% Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. Where
+% did these come from?????
 A2F_ITM_inc_wind_cap  = 4189;
 GHI_ITM_inc_wind_cap  =    0;
 NYC_ITM_inc_wind_cap  =  408;
 LIs_ITM_inc_wind_cap  =  591;
 
-%Amount of ITM INCREMENTAL hydro Generation Capacity by Zone. Where
-%did these come from?????
+% Amount of ITM INCREMENTAL hydro Generation Capacity by Zone. Where
+% did these come from?????
 A2F_ITM_inc_hydro_cap =  542;
 GHI_ITM_inc_hydro_cap =   45;
 NYC_ITM_inc_hydro_cap =    0;
 LIs_ITM_inc_hydro_cap =    0;
 
-%Amount of ITM INCREMENTAL Utility-scale PV Generation Capacity by
-%Zone. Where did these come from?????
+% Amount of ITM INCREMENTAL Utility-scale PV Generation Capacity by
+% Zone. Where did these come from?????
 A2F_ITM_inc_PV_cap = 3044;
 GHI_ITM_inc_PV_cap =  438;
 NYC_ITM_inc_PV_cap =    0;
 LIs_ITM_inc_PV_cap =  373;
 
-%Amount of ITM INCREMENTAL Bio Generation Capacity by Zone. Where
-%do these come from????? What does "biomass" mean in this context?????
+% Amount of ITM INCREMENTAL Bio Generation Capacity by Zone. Where
+% do these come from????? What does "biomass" mean in this context?????
 A2F_ITM_inc_Bio_cap =  122;
 GHI_ITM_inc_Bio_cap =    0;
 NYC_ITM_inc_Bio_cap =    0;
 LIs_ITM_inc_Bio_cap =    0;
 
-%Amount of ITM INCREMENTAL LFG Generation Capacity by Zone. Where
-%did these come from?????
+% Amount of ITM INCREMENTAL LFG Generation Capacity by Zone. Where
+% did these come from?????
 A2F_ITM_inc_LFG_cap =   13;
 GHI_ITM_inc_LFG_cap =    3;
 NYC_ITM_inc_LFG_cap =   34;
 LIs_ITM_inc_LFG_cap =    3;
 
+% Existing renewable capacity in A2F (other locations ignored due  to low penetration
+A2F_2016_ITM_wind_ICAP  = 1755;
+A2F_2016_ITM_hydro_ICAP = 5219;
+A2F_2016_ITM_PV_ICAP    =    0;
+A2F_2016_ITM_Bio_ICAP   =  148;
+A2F_2016_ITM_LFG_ICAP   =  126;
+
+% Get EVSE Load Data (MWh total for the Day)
+% Electric Vehicle Energy Usage Forecast (2018 Gold Book) in GWh
+                %A   B   C   D   E   F   G   H   I   J   K
+EVSE_Gold_MWh = [3   5   4   0   2   5   6   3   5   13  23;     %2016
+    154 183 180 12  99  206 230 100 150 520 781;]./365.*EVSEfactor;   %2030
+
+% Total Increase in Coincident Winter Peak Demand by Zone in MW (Use winter as its worse than summer)
+                %A   B   C   D   E   F   G   H   I   J   K
+EVSE_Gold_MW  = [1   1   1   0   1   1   2   1   1   4   7;       %2016
+    30 36  35  2   19  40  45  20  29  101 153;].*EVSEfactor;    %2030
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Run Simulation
 for Case = case_start:case_end
     for d = d_start: d_end      
@@ -471,52 +506,47 @@ for Case = case_start:case_end
         GHI_ITM_CASE_LFG_cap   = Case*GHI_ITM_inc_LFG_cap;
         NYC_ITM_CASE_LFG_cap   = Case*NYC_ITM_inc_LFG_cap;
         LIs_ITM_CASE_LFG_cap   = Case*LIs_ITM_inc_LFG_cap;
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         % Calculate ITM Output profile under current Case
         A2F_ITM_CASE_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_ITM_CASE_wind_cap;
         A2F_ITM_CASE_hydro_Gen = A2F_ITM_hydro_gen_per_iCAP_MW .*A2F_ITM_CASE_hydro_cap;
         A2F_ITM_CASE_other_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_ITM_CASE_PV_cap + ...
             A2F_ITM_Bio_gen_per_iCAP_MW   .*A2F_ITM_CASE_Bio_cap + ...
-            A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_ITM_CASE_LFG_cap;
+            A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_ITM_CASE_LFG_cap; %%%%%
         A2F_ITM_CASE_Gen = A2F_ITM_CASE_windy_Gen + A2F_ITM_CASE_hydro_Gen + A2F_ITM_CASE_other_Gen;
         
         GHI_ITM_CASE_windy_Gen = GHI_ITM_wind_gen_per_iCAP_MW  .*GHI_ITM_CASE_wind_cap;
         GHI_ITM_CASE_hydro_Gen = GHI_ITM_hydro_gen_per_iCAP_MW .*GHI_ITM_CASE_hydro_cap;
         GHI_ITM_CASE_other_Gen = GHI_ITM_PV_gen_per_iCAP_MW    .*GHI_ITM_CASE_PV_cap + ...
             GHI_ITM_Bio_gen_per_iCAP_MW   .*GHI_ITM_CASE_Bio_cap + ...
-            GHI_ITM_LFG_gen_per_iCAP_MW   .*GHI_ITM_CASE_LFG_cap;
+            GHI_ITM_LFG_gen_per_iCAP_MW   .*GHI_ITM_CASE_LFG_cap; %%%%%
         GHI_ITM_CASE_Gen = GHI_ITM_CASE_windy_Gen + GHI_ITM_CASE_hydro_Gen + GHI_ITM_CASE_other_Gen;
         
         NYC_ITM_CASE_windy_Gen = NYC_ITM_wind_gen_per_iCAP_MW  .*NYC_ITM_CASE_wind_cap;
         NYC_ITM_CASE_hydro_Gen = NYC_ITM_hydro_gen_per_iCAP_MW .*NYC_ITM_CASE_hydro_cap;
         NYC_ITM_CASE_other_Gen = NYC_ITM_PV_gen_per_iCAP_MW    .*NYC_ITM_CASE_PV_cap + ...
             NYC_ITM_Bio_gen_per_iCAP_MW   .*NYC_ITM_CASE_Bio_cap + ...
-            NYC_ITM_LFG_gen_per_iCAP_MW   .*NYC_ITM_CASE_LFG_cap;
+            NYC_ITM_LFG_gen_per_iCAP_MW   .*NYC_ITM_CASE_LFG_cap; %%%%%
         NYC_ITM_CASE_Gen = NYC_ITM_CASE_windy_Gen + NYC_ITM_CASE_hydro_Gen + NYC_ITM_CASE_other_Gen;
         
         LIs_ITM_CASE_windy_Gen = LIs_ITM_wind_gen_per_iCAP_MW  .*LIs_ITM_CASE_wind_cap;
         LIs_ITM_CASE_hydro_Gen = LIs_ITM_hydro_gen_per_iCAP_MW .*LIs_ITM_CASE_hydro_cap;
         LIs_ITM_CASE_other_Gen = LIs_ITM_PV_gen_per_iCAP_MW    .*LIs_ITM_CASE_PV_cap + ...
             LIs_ITM_Bio_gen_per_iCAP_MW   .*LIs_ITM_CASE_Bio_cap + ...
-            LIs_ITM_LFG_gen_per_iCAP_MW   .*LIs_ITM_CASE_LFG_cap;
+            LIs_ITM_LFG_gen_per_iCAP_MW   .*LIs_ITM_CASE_LFG_cap; %%%%%
         LIs_ITM_CASE_Gen = LIs_ITM_CASE_windy_Gen + LIs_ITM_CASE_hydro_Gen + LIs_ITM_CASE_other_Gen;
         
         Tot_ITM_CASE_Gen = A2F_ITM_CASE_Gen + GHI_ITM_CASE_Gen + NYC_ITM_CASE_Gen + LIs_ITM_CASE_Gen;
         
         %% 2016 Generation
-        %Existing renewable capacity in A2F (other locations ignored due  to low penetration
-        A2F_2016_ITM_wind_ICAP  = 1755;
-        A2F_2016_ITM_hydro_ICAP = 5219;
-        A2F_2016_ITM_PV_ICAP    =    0;
-        A2F_2016_ITM_Bio_ICAP   =  148;
-        A2F_2016_ITM_LFG_ICAP   =  126;
         %Calculate output for existing A2F renewables
         A2F_2016_ITM_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_2016_ITM_wind_ICAP;
         A2F_2016_ITM_hydro_Gen = A2F_ITM_hydro_gen_per_iCAP_MW .*A2F_2016_ITM_hydro_ICAP;
         A2F_2016_ITM_other_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_2016_ITM_PV_ICAP + ...
             A2F_ITM_Bio_gen_per_iCAP_MW   .*A2F_2016_ITM_Bio_ICAP + ...
-            A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_2016_ITM_LFG_ICAP;
+            A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_2016_ITM_LFG_ICAP; %%%%%
         A2F_2016_ITM_Gen = A2F_2016_ITM_windy_Gen + A2F_2016_ITM_hydro_Gen + A2F_2016_ITM_other_Gen;
+        
         %% Gen Capacity by region for the current case
         %All gen by region
         A2F_all_CASE_gencap = A2F_2016_ITM_wind_ICAP + A2F_2016_ITM_hydro_ICAP + A2F_2016_ITM_PV_ICAP+ A2F_2016_ITM_Bio_ICAP + A2F_2016_ITM_LFG_ICAP + ...
@@ -530,65 +560,72 @@ for Case = case_start:case_end
         TOT_ITM_CASE_PV_cap     = A2F_2016_ITM_PV_ICAP    + A2F_ITM_CASE_PV_cap    + GHI_ITM_CASE_PV_cap    + NYC_ITM_CASE_PV_cap + LIs_ITM_CASE_PV_cap;
         TOT_ITM_CASE_Bio_cap    = A2F_2016_ITM_Bio_ICAP   + A2F_ITM_CASE_Bio_cap   + GHI_ITM_CASE_Bio_cap   + NYC_ITM_CASE_Bio_cap + LIs_ITM_CASE_Bio_cap;
         TOT_ITM_CASE_LFG_cap    = A2F_2016_ITM_LFG_ICAP   + A2F_ITM_CASE_LFG_cap   + GHI_ITM_CASE_LFG_cap   + NYC_ITM_CASE_LFG_cap + LIs_ITM_CASE_LFG_cap;
+        
         %% Populate ITM Gen into MOST
         % Determine amount of renewable generation to be added to each region
         A2F_ITM_windy_gen_tot = A2F_ITM_CASE_windy_Gen + A2F_2016_ITM_windy_Gen;
         A2F_ITM_hydro_gen_tot = A2F_ITM_CASE_hydro_Gen + A2F_2016_ITM_hydro_Gen;
-        A2F_ITM_other_gen_tot = A2F_ITM_CASE_other_Gen + A2F_2016_ITM_other_Gen;
+        A2F_ITM_other_gen_tot = A2F_ITM_CASE_other_Gen + A2F_2016_ITM_other_Gen; %%%%%
         A2F_ITM_gen_tot = A2F_ITM_windy_gen_tot + A2F_ITM_hydro_gen_tot + A2F_ITM_other_gen_tot;
         
         GHI_ITM_windy_gen_tot = GHI_ITM_CASE_windy_Gen;
         GHI_ITM_hydro_gen_tot = GHI_ITM_CASE_hydro_Gen;
-        GHI_ITM_other_gen_tot = GHI_ITM_CASE_other_Gen;
+        GHI_ITM_other_gen_tot = GHI_ITM_CASE_other_Gen; %%%%%
         GHI_ITM_gen_tot = GHI_ITM_windy_gen_tot + GHI_ITM_hydro_gen_tot + GHI_ITM_other_gen_tot;
         
         NYC_ITM_windy_gen_tot = NYC_ITM_CASE_windy_Gen;
         NYC_ITM_hydro_gen_tot = NYC_ITM_CASE_hydro_Gen;
-        NYC_ITM_other_gen_tot = NYC_ITM_CASE_other_Gen;
+        NYC_ITM_other_gen_tot = NYC_ITM_CASE_other_Gen; %%%%%
         NYC_ITM_gen_tot = NYC_ITM_windy_gen_tot + NYC_ITM_hydro_gen_tot + NYC_ITM_other_gen_tot;
         
         LIs_ITM_windy_gen_tot = LIs_ITM_CASE_windy_Gen;
         LIs_ITM_hydro_gen_tot = LIs_ITM_CASE_hydro_Gen;
-        LIs_ITM_other_gen_tot = LIs_ITM_CASE_other_Gen;
+        LIs_ITM_other_gen_tot = LIs_ITM_CASE_other_Gen; %%%%%
         LIs_ITM_gen_tot = LIs_ITM_windy_gen_tot + LIs_ITM_hydro_gen_tot + LIs_ITM_other_gen_tot;
         
         %Statewide Totals by rengen type
         TOT_ITM_windy_gen_profile = A2F_ITM_windy_gen_tot + GHI_ITM_windy_gen_tot + NYC_ITM_windy_gen_tot + LIs_ITM_windy_gen_tot;
         TOT_ITM_hydro_gen_profile = A2F_ITM_hydro_gen_tot + GHI_ITM_hydro_gen_tot + NYC_ITM_hydro_gen_tot + LIs_ITM_hydro_gen_tot;
         TOT_ITM_other_gen_profile = A2F_ITM_other_gen_tot + GHI_ITM_other_gen_tot + NYC_ITM_other_gen_tot + LIs_ITM_other_gen_tot;
-        %% First vs. Avg Ren values
-        %get 24 hr profile for all renewables together
-        TOT_ITM_profile = TOT_ITM_windy_gen_profile + TOT_ITM_hydro_gen_profile + TOT_ITM_other_gen_profile;
-        %find first of the hour values
-        for int = 1:24
-            FirstValues(int,:) = TOT_ITM_profile(1,int*12-11);
-            FirstValuesLine(int*12-11:int*12,:) = FirstValues(int,:);
+        
+        %% First 5min generation value vs. Avg hourly value
+        if Avg5mingencompare == 1
+            %get 24 hr profile for all renewables together
+            TOT_ITM_profile = TOT_ITM_windy_gen_profile + TOT_ITM_hydro_gen_profile + TOT_ITM_other_gen_profile;
+            %find first of the hour values
+            FirstValues = zeros(24,1);
+            for int = 1:24
+                FirstValues(int,:) = TOT_ITM_profile(1,int*12-11);
+                FirstValuesLine(int*12-11:int*12,:) = FirstValues(int,:);
+            end
+            %find average of the hour values
+            AverageValues = zeros(24,1);
+            for int = 1:24
+                AverageValues(int,:) = mean(TOT_ITM_profile(1,int*12-11:int*12));
+                AverageValuesLine(int*12-11:int*12,:) = AverageValues(int,:);
+            end
+            %create a plot
+            %                     hFig1 = figure(1);
+            %                     hold on
+            %                     set(hFig1, 'Position', [450 50 900 400]) %Pixels: from left, from bottom, across, high
+            %                     plot(Time4Graph, TOT_ITM_profile)
+            %                     plot(Time4Graph, FirstValuesLine)
+            %                     plot(Time4Graph, AverageValuesLine)
+            %                     legend('Total Renewable','First Values','Average Values')
+            %                     legend('Location','eastoutside'),
+            %                     set(gca, 'XTick', [0 4 8 12 16 20 24]);
+            %                     grid on
+            %                     grid minor
+            %                     First_Line_Title = ['First vs. Average Values of Renewable Output for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+            %                     ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+            %                         'Units','normalized', 'clipping' , 'off');
+            %                     text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+            %                         'center', 'VerticalAlignment', 'top')
+            %                     hold off
         end
-        %find average of the hour values
-        for int = 1:24
-            AverageValues(int,:) = mean(TOT_ITM_profile(1,int*12-11:int*12));
-            AverageValuesLine(int*12-11:int*12,:) = AverageValues(int,:);
-        end
-        %create a plot
-        %             hFig1 = figure(1);
-        %             hold on
-        %             set(hFig1, 'Position', [450 50 900 400]) %Pixels: from left, from bottom, across, high
-        %             plot(Time4Graph, TOT_ITM_profile)
-        %             plot(Time4Graph, FirstValuesLine)
-        %             plot(Time4Graph, AverageValuesLine)
-        %             legend('Total Renewable','First Values','Average Values')
-        %             legend('Location','eastoutside'),
-        %             set(gca, 'XTick', [0 4 8 12 16 20 24]);
-        %             grid on
-        %             grid minor
-        %             First_Line_Title = ['First vs. Average Values of Renewable Output for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-        %             ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-        %                 'Units','normalized', 'clipping' , 'off');
-        %             text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-        %                 'center', 'VerticalAlignment', 'top')
-        %             hold off
-        % Assemble into proper format for most
-        %% wind
+        
+        %% Format Renewables and Load for MOST
+        % Wind
         most_bus_rengen_windy = zeros(most_period_count,68);
         for int = int_start:int_stop
             %Distribute ITM renewable generation
@@ -614,7 +651,8 @@ for Case = case_start:case_end
                 most_windy_gen_DAM(int_DAM,:) = mean(most_bus_rengen_windy(int_DAM*12-11:int_DAM*12,:));
             end
         end
-        %% hydro
+        
+        % Hydro
         most_bus_rengen_hydro = zeros(most_period_count,68);
         for int = int_start:int_stop
             %Distribute ITM renewable generation
@@ -640,7 +678,11 @@ for Case = case_start:case_end
                 most_hydro_gen_DAM(int_DAM,:) = mean(most_bus_rengen_hydro(int_DAM*12-11:int_DAM*12,:));
             end
         end
-        %% other
+        
+        % Solar
+        % !!!!!
+        
+        % Other
         most_bus_rengen_other = zeros(most_period_count,68);
         for int = int_start:int_stop
             %Distribute ITM renewable generation
@@ -680,15 +722,17 @@ for Case = case_start:case_end
             NYCA_CASE_net_load_DAM(t) = mean(NYCA_CASE_net_load(t*12-11:t*12));
             NYCA_TrueLoad_DAM(t) = mean(NYCA_TrueLoad(t*12-11:t*12));
         end
-        %% Load Statistics
+        
+        % Load Statistics
         NYCA_TrueLoad_AVG_24hr = mean(NYCA_TrueLoad_DAM);
         NYCA_TrueLoad_AVG_4hr = mean(NYCA_TrueLoad_DAM(10:14));
         NYCA_NetLoad_AVG_24hr = mean(NYCA_CASE_net_load_DAM);
         NYCA_NetLoad_AVG_4hr = mean(NYCA_CASE_net_load_DAM(10:14));
         
-        %% Most DAM Run
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %% MOST DAM Run
         %Add variable names
-        define_constants
+        define_constants;
         %Define initial data
         casefile = 'case_nyiso16';
         mpc = loadcase(casefile);
@@ -705,6 +749,7 @@ for Case = case_start:case_end
         %         for gen = 2:killNuke
         %             xgd.CommitKey(gen) = -1;
         %         end
+        
         %% Add Renewables
         %WIND
         %Add wind Generators
@@ -712,21 +757,28 @@ for Case = case_start:case_end
         %Add empty max & min profiles
         profiles = getprofiles('wind_profile_Pmax' , iwind);
         profiles = getprofiles('wind_profile_Pmin' , profiles);
+        
         %HYDRO
         %Add hydro Generators
         [ihydro, mpc, xgd] = addwind('hydro_gen' , mpc, xgd);
         %Add empty max & min profiles
         profiles = getprofiles('hydro_profile_Pmax' , profiles);
         profiles = getprofiles('hydro_profile_Pmin' , profiles);
+        
+        %SOLAR
+        %!!!!!
+        
         %OTHER
         %Add other Generators
         [iother, mpc, xgd] = addwind('other_gen' , mpc, xgd);
         %Add empty max & min profiles
         profiles = getprofiles('other_profile_Pmax' , profiles);
         profiles = getprofiles('other_profile_Pmin' , profiles);
-        %% Add load profile
+        
+        % Add load profile
         profiles = getprofiles('load_profile' , profiles);
-        %% Add Ren Gen Profiles
+        
+        % Add RE Generator Profiles
         %WIND
         %Max Gen
         profiles(1).values(:,1,:) = most_windy_gen_DAM;
@@ -736,6 +788,7 @@ for Case = case_start:case_end
         else
             profiles(2).values(:,1,:) = most_windy_gen_DAM;
         end
+        
         %HYDRO
         %Max Gen
         profiles(3).values(:,1,:) = most_hydro_gen_DAM;
@@ -745,6 +798,10 @@ for Case = case_start:case_end
         else
             profiles(4).values(:,1,:) = most_hydro_gen_DAM;
         end
+        
+        %SOLAR
+        %!!!!!
+        
         %OTHER
         %Max Gen
         profiles(5).values(:,1,:) = most_other_gen_DAM;
@@ -754,35 +811,30 @@ for Case = case_start:case_end
         else
             profiles(6).values(:,1,:) = most_other_gen_DAM;
         end
-        %% Add Load Profile
+        
+        % Add Load Profile
         profiles(7).values(:,1,:) = most_busload_DAM;
+        
         %% Add EVSE Load
         if EVSE == 1
-            %% Get EVSE Load Data (MWh total for the Day)
-            %Electric Vehicle Energy Usage Forecast (2018 Gold Book) in GWh
-            %A   B   C   D   E   F   G   H   I   J   K
-            EVSE_Gold_MWh = [3   5   4   0   2   5   6   3   5   13  23;     %2016
-                154 183 180 12  99  206 230 100 150 520 781;]./365.*EVSEfactor;   %2030
-            
-            %Total Increase in Coincident Winter Peak Demand by Zone in MW (Use winter as its worse than summer)
-            %A   B   C   D   E   F   G   H   I   J   K
-            EVSE_Gold_MW  = [1   1   1   0   1   1   2   1   1   4   7;       %2016
-                30 36  35  2   19  40  45  20  29  101 153;].*EVSEfactor;    %2030
-            %% Calculate EVSE MWh load at each bus
+            % Calculate EVSE MWh load at each bus
             %Pick load for the current Case & convert to MWh
             EVSE_Zone = EVSE_Gold_MWh(Case+1,:).*1000; %convert from GWh to MWh
             %Group by Region
             EVSE_Region = [sum(EVSE_Zone(1:6)) sum(EVSE_Zone(7:9)) EVSE_Zone(10) EVSE_Zone(11) 0];
             %Divide by # of load buses in each region = EVSE MWh to add to each load bus in each region [A2F, GHI, NYC, LIs]
             EVSE_Region_Ind = EVSE_Region./[A2F_load_bus_count GHI_load_bus_count NYC_load_bus_count LIs_load_bus_count 1];
-            %% Calculate EVSE MW peak at each bus
+            
+            % Calculate EVSE MW peak at each bus
             %Determine Max EVSE Load in each region
             EVSE_Region_MW = [sum(EVSE_Gold_MW(Case+1,1:6)) sum(EVSE_Gold_MW(Case+1,7:9)) EVSE_Gold_MW(Case+1,10) EVSE_Gold_MW(Case+1,11) 0];
             EVSE_Region_Ind_MW = EVSE_Region_MW./[A2F_load_bus_count GHI_load_bus_count NYC_load_bus_count LIs_load_bus_count 1];
-            %% Add Batteries to each Load Bus
-            %% How Many Batteries we adding here?
+            
+            % Add Batteries to each Load Bus
+            % How Many Batteries we adding here?
             BatCount = A2F_load_bus_count+GHI_load_bus_count+NYC_load_bus_count+LIs_load_bus_count;
-            %% Initialize
+            
+            % Initialize
             %Tables
             storage.gen             = zeros(BatCount,21);
             storage.sd_table.data   = zeros(BatCount,13);
@@ -829,9 +881,10 @@ for Case = case_start:case_end
             %                                                             'PositiveLoadFollowReserveQuantity', ...
             %                                                                 'NegativeLoadFollowReservePrice', ...
             %                                                                     'NegativeLoadFollowReserveQuantity', ...
-            %% Create Battery Data Containers
+            
+            % Create Battery Data Containers
             for Bat = 1:BatCount
-                %% Which Region are we in?
+                % Which Region are we in?
                 if sum(ismember(NYCA_Load_buses(Bat),A2F_Load_buses)) > 0
                     Region = 1; %Region 1 is A2F
                 else
@@ -849,16 +902,19 @@ for Case = case_start:case_end
                         end
                     end
                 end
-                %% Add individual battery parameters
+                
+                % Add individual battery parameters
                 % bus            Qmin    mBase   Pmax    Pc1     Qc1min	Qc2min	ramp_agc	ramp_q
                 % 	Pg	Qg	Qmax	Vg      status	Pmin	Pc2     Qc1max	Qc2max	ramp_10     apf
                 %                                                                        ramp_30
                 storage.gen(Bat,:) = [NYCA_Load_buses(Bat)...
                     0   0   0   0   1   100 1   -0.00001   -EVSE_Region_Ind_MW(Region)...
                     0   0   0   0   0   0   0   0   EVSE_Region_Ind_MW(Region)   0   0];
-                %% Record Pmin Data
+                
+                % Record Pmin Data
                 EVSE_PminProfile(Bat) = -EVSE_Region_Ind_MW(Region);
-                %% Add storage data
+                
+                % Add storage data. Input parameters are defined below:
                 %1 InitialStorage
                 %2 InitialStorageLowerBound
                 %3 InitialStorageUpperBound
@@ -872,10 +928,10 @@ for Case = case_start:case_end
                 %11 rho
                 %12 Expected Terminal Storage Min
                 %13 Expected Terminal Storage Max
-                %1   2   3   4   5   6   7   8   9   10  11  12                         13
-                storage.sd_table.data(Bat,:) =   [0   0   0   0   0   0   EVSE_Region_Ind(Region),...
-                    1   1   0   0   EVSE_Region_Ind(Region) EVSE_Region_Ind(Region)];
-                %% Add storage XGD data
+                                                 %1   2   3   4   5   6   7                         8   9   10  11  12                      13
+                storage.sd_table.data(Bat,:) =   [0   0   0   0   0   0   EVSE_Region_Ind(Region)   1   1   0   0   EVSE_Region_Ind(Region) EVSE_Region_Ind(Region)];
+                
+                % Add storage XGD data. Input parameters are defined below:
                 %1 CommitKey
                 %2 CommitSched
                 %3 PositiveActiveReservePrice
@@ -888,37 +944,50 @@ for Case = case_start:case_end
                 %10 PositiveLoadFollowReserveQuantity
                 %11 NegativeLoadFollowReservePrice
                 %12 NegativeLoadFollowReserveQuantity
-                %1   2   3   4   5   6   7   8   9   10  11  12
+                                                %1    2      3   4   5   6   7   8   9   10  11  12
                 storage.xgd_table.data(Bat,:) = [2    1  ];% 0   0   0   0   0   0   0   0   0   0];
-                %% Add storage cost data
-                %2	startup	n	c(n-1)	...	c0
-                %      shutdown
-                %                         storage.gencost(Bat,:) = [2	0	0	3	0.01 10 100];
+                
+                %Add storage cost data; 1 row for each battery. Each row
+                %has the following parameter definitions. Note that the
+                %first column is must be filled in with the interger 2 in
+                %order to invoke these options:
+                %2	startup    shutdown     n	c(n-1)	...	 c0
+                
+                %storage.gencost(Bat,:) = [2	0	0	3	0.01 10 100];
                 storage.gencost(Bat,:) = [2	0	0	2	0   0   0];
             end
-            %% Push Battery Data to MOST
+            
+            %Push Battery Data to MOST
             [~,mpc,xgd,storage] = addstorage(storage,mpc,xgd);
+            
         end
+        
         %% Set Initial Pg for renewable gens
+        % Does this really need to go this fard down in the program? 
         xgd.InitialPg(15:29) = xgd.InitialPg(15:29) + most_windy_gen_DAM(1,1:15).';
         xgd.InitialPg(30:44) = xgd.InitialPg(30:44) + most_hydro_gen_DAM(1,1:15).';
         xgd.InitialPg(45:59) = xgd.InitialPg(45:59) + most_other_gen_DAM(1,1:15).';
         xgd.InitialPg(15:59) = xgd.InitialPg(15:59) -1;
-        %% Set $-5/MWh renewable cost to avoid curtailment
+        
+        %% Set renewable credit (negative cost) to avoid curtailment
+        % Does this really need to go this fard down in the program?
         mpc.gencost(15:29,6) = REC_Cost;
         mpc.gencost(30:44,6) = REC_hydro;
         mpc.gencost(45:59,6) = REC_Cost;
-        mpc.gencost(15:59,4) = 3;
+        mpc.gencost(15:59,4) = 3; %%%%% What is this, and why is it hard-coded?
+        
         %% Update generator capacity
-        %determine number of renewable gens
+        %Determine number of renewable gens
         [all_gen_count,~] = size(mpc.gen(:,9));
         ren_gen_count = all_gen_count - therm_gen_count - 32;
-        %determine size of renewable gen in each region
+        
+        %Determine size of renewable gen in each region
         A2F_ind = A2F_all_CASE_gencap/A2F_gen_bus_count;
         GHI_ind = GHI_all_CASE_gencap/GHI_gen_bus_count;
         NYC_ind = NYC_all_CASE_gencap/NYC_gen_bus_count;
         LIs_ind = LIs_all_CASE_gencap/LIs_gen_bus_count;
-        %create vector with gen cap in order
+        
+        %Create vector with gen cap in order
         ordered_gen_cap = zeros(ren_gen_count);
         for gen = therm_gen_count+1:all_gen_count
             buss = mpc.gen(gen,1);
@@ -939,35 +1008,39 @@ for Case = case_start:case_end
             end
         end
         
-        %update renewable capacity
+        %Update renewable capacity
         for ss = 1:ren_gen_count
             mpc.gen(ss+therm_gen_count,9) = ordered_gen_cap(ss);
         end
+        
         %Determine number of intervals in the simulation
         nt = most_period_count_DAM; % number of period
+        
         %% Add transmission interface limits
         if IFlims == 1
             mpc.if.map = map_Array;
             mpc.if.lims  = lims_Array;
             mpc = toggle_iflims_most(mpc, 'on');
         end
+        
         %% Add EVSE Profile
-        % % %         EVSE_PminProfile_DAM = zeros(24,32);
-        % % %         for hour = 1:24
-        % % %             EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
-        % % %         end
-        % % %         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
+        %%%%% Why is this commented out? 
+        %         EVSE_PminProfile_DAM = zeros(24,32);
+        %         for hour = 1:24
+        %             EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
+        %         end
+        %         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
+        
         %% Run Algorithm
-        %Set options
+        %Set MOST options
         mpopt = mpoption;
         mpopt = mpoption(mpopt,'most.dc_model', 1); % use DC network model (default)
-        %             mpopt = mpoption(mpopt,'model','DC');
         mpopt = mpoption(mpopt,'most.solver', 'GUROBI');
         mpopt = mpoption(mpopt, 'verbose', 0);
         mpopt = mpoption(mpopt,'most.skip_prices', 0);
-        %Load all data
+        
+        % Load all data
         clear mdi
-        %Set Ramp Costs = 0
         if EVSE == 1
             numm = 91;
             mdi = loadmd(mpc, nt, xgd, storage, [], profiles);
@@ -975,6 +1048,7 @@ for Case = case_start:case_end
             numm = 59;
             mdi = loadmd(mpc, nt, xgd, [], [], profiles);
         end
+        %Set ramp costs to zero
         mdi.RampWearCostCoeff = zeros(numm,24);
         
         for tt = 1:24
@@ -985,29 +1059,34 @@ for Case = case_start:case_end
             mdi.offer(tt).PositiveLoadFollowReservePrice = zeros(numm,1);
             mdi.offer(tt).NegativeLoadFollowReservePrice = zeros(numm,1);
         end
-        %Run the UC/ED algorithm
+        
+        % Run the UC/ED algorithm
         clear mdo
         if IFlims == 1
             mdo = most_if(mdi, mpopt);
         else
             mdo = most(mdi, mpopt);
         end
-        %View Results
-        ms = most_summary(mdo); % print results, depending on verbose  option
         
+        % View Results
+        ms = most_summary(mdo); %print results, depending on verbose option
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %% Analyze DAM Results
         %Initialize Summary
         Summaryy = zeros(59,8);
-        %% Gen Output in percent prep
+        
+        %Gen output normalized by capacity (i.e., instantaneous CF)
         gen_output = ms.Pg;
         gen_capacity = mpc.gen(:,9);
         
         for gen = 1:length(gen_capacity)
             gen_output_percent(gen,:) = gen_output(gen,:)./gen_capacity(gen);
         end
-        
+        %Remove 
         gen_output_percent(isnan(gen_output_percent)) = 0;
-        %Modify % output to show offline/online units
+        
+        %Modify CF to show offline/online units
         for gen = 1:therm_gen_count
             for time = 1:24
                 %offline
@@ -1017,13 +1096,12 @@ for Case = case_start:case_end
                     %at max
                     if gen_output_percent(gen,time) == 1
                         gen_output_percent(gen,time) = 1+gen*.01;
-                        %                         else
-                        %                             %in between... Do nothing
                     end
                 end
             end
         end
-        %% Gen Output by Unit
+        
+        % Gen Output by Unit
         for hour = 1:24
             Nuke_1_DAM(hour) = ms.Pg(1,hour);
             Nuke_2_DAM(hour) = ms.Pg(2,hour);
@@ -1046,7 +1124,8 @@ for Case = case_start:case_end
                 DAM_gen_storage(gen,hour) = ms.Pg(gen,hour);
             end
         end
-        %% Gen Output by Type
+        
+        % Gen Output by Type
         %Initialize Variables
         NukeGenDAM = zeros(1,24);
         SteamGenDAM = zeros(1,24);
@@ -1078,7 +1157,8 @@ for Case = case_start:case_end
             end
             BTM4GraphDAM(iter) = mean(NYCA_CASE_BTM_gen(iter*12-11:iter*12));
         end
-        %% Gen Revenue -- OLD 24 hrs
+        
+        % Gen Revenue -- OLD 24 hrs
         %         Gen_DAM_Revenue = zeros(59,1);
         %         for genn = 1:59
         %             for DAMhr = 1:24
@@ -1086,8 +1166,9 @@ for Case = case_start:case_end
         %             end
         %         end
         %         Summaryy(:,1) = Gen_DAM_Revenue;
-        %% Gen Revenue -- NEW 21.5 hrs
-        %% 21.5 Hour Total
+        
+        % Gen Revenue -- NEW 21.5 hrs
+        % 21.5 Hour Total
         Gen_DAM_Revenue = zeros(59,1);
         for gen = 1:59
             for hour = 1:21
@@ -1096,9 +1177,11 @@ for Case = case_start:case_end
             Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + 0.5*ms.Pg(gen,22)*ms.lamP(mpc.gen(gen,1),22);
         end
         Summaryy(:,1) = Gen_DAM_Revenue;
-        %% By Hour
+        
+        % By Hour
         Gen_DAM_Revenue_hr = zeros(4,24);
-        %% Upstate
+        
+        % Upstate (Zones A-F)
         for hour = 1:21
             Gen_DAM_Revenue_hr(1,hour) = ms.Pg(25,hour)*ms.lamP(mpc.gen(25,1),hour)+...
                 ms.Pg(26,hour)*ms.lamP(mpc.gen(26,1),hour)+...
@@ -1140,7 +1223,8 @@ for Case = case_start:case_end
             ms.Pg(4,hour)*ms.lamP(mpc.gen(4,1),hour)+...
             ms.Pg(5,hour)*ms.lamP(mpc.gen(5,1),hour)+...
             ms.Pg(10,hour)*ms.lamP(mpc.gen(10,1),hour))*0.5;
-        %% GHI
+        
+        % Zones GHI
         for hour = 1:21
             Gen_DAM_Revenue_hr(2,hour) = ms.Pg(15,hour)*ms.lamP(mpc.gen(15,1),hour)+...
                 ms.Pg(16,hour)*ms.lamP(mpc.gen(16,1),hour)+...
@@ -1168,7 +1252,8 @@ for Case = case_start:case_end
             ms.Pg(2,hour)*ms.lamP(mpc.gen(2,1),hour)+...
             ms.Pg(3,hour)*ms.lamP(mpc.gen(3,1),hour)+...
             ms.Pg(6,hour)*ms.lamP(mpc.gen(6,1),hour))*0.5;
-        %% NYC
+        
+        % NYC (Zone J)
         for hour = 1:21
             Gen_DAM_Revenue_hr(3,hour) = ms.Pg(17,hour)*ms.lamP(mpc.gen(17,1),hour)+...
                 ms.Pg(18,hour)*ms.lamP(mpc.gen(18,1),hour)+...
@@ -1196,7 +1281,8 @@ for Case = case_start:case_end
             ms.Pg(7,hour)*ms.lamP(mpc.gen(7,1),hour)+...
             ms.Pg(11,hour)*ms.lamP(mpc.gen(11,1),hour)+...
             ms.Pg(12,hour)*ms.lamP(mpc.gen(12,1),hour))*0.5;
-        %% Long Island
+        
+        % Long Island (Zone K)
         for hour = 1:21
             Gen_DAM_Revenue_hr(4,hour) = ms.Pg(20,hour)*ms.lamP(mpc.gen(20,1),hour)+...
                 ms.Pg(21,hour)*ms.lamP(mpc.gen(21,1),hour)+...
@@ -1216,13 +1302,15 @@ for Case = case_start:case_end
             ms.Pg(51,hour)*ms.lamP(mpc.gen(51,1),hour)+...
             ms.Pg(8,hour)*ms.lamP(mpc.gen(8,1),hour)+...
             ms.Pg(13,hour)*ms.lamP(mpc.gen(13,1),hour))*0.5;
-        %% Count Renewables in Op Cost?
+        
+        % Include renewables in operational cost?
         if RenInOpCost == 1
             Gens = 59;
         else
             Gens = 14;
         end
-        %% Gen Op Costs -- OLD 24 hrs
+        
+        % Gen Op Costs -- OLD 24 hrs
         Gen_DAM_OpCost24 = zeros(Gens,1);
         for genn = 1:Gens
             for DAMhr = 1:24
@@ -1230,7 +1318,8 @@ for Case = case_start:case_end
                     mdo.UC.CommitSched(genn,DAMhr)*(mpc.gencost(genn,7) + ms.Pg(genn,DAMhr) *mpc.gencost(genn,6) + (ms.Pg(genn,DAMhr))^2 *mpc.gencost(genn,5));
             end
         end
-        %% Gen Op Costs -- NEW 21.5 hrs
+        
+        % Gen Op Costs -- NEW 21.5 hrs
         Gen_DAM_OpCost = zeros(59,1);
         for gen = 1:Gens
             for hour = 1:21
@@ -1242,7 +1331,8 @@ for Case = case_start:case_end
                 mdo.UC.CommitSched(gen,hour)*(mpc.gencost(gen,7) + ms.Pg(gen,hour) *mpc.gencost(gen,6) + (ms.Pg(gen,hour))^2 *mpc.gencost(gen,5)));
         end
         Summaryy(:,2) = Gen_DAM_OpCost;
-        %% Gen SUP Costs -- OLD 24 hrs (For 24 Hr DAM Obj Fxn Val Cost)
+        
+        % Gen Supply Costs -- OLD 24 hrs (For 24 Hr DAM Obj Fxn Val Cost)
         %Initialize
         Gen_DAM_SUPCost24 = zeros(59,1);
         %Top of the Morning
@@ -1259,7 +1349,8 @@ for Case = case_start:case_end
                 end
             end
         end
-        %% Gen SUP Costs -- NEW 21.5 hrs
+        
+        % Gen Supply Costs -- NEW 21.5 hrs
         %Initialize
         Gen_DAM_SUPCost = zeros(59,1);
         %Top of the Morning
@@ -1281,7 +1372,8 @@ for Case = case_start:case_end
             end
         end
         Summaryy(:,3) = Gen_DAM_SUPCost;
-        %% Record DAM scheduled starts and shutdowns for RTC
+        
+        % Record DAM scheduled starts and shutdowns for RTC
         %Initialize
         DAMstarts = zeros(therm_gen_count,1);   %First int unit is online
         DAMshutdowns = zeros(therm_gen_count,1); %Last int unit is online
@@ -1295,142 +1387,9 @@ for Case = case_start:case_end
                     DAMshutdowns(gen,1) = hour*12-12;
                 end
             end
-        end
+        end 
         
-        
-        %% Plot DAM results
-        %Timescale
-        BigTime_DAM = int_stop_DAM;
-        Time4Graph = linspace(1,24,BigTime_DAM);
-        %% First DAM Graph
-        DAM_LMP_energy = ms.lamP(62,1:int_stop_DAM);
-        DAM_LMP = ms.lamP(1:68,1:int_stop_DAM);
-        hFigA = figure(1);
-        set(hFigA, 'Position', [250 50 800 400]) %Pixels: from left, from bottom, across, high
-        %% A -- True Load, Net Load, Demand
-        %             A1 = subplot(3,1,1); hold on;
-        %                 A2 = get(A1,'position'); A2(4) = A2(4)*0.80; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
-        %                 yyaxis right
-        %                     hold on
-        % %                     plot(Time4Graph,ms.lamP(1,1:int_stop_DAM),'LineStyle','-','color',[0.85 .325 .098])
-        %                     bar(A1,ms.lamP(1,1:int_stop_DAM),'FaceAlpha',.2)
-        %                     axis 'auto y';
-        %                     grid on
-        %                     ylabel('DAM LMP ($/MWh)')
-        %                     hold off
-        %                 yyaxis left
-        %                     hold on
-        %                     plot(Time4Graph,NYCA_TrueLoad_DAM(1:int_stop_DAM),'LineStyle','-','color',[0 .447 .741])
-        %                     plot(Time4Graph,NYCA_CASE_net_load_DAM(1:int_stop_DAM),'LineStyle','-','color',[.466 .674 .188])
-        %                     plot(Time4Graph,demand_DAM(1:int_stop_DAM),'LineStyle','-','color',[.494 .184 .556])
-        %                     ylabel('Real Power (MW)')
-        %                     axis([0.5,24.5,0,1000]);
-        %                     set(gca, 'XTick', [0 4 8 12 16 20 24]);
-        %                     axis 'auto y';
-        %                     hold off
-        %                 title('NYCA True Load, Net Load, & Demand')
-        %                 A3 = legend('True Load', 'Net Load', 'Demand','LMP');
-        %                 rect = [.8, 0.76, 0.15, 0.0875]; %[left bottom width height]
-        %                 set(A3, 'Position', rect)
-        %                 ylabel('Real Power (MW)')
-        %                 set(gca, 'XTick', [0 4 8 12 16 20 24]);
-        %                 axis 'auto y';
-        %                 grid on; grid minor; box on; hold off
-        %% B -- Generator Output (%)
-        %             B1 = subplot(3,1,2); hold on;
-        B1 = subplot(2,1,1); hold on;
-        B2 = get(B1,'position'); B2(4) = B2(4)*1.15; B2(2) = B2(2)*1; set(B1, 'position', B2); B2(3) = B2(3)*1; set(B1, 'position', B2);
-        plot(Time4Graph,gen_output_percent(1,:),'LineStyle',':','color',[0 .447 .741])
-        plot(Time4Graph,gen_output_percent(2,:),'LineStyle',':','color',[.635 .078 .184])
-        plot(Time4Graph,gen_output_percent(3,:),'LineStyle',':','color',[.85 .325 .098])
-        plot(Time4Graph,gen_output_percent(4,:),'LineStyle','--','color',[0 .447 .741])
-        plot(Time4Graph,gen_output_percent(5,:),'LineStyle','--','color',[.301 .745 .933])
-        plot(Time4Graph,gen_output_percent(6,:),'LineStyle','--','color',[.635 .078 .184])
-        plot(Time4Graph,gen_output_percent(7,:),'LineStyle','--','color',[.494 .184 .556])
-        plot(Time4Graph,gen_output_percent(8,:),'LineStyle','--','color',[.466 .674 .188])
-        plot(Time4Graph,gen_output_percent(10,:),'LineStyle','-.','color',[0 .447 .741])
-        plot(Time4Graph,gen_output_percent(11,:),'LineStyle','-.','color',[.494 .184 .556])
-        plot(Time4Graph,gen_output_percent(12,:),'LineStyle','-','color',[.494 .184 .556])
-        plot(Time4Graph,gen_output_percent(13,:),'LineStyle','-','color',[.466 .674 .188])
-        %                     B3 = legend('Nuke A2F','Nuke GHI','Nuke GHI','Steam A2F','Steam A2F','Steam GHI','Steam NYC','Steam LI',...
-        %                                'CC A2F','CC NYC','GT NYC','GT LI');
-        %                 title('Generator Output (% of Nameplate)')
-        %                 rect = [.8, 0.45, 0.15, .12]; %[left bottom width height]
-        %                 set(B3, 'Position', rect)
-        ylabel('Real Power (%)')
-        xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-        xticklabels({' ' ' ' ' ' ' ' ' ' ' ' ' '})
-        %                     set(gca, 'XTick', [0 4 8 12 16 20 24]);
-        axis([0.5,24.5,-0.16,1]);
-        yticklabels({' 0','50','100'});
-        grid on; grid minor; box on; hold off
-        %% C -- Generation by Type
-        %             C1 = subplot(3,1,3); hold on;
-        C1 = subplot(2,1,2); hold on;
-        C2 = get(C1,'position'); C2(4) = C2(4)*1.15; C2(2) = C2(2)*1.35; set(C1, 'position', C2); C2(3) = C2(3)*1; set(C1, 'position', C2);
-        bar([NukeGenDAM;SteamGenDAM;CCGenDAM;GTGenDAM;RenGen_windyDAM;RenGen_hydroDAM;RenGen_otherDAM;BTM4GraphDAM;].'./1000,'stacked','FaceAlpha',.5)
-        %                     C3 = legend('Nuke', 'Steam', 'CC', 'GT', 'Wind', 'Hydro', 'Other', 'BTM');
-        %                     reorderLegendbar([1 2 3 4 5 6 7 8])
-        %                 title('Generation by Type')
-        %                 rect = [.8, 0.125, 0.15, .12]; %[left bottom width height]
-        %                 set(C3, 'Position', rect)
-        ylabel('Real Power (GW)')
-        xlabel('Time (Hour Beginning)');
-        axis([0.5,24.5,0,30]);
-        %                 axis 'auto y';
-        xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-        xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-        %                     set(gca, 'XTick', [0 4 8 12 16 20 24]);
-        set(gca, 'YTick', [0 10 20 30])
-        format shortg
-        grid on; grid minor; box on; hold off
-        %% Graph Title (Same for all graphs)
-        %             First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-        %             ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-        %                 'Units','normalized', 'clipping' , 'off');
-        %             text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-        %                 'center', 'VerticalAlignment', 'top')
-        %% Save to a word file
-        outfile = ['../../MarketModel_Output/Outfile.',date];
-        %If this is the first loop through the iteration, open a new document
-        if and(Case == case_start, d == d_start)
-            if ispc
-                % Capture current figure/model into clipboard:
-                matlab.graphics.internal.copyFigureHelper(hFigA)
-                % Start an ActiveX session with PowerPoint:
-                word = actxserver('Word.Application');
-                word.Visible = 1;
-                % Create new presentation:
-                op = invoke(word.Documents,'Add');
-                % Paste the contents of the Clipboard:
-                invoke(word.Selection,'Paste');
-            else
-                fig_cnt = 1;
-                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                print(hFigA, '-dpdf','-bestfit', filestr)
-                fig_cnt = fig_cnt + 1;
-            end
-            %Otherwise grab the existing word or ps document and paste in there.
-        else
-            if ispc
-                % Capture current figure/model into clipboard:
-                matlab.graphics.internal.copyFigureHelper(hFigA)
-                % Find end of document and make it the insertion point:
-                end_of_doc = get(word.activedocument.content,'end');
-                set(word.application.selection,'Start',end_of_doc);
-                set(word.application.selection,'End',end_of_doc);
-                % Paste the contents of the Clipboard:
-                invoke(word.Selection,'Paste');
-            else
-                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                print(hFigA, '-dpdf','-bestfit', filestr)
-                fig_cnt = fig_cnt + 1;
-            end
-        end
-        
-        close all
-        
-        %% LMP
+        % LMP
         %Average LMP by Region
         AvgLoadLMP = zeros(4,24);
         AvgGenLMP  = zeros(4,24);
@@ -1444,7 +1403,8 @@ for Case = case_start:case_end
             AvgGenLMP(3, hour) = mean(ms.lamP([55 56 57],hour));
             AvgGenLMP(4, hour) = mean(ms.lamP([58 59],hour));
         end
-        %% Thermal Generation by Region
+        
+        % Thermal Generation by Region
         DAMThermGenByRegion = zeros(4,24);
         for hour = 1:24
             DAMThermGenByRegion(1,hour) = Nuke_1_DAM(hour)+Steam_1_DAM(hour)+Steam_2_DAM(hour)+CCGen_1_DAM(hour);
@@ -1452,7 +1412,8 @@ for Case = case_start:case_end
             DAMThermGenByRegion(3,hour) = Steam_4_DAM(hour) + CCGen_2_DAM(hour)+ GTGen_1_DAM(hour);
             DAMThermGenByRegion(4,hour) = Steam_5_DAM(hour) + GTGen_2_DAM(hour);
         end
-        %% Renewable Gen by Region
+        
+        % Renewable Gen by Region
         DAMRenGenByRegion = zeros(4,24);
         for hour = 1:24
             DAMRenGenByRegion(1,hour) = sum(mdo.results.Pc([25 26 27 28 29 40 41 42 43 44 55 56 57 58 59],hour));
@@ -1460,7 +1421,8 @@ for Case = case_start:case_end
             DAMRenGenByRegion(3,hour) = sum(mdo.results.Pc([17 18 19 32 33 34 47 48 49],hour));
             DAMRenGenByRegion(4,hour) = sum(mdo.results.Pc([20 21 35 36 20 21],hour));
         end
-        %% Load by Region
+        
+        % Load by Region
         DAMloadByRegion = zeros(4,24);
         for hour = 1:24
             DAMloadByRegion(1,hour) = sum(most_busload_DAM(hour,[1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52]));
@@ -1468,7 +1430,8 @@ for Case = case_start:case_end
             DAMloadByRegion(3,hour) = sum(most_busload_DAM(hour,[12 15 16 18 20 27]));
             DAMloadByRegion(4,hour) = sum(most_busload_DAM(hour,[21 23 24]));
         end
-        %% MAP distribution by Region
+        
+        % MAP distribution by Region
         DAMloadTotalByRegion = zeros(4,1);
         DAMloadTotalByRegion(1,1) = sum(DAMloadByRegion(1,:));
         DAMloadTotalByRegion(2,1) = sum(DAMloadByRegion(2,:));
@@ -1477,7 +1440,9 @@ for Case = case_start:case_end
         MAPratio(1,Case*4+d) = DAMloadTotalByRegion(1,1)/sum(DAMloadTotalByRegion(:,1));
         MAPratio(2,Case*4+d) = sum(DAMloadTotalByRegion(2:4,1))/sum(DAMloadTotalByRegion(:,1));
         
-        %% Load Cost By Region
+        % Load Cost By Region
+        DAM_LMP_energy = ms.lamP(62,1:int_stop_DAM);
+        DAM_LMP = ms.lamP(1:68,1:int_stop_DAM);
         DAMloadCostByRegionHr = zeros(4,24);
         for hour = 1:22
             DAMloadCostByRegionHr(1,hour) =   DAM_LMP(1,hour)*most_busload_DAM(hour,1)+...
@@ -1525,11 +1490,155 @@ for Case = case_start:case_end
             DAMloadCostByRegion(Region,(Case*4+d)) = sum(DAMloadCostByRegionHr(Region,1:24))./1000;
         end
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %% Plot DAM results
+        %Timescale
+        BigTime_DAM = int_stop_DAM;
+        Time4Graph = linspace(1,24,BigTime_DAM);
         
-        %% LMP DAM Graph
+        %% Figure: DAM Generator output and gen by type
+        hFigA = figure(1);
+        set(hFigA, 'Position', [250 50 800 400]) %Pixels: from left, from bottom, across, high
+        
+        % Graph Title (Same for all graphs)
+        %             First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+        %             ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+        %                 'Units','normalized', 'clipping' , 'off');
+        %             text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+        %                 'center', 'VerticalAlignment', 'top')
+        
+        % A -- True Load, Net Load, Demand
+        %             A1 = subplot(3,1,1); hold on;
+        %                 A2 = get(A1,'position'); A2(4) = A2(4)*0.80; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
+        %                 yyaxis right
+        %                     hold on
+        % %                     plot(Time4Graph,ms.lamP(1,1:int_stop_DAM),'LineStyle','-','color',[0.85 .325 .098])
+        %                     bar(A1,ms.lamP(1,1:int_stop_DAM),'FaceAlpha',.2)
+        %                     axis 'auto y';
+        %                     grid on
+        %                     ylabel('DAM LMP ($/MWh)')
+        %                     hold off
+        %                 yyaxis left
+        %                     hold on
+        %                     plot(Time4Graph,NYCA_TrueLoad_DAM(1:int_stop_DAM),'LineStyle','-','color',[0 .447 .741])
+        %                     plot(Time4Graph,NYCA_CASE_net_load_DAM(1:int_stop_DAM),'LineStyle','-','color',[.466 .674 .188])
+        %                     plot(Time4Graph,demand_DAM(1:int_stop_DAM),'LineStyle','-','color',[.494 .184 .556])
+        %                     ylabel('Real Power (MW)')
+        %                     axis([0.5,24.5,0,1000]);
+        %                     set(gca, 'XTick', [0 4 8 12 16 20 24]);
+        %                     axis 'auto y';
+        %                     hold off
+        %                 title('NYCA True Load, Net Load, & Demand')
+        %                 A3 = legend('True Load', 'Net Load', 'Demand','LMP');
+        %                 rect = [.8, 0.76, 0.15, 0.0875]; %[left bottom width height]
+        %                 set(A3, 'Position', rect)
+        %                 ylabel('Real Power (MW)')
+        %                 set(gca, 'XTick', [0 4 8 12 16 20 24]);
+        %                 axis 'auto y';
+        %                 grid on; grid minor; box on; hold off
+        
+        % B -- Generator Output (%)
+        %B1 = subplot(3,1,2); hold on;
+        B1 = subplot(2,1,1); hold on;
+        B2 = get(B1,'position'); B2(4) = B2(4)*1.15; B2(2) = B2(2)*1; set(B1, 'position', B2); B2(3) = B2(3)*1; set(B1, 'position', B2);
+        plot(Time4Graph,gen_output_percent(1,:),'LineStyle',':','color',[0 .447 .741])
+        plot(Time4Graph,gen_output_percent(2,:),'LineStyle',':','color',[.635 .078 .184])
+        plot(Time4Graph,gen_output_percent(3,:),'LineStyle',':','color',[.85 .325 .098])
+        plot(Time4Graph,gen_output_percent(4,:),'LineStyle','--','color',[0 .447 .741])
+        plot(Time4Graph,gen_output_percent(5,:),'LineStyle','--','color',[.301 .745 .933])
+        plot(Time4Graph,gen_output_percent(6,:),'LineStyle','--','color',[.635 .078 .184])
+        plot(Time4Graph,gen_output_percent(7,:),'LineStyle','--','color',[.494 .184 .556])
+        plot(Time4Graph,gen_output_percent(8,:),'LineStyle','--','color',[.466 .674 .188])
+        plot(Time4Graph,gen_output_percent(10,:),'LineStyle','-.','color',[0 .447 .741])
+        plot(Time4Graph,gen_output_percent(11,:),'LineStyle','-.','color',[.494 .184 .556])
+        plot(Time4Graph,gen_output_percent(12,:),'LineStyle','-','color',[.494 .184 .556])
+        plot(Time4Graph,gen_output_percent(13,:),'LineStyle','-','color',[.466 .674 .188])
+        %B3 = legend('Nuke A2F','Nuke GHI','Nuke GHI','Steam A2F','Steam A2F','Steam GHI','Steam NYC','Steam LI',...
+        %            'CC A2F','CC NYC','GT NYC','GT LI');
+        %title('Generator Output (% of Nameplate)')
+        %rect = [.8, 0.45, 0.15, .12]; %[left bottom width height]
+        %set(B3, 'Position', rect)
+        ylabel('Real Power (%)')
+        xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
+        xticklabels({' ' ' ' ' ' ' ' ' ' ' ' ' '})
+        %set(gca, 'XTick', [0 4 8 12 16 20 24]);
+        axis([0.5,24.5,-0.16,1]);
+        yticklabels({' 0','50','100'});
+        grid on; grid minor; box on; hold off
+        
+        % C -- Generation by Type
+        %C1 = subplot(3,1,3); hold on;
+        C1 = subplot(2,1,2); hold on;
+        C2 = get(C1,'position'); C2(4) = C2(4)*1.15; C2(2) = C2(2)*1.35; set(C1, 'position', C2); C2(3) = C2(3)*1; set(C1, 'position', C2);
+        bar([NukeGenDAM;SteamGenDAM;CCGenDAM;GTGenDAM;RenGen_windyDAM;RenGen_hydroDAM;RenGen_otherDAM;BTM4GraphDAM;].'./1000,'stacked','FaceAlpha',.5)
+        %C3 = legend('Nuke', 'Steam', 'CC', 'GT', 'Wind', 'Hydro', 'Other', 'BTM');
+        %reorderLegendbar([1 2 3 4 5 6 7 8])
+        %title('Generation by Type')
+        %rect = [.8, 0.125, 0.15, .12]; %[left bottom width height]
+        %set(C3, 'Position', rect)
+        ylabel('Real Power (GW)')
+        xlabel('Time (Hour Beginning)');
+        axis([0.5,24.5,0,30]);
+        %axis 'auto y';
+        xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
+        xticklabels({'0' '4' '8' '12' '16' '20' '24'})
+        %set(gca, 'XTick', [0 4 8 12 16 20 24]);
+        set(gca, 'YTick', [0 10 20 30])
+        format shortg
+        grid on; grid minor; box on; hold off
+        
+        % Save to an output file
+        outfile = ['../../MarketModel_Output/Outfile.',date];
+        %If this is the first loop through the iteration, open a new document
+        if and(Case == case_start, d == d_start)
+            if ispc
+                % Capture current figure/model into clipboard:
+                matlab.graphics.internal.copyFigureHelper(hFigA)
+                % Start an ActiveX session with PowerPoint:
+                word = actxserver('Word.Application');
+                word.Visible = 1;
+                % Create new presentation:
+                op = invoke(word.Documents,'Add');
+                % Paste the contents of the Clipboard:
+                invoke(word.Selection,'Paste');
+            else
+                fig_cnt = 1;
+                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+                print(hFigA, '-dpdf','-bestfit', filestr)
+                fig_cnt = fig_cnt + 1;
+            end
+            %Otherwise grab the existing word or ps document and paste in there.
+        else
+            if ispc
+                % Capture current figure/model into clipboard:
+                matlab.graphics.internal.copyFigureHelper(hFigA)
+                % Find end of document and make it the insertion point:
+                end_of_doc = get(word.activedocument.content,'end');
+                set(word.application.selection,'Start',end_of_doc);
+                set(word.application.selection,'End',end_of_doc);
+                % Paste the contents of the Clipboard:
+                invoke(word.Selection,'Paste');
+            else
+                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+                print(hFigA, '-dpdf','-bestfit', filestr)
+                fig_cnt = fig_cnt + 1;
+            end
+        end
+        
+        close all       
+        
+        %% Figure: LMP DAM 
         hFigLMP = figure(1);
         set(hFigLMP, 'Position', [250 50 650 300]) %Pixels: from left, from bottom, across, high
-        %% B -- Load Weighted LMP
+        
+        % Graph Title (Same for all graphs)
+        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+            'Units','normalized', 'clipping' , 'off');
+        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+            'center', 'VerticalAlignment', 'top')
+        
+        % B -- Load Weighted LMP
         B1 = subplot(1,1,1); hold on;  %Pixels: from left, from bottom, across, high
         B2 = get(B1,'position'); B2(4) = B2(4)*.5; B2(2) = B2(2)*1.5; set(B1, 'position', B2); B2(3) = B2(3)*.85; set(B1, 'position', B2);
         plot(1:24,AvgLoadLMP(1,:),'LineStyle','--','color',[0 .447 .741])
@@ -1543,16 +1652,17 @@ for Case = case_start:case_end
         set(B3, 'Position', rect)
         ylabel('LMP ($/MWh)')
         xlabel('Time (Hour Beginning)');
-        %                     xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-        %                     xticklabels({' ' ' ' ' ' ' ' ' ' ' ' ' '})
+        %xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
+        %xticklabels({' ' ' ' ' ' ' ' ' ' ' ' ' '})
         set(gca, 'XTick', [0 4 8 12 16 20 24]);
         axis([1,24,0,20]);
         axis 'auto y';
         minval = max(max(max(AvgLoadLMP)),15);
         ylim([0 minval])
-        %                 yticklabels({' 0','50','100'});
+        %yticklabels({' 0','50','100'});
         grid on; grid minor; box on; hold off
-        %% C -- Gen Weighted LMP
+        
+        % C -- Gen Weighted LMP
         %              C1 = subplot(2,1,2); hold on;
         %                  C2 = get(C1,'position'); C2(4) = C2(4)*.95; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*.75; set(C1, 'position', C2);
         %                 plot(1:24,AvgGenLMP(1,:),'LineStyle','--','color',[0 .447 .741])
@@ -1569,13 +1679,8 @@ for Case = case_start:case_end
         %                 axis 'auto y';
         % %                 yticklabels({' 0','50','100'});
         %                 grid on; grid minor; box on; hold off
-        %% Graph Title (Same for all graphs)
-        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-            'Units','normalized', 'clipping' , 'off');
-        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-            'center', 'VerticalAlignment', 'top')
-        %% Save to a word file
+        
+        % Save to an output file
         if ispc
             %If this is the first loop through the iteration, open a new document
             % Capture current figure/model into clipboard:
@@ -1593,24 +1698,33 @@ for Case = case_start:case_end
         end
         close all
         
-        %% Load and Gen by Region
+        %% Figure: Load and Gen by Region
         hFigLoad = figure(3); set(hFigLoad, 'Position', [450 50 650 550]) %Pixels: from left, from bottom, across, high
-        %% A -- Thermal Gen by Region
+        
+        % A -- Thermal Gen by Region
         A1 = subplot(3,1,1); hold on;
         A2 = get(A1,'position'); A2(4) = A2(4)*.85; A2(2) = A2(2)*.95; set(A1, 'position', A2); A2(3) = A2(3)*0.85; set(A1, 'position', A2);
         bar([DAMThermGenByRegion(1,1:24);DAMThermGenByRegion(2,1:24);DAMThermGenByRegion(3,1:24);DAMThermGenByRegion(4,1:24);].','stacked','FaceAlpha',.5)
         ylabel('Real Power (MW)')
         title('Thermal Generation by Region')
         
+        % Title
+        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+            'Units','normalized', 'clipping' , 'off');
+        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+            'center', 'VerticalAlignment', 'top')
+        
         axis([0.5,24.5,0,1500]);
         axis 'auto y';
-        %                     set(gca, 'YTick', [0 500 1000 1500])
+        %set(gca, 'YTick', [0 500 1000 1500])
         xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000])
         yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000'})
         grid on; grid minor; box on; hold off
-        %% B -- Renewable Gen by Region
+        
+        % B -- Renewable Gen by Region
         B1 = subplot(3,1,2); hold on;
         B2 = get(B1,'position'); B2(4) = B2(4)*.85; B2(2) = B2(2)*.95; set(B1, 'position', B2); B2(3) = B2(3)*0.85; set(B1, 'position', B2);
         bar([DAMRenGenByRegion(1,1:24);DAMRenGenByRegion(2,1:24);DAMRenGenByRegion(3,1:24);DAMRenGenByRegion(4,1:24);].','stacked','FaceAlpha',.5)
@@ -1627,7 +1741,8 @@ for Case = case_start:case_end
         set(gca, 'YTick', [0 2000 4000 6000 8000 10000])
         yticklabels({'0' '2,000' '4,000' '6,000' '8,000' '10,000'})
         grid on; grid minor; box on; hold off
-        %% C -- Renewable Gen by Region
+        
+        % C -- Renewable Gen by Region
         C1 = subplot(3,1,3); hold on;
         C2 = get(C1,'position'); C2(4) = C2(4)*.85; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*0.85; set(C1, 'position', C2);
         bar([DAMloadByRegion(1,1:24);DAMloadByRegion(2,1:24);DAMloadByRegion(3,1:24);DAMloadByRegion(4,1:24);].','stacked','FaceAlpha',.5)
@@ -1635,20 +1750,15 @@ for Case = case_start:case_end
         title('Load by Region')
         axis([0.5,24.5,0,4000]);
         axis 'auto y';
-        %                 title('C-E Flow (MW)')
+        %title('C-E Flow (MW)')
         xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000])
         yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000'})
         xlabel('Time (Hour Beginning)')
         grid on; grid minor; box on; hold off
-        %% Title
-        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-            'Units','normalized', 'clipping' , 'off');
-        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-            'center', 'VerticalAlignment', 'top')
-        %% Save to a word file
+        
+        % Save to an output file
         if ispc
             % Capture current figure/model into clipboard:
             matlab.graphics.internal.copyFigureHelper(hFigLoad)
@@ -1666,7 +1776,7 @@ for Case = case_start:case_end
         close all
         
         %% Congestion Charge DAM Difference (analysis only)
-        %% DAM Load Cost
+        % DAM Load Cost
         LoadCostDAM = zeros(52,1);
         LoadCostDAMhr = zeros(52,24);
         for bus = 1:52
@@ -1680,7 +1790,8 @@ for Case = case_start:case_end
             LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
             LoadCostDAMhr(bus,22) = 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
         end
-        %% Flat Scenario DAM Congestion Charge
+        
+        % Flat Scenario DAM Congestion Charge
         DAM_congCharge_region_hr = zeros(4,24);
         for hour = 1:21
             DAM_congCharge_region_hr(1,hour) = DAMloadCostByRegionHr(1,hour) - Gen_DAM_Revenue_hr(1,hour);
@@ -1695,10 +1806,18 @@ for Case = case_start:case_end
         
         %% Figure: Congestion charge by region
         hFigCC = figure(44); set(hFigCC, 'Position', [450 50 650 650]) %Pixels: from left, from bottom, across, high
-        %% A -- Load Cost by Region
+        
+        % Title
+        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+            'Units','normalized', 'clipping' , 'off');
+        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+            'center', 'VerticalAlignment', 'top')
+        
+        % A -- Load Cost by Region
         A1 = subplot(3,1,1); hold on;
         A2 = get(A1,'position'); A2(4) = A2(4)*.95; A2(2) = A2(2)*.95; set(A1, 'position', A2); A2(3) = A2(3)*0.85; set(A1, 'position', A2);
-        %                     bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
+        %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
         bar([DAMloadCostByRegionHr(1,1:24);DAMloadCostByRegionHr(2,1:24);DAMloadCostByRegionHr(3,1:24);DAMloadCostByRegionHr(4,1:24);].','stacked','FaceAlpha',.5)
         ylabel('Cost ($)')
         title('DAM Load Cost by Region')
@@ -1708,17 +1827,18 @@ for Case = case_start:case_end
         set(A3, 'Position', rect)
         axis([0.5,24.5,0,1500]);
         axis 'auto y';
-        %                     set(gca, 'YTick', [0 500 1000 1500])
+        %set(gca, 'YTick', [0 500 1000 1500])
         xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         set(gca, 'YTick', [0 100000 200000 300000 400000 500000 ])
         yticklabels({'0' '100,000' '200,000'  '300,000' '400,000' '500,000'})
         grid on; grid minor; box on; hold off
-        %% B -- Gen Payment by Region
+        
+        % B -- Gen Payment by Region
         B1 = subplot(3,1,2); hold on;
         B2 = get(B1,'position'); B2(4) = B2(4)*.95; B2(2) = B2(2)*.95; set(B1, 'position', B2); B2(3) = B2(3)*0.85; set(B1, 'position', B2);
-        %                     bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
+        %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
         bar([Gen_DAM_Revenue_hr(1,1:24);Gen_DAM_Revenue_hr(2,1:24);Gen_DAM_Revenue_hr(3,1:24);Gen_DAM_Revenue_hr(4,1:24);].','stacked','FaceAlpha',.5)
         ylabel('Payment ($)')
         title('DAM Generator Payments by Region')
@@ -1728,16 +1848,17 @@ for Case = case_start:case_end
         set(B3, 'Position', rect)
         axis([0.5,24.5,0,1500]);
         axis 'auto y';
-        %                     set(gca, 'YTick', [0 500 1000 1500])
+        %set(gca, 'YTick', [0 500 1000 1500])
         xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         set(gca, 'YTick', [0 100000 200000 300000 400000 500000 ])
         yticklabels({'0' '100,000' '200,000'  '300,000' '400,000' '500,000'})
         grid on; grid minor; box on; hold off
-        %% C -- Congestion Charge by Region
+        
+        % C -- Congestion Charge by Region
         C1 = subplot(3,1,3); hold on;
         C2 = get(C1,'position'); C2(4) = C2(4)*.95; C2(2) = C2(2)*.95; set(C1, 'position', C2); C2(3) = C2(3)*0.85; set(C1, 'position', C2);
-        %                     bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
+        %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
         bar([DAM_congCharge_hrr(1,1:24);].','FaceAlpha',.5)
         ylabel('Charge ($)')
         title('DAM Congestion Charge')
@@ -1748,20 +1869,15 @@ for Case = case_start:case_end
         axis 'auto y';
         minval2 = max(max(DAM_congCharge_hrr),10000);
         ylim([0 minval2])
-        %                     set(gca, 'YTick', [0 500 1000 1500])
+        %set(gca, 'YTick', [0 500 1000 1500])
         xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
         xticklabels({'0' '4' '8' '12' '16' '20' '24'})
         xlabel('Time (Hour Beginning)');
         set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000 110000 120000])
         yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000' '80,000' '90,000' '100,000' '110,000' '120,000'})
         grid on; grid minor; box on; hold off
-        %% Title
-        First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-        ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-            'Units','normalized', 'clipping' , 'off');
-        text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-            'center', 'VerticalAlignment', 'top')
-        %% Save to a word file
+        
+        % Save to an output file
         if ispc
             % Capture current figure/model into clipboard:
             matlab.graphics.internal.copyFigureHelper(hFigCC)
@@ -1777,14 +1893,20 @@ for Case = case_start:case_end
             fig_cnt = fig_cnt + 1;
         end
         close all
+        
         %% DAM only
         %***************
-        % This code should be NOT commented out and a stop placed on "stop = 1" if analysis of the DAM only is desired.
-        % Otherwise, comment this code out to run simulations for both DAM and RTM.
-        DayCaseWorked = [d,Case]
+        % This code should be NOT commented out and a stop placed on 
+        % "stop = 1" if analysis of the DAM only is desired. Otherwise, 
+        % comment this code out to run simulations for both DAM and RTM.
+        fprintf('Competed Case %d for %s\n', Case, ren_tab_array(d))
         
     end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REAL TIME MARKET MODEL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 stop = 1
 for Case = case_start:case_end
