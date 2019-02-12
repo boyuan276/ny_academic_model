@@ -152,10 +152,7 @@ undrbidfac = 1;
 % this variable because it was also hard-coded to 288.
 most_period_count = 288; %%%%% Whis is this hard-coded?????
 
-input_params = [d_start;
-    d_end;
-    case_start;
-    case_end;
+input_params = [
     IFlims;
     printCurt;
     RTC_periods;
@@ -375,7 +372,54 @@ input_vars = {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DAY AHEAD MARKET MODEL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-RunDAM(input_params,input_vars)
+for Case = case_start:case_end
+    for d = d_start: d_end
+
+        [DAMresults, DAMifFlows ] = RunDAM(Case, d, input_params, input_vars);
+        
+        % Store DAM Results
+        %%%%% Perhaps change the type of data structure that results are
+        %%%%% stored within
+        DAMresults(1,Case*4+d) = d;
+        DAMresults(2,Case*4+d) = Case;
+        DAMresults(3,Case*4+d) = windyCurt;
+        DAMresults(4,Case*4+d) = windyCurtFactor;
+        DAMresults(5,Case*4+d) = sum(Gen_DAM_OpCost24(1:Gens)) + sum(Gen_DAM_SUPCost24(1:Gens));
+        
+        
+        DAMresults(6,Case*4+d) = DAMwindyCurtMWh;
+        DAMresults(7,Case*4+d) = DAMhydroCurtMWh;
+        DAMresults(8,Case*4+d) = DAMotherCurtMWh;
+        DAMresults(9,Case*4+d) = ms.f;
+        
+        %% Debug MW and LMP values
+        %DAM MW - Load
+        DAM_MW_Load = zeros(24,1);
+        for hour = 1:24
+            for bus = 1:52
+                DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
+            end
+        end
+        
+        %DAM MW - Gen
+        DAM_MW_Gen = zeros(24,1);
+        for hour = 1:24
+            for gen = 1:59
+                DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
+            end
+        end
+        
+        %Calculate Error
+        DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
+        fprintf('For Case %d on %s, the mismatch (in MW) between day-ahead load and gen is:\n',...
+            Case, ren_tab_array(d))
+        disp(DAM_MW_error)
+        
+        % Print completion message for this case and day
+        fprintf('Competed Case %d for %s\n', Case, ren_tab_array(d))
+        
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% REAL TIME MARKET MODEL
@@ -383,319 +427,6 @@ RunDAM(input_params,input_vars)
 if RTM_option == 1
     for Case = case_start:case_end
         for d = d_start: d_end
-            % Comment out the above code to enable DAM and RTM simulations.
-            %***************
-            
-            %% Second DAM Graph - Renewable curtailment in the DAM
-            %% Initialize
-            DAMwindy = zeros(24,2);
-            for int = 1:24
-                if useinstant == 1
-                    DAMwindy(int,1) = sum(most_bus_rengen_windy(int*12-11,:));
-                else
-                    DAMwindy(int,1) = sum(mean(most_bus_rengen_windy(int*12-11:int*12,:)));
-                end
-                DAMwindy(int,2) = RenGen_windyDAM(int);
-            end
-            DAMhydro = zeros(24,2);
-            for int = 1:24
-                if useinstant == 1
-                    DAMhydro(int,1) = sum(most_bus_rengen_hydro(int*12-11,:));
-                else
-                    DAMhydro(int,1) = sum(mean(most_bus_rengen_hydro(int*12-11:int*12,:)));
-                end
-                DAMhydro(int,2) = RenGen_hydroDAM(int);
-            end
-            DAMother = zeros(24,2);
-            for int = 1:24
-                if useinstant == 1
-                    DAMother(int,1) = sum(most_bus_rengen_other(int*12-11,:));
-                else
-                    DAMother(int,1) = sum(mean(most_bus_rengen_other(int*12-11:int*12,:)));
-                end
-                DAMother(int,2) = RenGen_otherDAM(int);
-            end
-            %% DAM Renewable Curtailment MWh - TOTAL
-            DAMwindyCurtMWh = 0;
-            for hourr = 1:24
-                DAMwindyCurtMWh = DAMwindyCurtMWh + DAMwindy(hourr,1) - DAMwindy(hourr,2);
-            end
-            DAMhydroCurtMWh = 0;
-            for hourr = 1:24
-                DAMhydroCurtMWh = DAMhydroCurtMWh + DAMhydro(hourr,1) - DAMhydro(hourr,2);
-            end
-            DAMotherCurtMWh = 0;
-            for hourr = 1:24
-                DAMotherCurtMWh = DAMotherCurtMWh + DAMother(hourr,1) - DAMother(hourr,2);
-            end
-            %% DAM Renewable Curtailment MWh - By Hour
-            DAMCurtMWh_hrly = -(RenGen_windyDAM(:) - DAMwindy(:,1) + RenGen_hydroDAM(:) - DAMhydro(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
-            %% Make Figure
-            hFigA = figure(2); set(hFigA, 'Position', [450 50 650 600]) %Pixels: from left, from bottom, across, high
-            %% A -- Wind
-            A1 = subplot(3,1,1); hold on;
-            A2 = get(A1,'position'); A2(4) = A2(4)*0.80; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
-            bar(DAMwindy)
-            title('DAM Wind Curtailment')
-            if useinstant == 1
-                A3 = legend('first value in hour','DAM committed');
-            else
-                A3 = legend('hourly average','DAM committed');
-            end
-            rect = [.8, 0.76, 0.15, 0.0875]; %[left bottom width height]
-            set(A3, 'Position', rect)
-            ylabel('Real Power (MW)')
-            set(gca, 'XTick', [0 4 8 12 16 20 24]);
-            axis 'auto y';
-            grid on; grid minor; box on; hold off
-            %% B -- Hydro
-            B1 = subplot(3,1,2); hold on;
-            B2 = get(B1,'position'); B2(4) = B2(4)*1.; B2(2) = B2(2)*1; set(B1, 'position', B2); B2(3) = B2(3)*0.75; set(B1, 'position', B2);
-            bar(DAMhydro)
-            title('DAM Hydro Curtailment')
-            if useinstant == 1
-                B3 = legend('first value in hour','DAM committed');
-            else
-                B3 = legend('hourly average','DAM committed');
-            end
-            rect = [.8, 0.45, 0.15, .12]; %[left bottom width height]
-            set(B3, 'Position', rect)
-            ylabel('Real Power (MW)')
-            axis([0.5,24.5,0,1]);
-            axis 'auto y';
-            set(gca, 'XTick', [0 4 8 12 16 20 24]);
-            grid on; grid minor; box on; hold off
-            %% C -- Other
-            C1 = subplot(3,1,3); hold on;
-            C2 = get(C1,'position'); C2(4) = C2(4)*1; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*0.75; set(C1, 'position', C2);
-            bar(DAMother)
-            title('DAM Other Curtailment')
-            if useinstant == 1
-                C3 = legend('first value in hour','DAM committed');
-            else
-                C3 = legend('hourly average','DAM committed');
-            end
-            rect = [.8, 0.125, 0.15, .12]; %[left bottom width height]
-            set(C3, 'Position', rect)
-            ylabel('Real Power (MW)')
-            xlabel('Time (hours)');
-            axis([0.5,24.5,0,30000]);
-            axis 'auto y';
-            set(gca, 'XTick', [0 4 8 12 16 20 24]);
-            format shortg
-            grid on; grid minor; box on; hold off
-            %% Graph Title (Same for all graphs)
-            First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-            ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-                'Units','normalized', 'clipping' , 'off');
-            text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-                'center', 'VerticalAlignment', 'top')
-            %% Save to a word file
-            if ispc
-                % Capture current figure/model into clipboard:
-                matlab.graphics.internal.copyFigureHelper(hFigA)
-                % Find end of document and make it the insertion point:
-                end_of_doc = get(word.activedocument.content,'end');
-                set(word.application.selection,'Start',end_of_doc);
-                set(word.application.selection,'End',end_of_doc);
-                % Paste the contents of the Clipboard:
-                invoke(word.Selection,'Paste');
-            else
-                filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                print(hFigA, '-dpdf','-bestfit', filestr)
-                fig_cnt = fig_cnt + 1;
-            end
-            close all
-            %% Store DAM Results
-            DAMresults(1,Case*4+d) = d;
-            DAMresults(2,Case*4+d) = Case;
-            DAMresults(3,Case*4+d) = windyCurt;
-            DAMresults(4,Case*4+d) = windyCurtFactor;
-            DAMresults(5,Case*4+d) = sum(Gen_DAM_OpCost24(1:Gens)) + sum(Gen_DAM_SUPCost24(1:Gens));
-            
-            
-            DAMresults(6,Case*4+d) = DAMwindyCurtMWh;
-            DAMresults(7,Case*4+d) = DAMhydroCurtMWh;
-            DAMresults(8,Case*4+d) = DAMotherCurtMWh;
-            DAMresults(9,Case*4+d) = ms.f;
-            %% Store Constrained Interface Flow Values
-            DAMifFlows = zeros(24,4);
-            for hour = 1:24
-                DAMifFlows(hour,1) = ms.Pf(1,hour)  - ms.Pf(16,hour);
-                DAMifFlows(hour,2) = ms.Pf(1,hour)  - ms.Pf(16,hour) + ms.Pf(86,hour);
-                DAMifFlows(hour,3) = ms.Pf(7,hour)  + ms.Pf(9,hour)  + ms.Pf(13,hour);
-                DAMifFlows(hour,4) = ms.Pf(28,hour) + ms.Pf(29,hour);
-            end
-            %% Store EVSE Load
-            if EVSE == 1
-                %% Initialize
-                DAMEVSEload = mdo.Storage.ExpectedStorageDispatch(1:32,1:24);
-                EVSEloadDAMgraph = zeros(4,24);
-                for hour = 1:24
-                    EVSEloadDAMgraph(1,hour) = -DAMEVSEload(1,hour)-DAMEVSEload(6,hour)-sum(DAMEVSEload(17:32,hour)); %A2F
-                    EVSEloadDAMgraph(2,hour) = -sum(DAMEVSEload(2:5,hour))-sum(DAMEVSEload(15,hour)); %GHI
-                    EVSEloadDAMgraph(3,hour) = -sum(DAMEVSEload(7:11,hour))-DAMEVSEload(16,hour); %NYC
-                    EVSEloadDAMgraph(4,hour) = -sum(DAMEVSEload(12:14,hour)); %Long Island
-                end
-                %% Make Figure
-                hFigE = figure(3); set(hFigE, 'Position', [450 50 650 200]) %Pixels: from left, from bottom, across, high
-                %% A -- EVSE
-                A1 = subplot(1,1,1); hold on;
-                A2 = get(A1,'position'); A2(4) = A2(4)*.80; A2(2) = A2(2)*2.1; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
-                bar([EVSEloadDAMgraph(1,1:24);EVSEloadDAMgraph(2,1:24);EVSEloadDAMgraph(3,1:24);EVSEloadDAMgraph(4,1:24);].','stacked','FaceAlpha',.5)
-                ylabel('Real Power (MW)')
-                axis([0.5,24.5,0,1000]);
-                axis 'auto y';
-                A3 = legend('A2F','GHI','NYC','LIs');
-                reorderLegendbar([1 2 3 4])
-                rect = [.8, 0.25, 0.15, .35]; %[left bottom width height]
-                set(A3, 'Position', rect)
-                xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-                xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-                %                 set(gca, 'YTick', [0 250 500 1000])
-                xlabel('Time (hours)')
-                grid on; grid minor; box on; hold off
-                %% Save to an output file
-                if ispc
-                    % Capture current figure/model into clipboard:
-                    matlab.graphics.internal.copyFigureHelper(hFigE)
-                    % Find end of document and make it the insertion point:
-                    end_of_doc = get(word.activedocument.content,'end');
-                    set(word.application.selection,'Start',end_of_doc);
-                    set(word.application.selection,'End',end_of_doc);
-                    % Paste the contents of the Clipboard:
-                    invoke(word.Selection,'Paste');
-                else
-                    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    print(hFigE, '-dpdf','-bestfit', filestr)
-                    fig_cnt = fig_cnt + 1;
-                end
-                close all
-                
-            end
-            
-            %% Curtailment by Region
-            %% DAM Scheduled renewable output by region
-            DAMschedRegion = zeros(4,24);
-            for hour = 1:24
-                %A2F
-                DAMschedRegion(1,hour) = sum(most_windy_gen_DAM(hour,11:15))+...
-                    sum(most_hydro_gen_DAM(hour,11:15))+...
-                    sum(most_other_gen_DAM(hour,11:15));
-                %GHI
-                DAMschedRegion(2,hour) = sum(most_windy_gen_DAM(hour,1:2))+most_windy_gen_DAM(hour,8)+...
-                    sum(most_hydro_gen_DAM(hour,1:2))+most_hydro_gen_DAM(hour,8)+...
-                    sum(most_other_gen_DAM(hour,1:2))+most_other_gen_DAM(hour,8);
-                %NYC
-                DAMschedRegion(3,hour) = sum(most_windy_gen_DAM(hour,3:5))+...
-                    sum(most_hydro_gen_DAM(hour,3:5))+...
-                    sum(most_other_gen_DAM(hour,3:5));
-                %LIs
-                DAMschedRegion(4,hour) = sum(most_windy_gen_DAM(hour,6:7))+...
-                    sum(most_hydro_gen_DAM(hour,6:7))+...
-                    sum(most_other_gen_DAM(hour,6:7));
-            end
-            %% DAM Actual Renewable Generation by region
-            DAMactualRegion = zeros(4,24);
-            for hour = 1:24
-                %A2F
-                DAMactualRegion(1,hour) = sum(ms.Pg(25:29,hour))+...
-                    sum(ms.Pg(40:44,hour))+...
-                    sum(ms.Pg(55:59,hour));
-                %GHI
-                DAMactualRegion(2,hour) = sum(ms.Pg(15:16,hour))+ms.Pg(22,hour)+...
-                    sum(ms.Pg(30:31,hour))+ms.Pg(37,hour)+...
-                    sum(ms.Pg(45:46,hour))+ms.Pg(52,hour);
-                %NYC
-                DAMactualRegion(3,hour) = sum(ms.Pg(17:19,hour))+...
-                    sum(ms.Pg(32:34,hour))+...
-                    sum(ms.Pg(47:49,hour));
-                %LIs
-                DAMactualRegion(4,hour) = sum(ms.Pg(20:21,hour))+...
-                    sum(ms.Pg(35:36,hour))+...
-                    sum(ms.Pg(50:51,hour));
-            end
-            %% DAM curtailment by region
-            DAMcurtRegion = DAMschedRegion - DAMactualRegion;
-            %% Initialize
-            DAM_CElimit = ones(1,25).*lims_Array(BoundedIF,3);
-            %% Make Figure
-            if printCurt == 1
-                hFigE = figure(3); set(hFigE, 'Position', [450 50 650 450]) %Pixels: from left, from bottom, across, high
-                %% A -- Curtailment by Region
-                A1 = subplot(2,1,1); hold on;
-                A2 = get(A1,'position'); A2(4) = A2(4)*.80; A2(2) = A2(2)*1; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
-                bar([DAMcurtRegion(1,1:24);DAMcurtRegion(2,1:24);DAMcurtRegion(3,1:24);DAMcurtRegion(4,1:24);].','stacked','FaceAlpha',.5)
-                ylabel('Real Power (MW)')
-                axis([0.5,24.5,0,2000]);
-                %                 axis 'auto y';
-                title('Curtailment by Region')
-                A3 = legend('A2F','GHI','NYC','LIs');
-                reorderLegendbar([1 2 3 4])
-                rect = [.8, 0.6, 0.15, .2]; %[left bottom width height]
-                set(A3, 'Position', rect)
-                xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-                xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-                %                 set(gca, 'YTick', [0 250 500 1000])
-                %                     xlabel('Time (hours)')
-                ylabel('Curtailment (MW)')
-                grid on; grid minor; box on; hold off
-                %% B -- Central-East Interface Flows
-                B1 = subplot(2,1,2); hold on;
-                B2 = get(B1,'position'); B2(4) = B2(4)*.80; B2(2) = B2(2)*1.4; set(B1, 'position', B2); B2(3) = B2(3)*0.75; set(B1, 'position', B2);
-                bar([DAMifFlows(1:24,3);].')
-                plot(1:25,DAM_CElimit)
-                ylabel('Real Power (MW)')
-                axis([0.5,24.5,0,4000]);
-                %                 axis 'auto y';
-                title('Central-East Interface Flow')
-                B3 = legend('CE Flow', 'Limit');
-                reorderLegendarea([1 2])
-                rect = [.8, 0.3, 0.15, .05]; %[left bottom width height]
-                set(B3, 'Position', rect)
-                xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-                xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-                %                 set(gca, 'YTick', [0 250 500 1000])
-                xlabel('Time (hours)')
-                ylabel('Real Power (MW)')
-                grid on; grid minor; box on; hold off
-                %% Save to an output file
-                if ispc
-                    % Capture current figure/model into clipboard:
-                    matlab.graphics.internal.copyFigureHelper(hFigE)
-                    % Find end of document and make it the insertion point:
-                    end_of_doc = get(word.activedocument.content,'end');
-                    set(word.application.selection,'Start',end_of_doc);
-                    set(word.application.selection,'End',end_of_doc);
-                    % Paste the contents of the Clipboard:
-                    invoke(word.Selection,'Paste');
-                else
-                    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-                    print(hFigE, '-dpdf','-bestfit', filestr)
-                    fig_cnt = fig_cnt + 1;
-                end
-                close all
-            end
-            
-            %% Debug MW and LMP values
-            %DAM MW - Load
-            DAM_MW_Load = zeros(24,1);
-            for hour = 1:24
-                for bus = 1:52
-                    DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
-                end
-            end
-            %DAM MW - Gen
-            DAM_MW_Gen = zeros(24,1);
-            for hour = 1:24
-                for gen = 1:59
-                    DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
-                end
-            end
-            %Calculate Error
-            DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
-            disp('The mismatch (in MW) between day-ahead load and gen is:')
-            disp(DAM_MW_error)
             
             %% Real Time
             dubugIfNeeded = 1;
