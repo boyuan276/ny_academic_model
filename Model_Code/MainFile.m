@@ -38,7 +38,7 @@ addpath(genpath(path_data))
 set(0,'DefaultAxesFontSize',14)
 set(0,'DefaultTextFontSize',14)
 set(0,'DefaultLineLinewidth',1)
-disp('changing font sizes to 14 and line width = 1.5')
+fprintf('Changing font sizes to 14 and line width = 1.5\n')
 
 %% Set Simulation Control Parameters
 %%%%% I need to brainstorm how to expand this section to make it more date
@@ -104,7 +104,7 @@ hydroCurtFactor = 0;
 otherCurtFactor = 0;
 
 % Increase the Ramp Rate: [1 = yes; 0 = no]
-IncreasedDAMramp = 1; %reduces Steam and CC units ramp rate in DAM
+IncreasedDAMramp = 0; %reduces Steam and CC units ramp rate in DAM
 IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
 IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
 IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
@@ -149,8 +149,9 @@ mustRun = 1; %This should always be set to 1 for all units.
 undrbidfac = 1;
 
 % Determine Number of Periods. I also replaced fivemin_period_count with
-% this variable because it was also hard-coded to 288.
-most_period_count = 288; %%%%% Whis is this hard-coded?????
+% this variable.
+most_period_count = 288; % This corresponds to a 5-min RTM (i.e., 24*12)
+most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 
 input_params = [
     IFlims;
@@ -190,7 +191,11 @@ input_params = [
     useinstant;
     mustRun;
     undrbidfac;
-    most_period_count
+    most_period_count;
+    most_period_count_DAM;
+    RTM_option;
+    case_start;
+    d_start;
     ];
 
 %% Define Initial Variables
@@ -213,18 +218,29 @@ GHI_load_bus_count = length(GHI_Load_buses);
 NYC_load_bus_count = length(NYC_Load_buses);
 LIs_load_bus_count = length(LIs_Load_buses);
 
-% Define Gen Buses by zone
-%A2F_Gen_buses = [62; 63; 64; 65; 66; 67; 68;];
-A2F_Gen_buses = [64; 65; 66; 67; 68;]; %removed gen at bus 62 for ref bus and bus 63 for no ITM in base case
-GHI_Gen_buses = [53; 54; 60;];
-NYC_Gen_buses = [55; 56; 57;];
-LIs_Gen_buses = [58; 59;];
-NEw_Gen_buses = [61;];
+% Define Gen Buses by zone. %%%%% I changed these from column vectors to
+% row vectors, which I checked, and I don't think will cause problems, but
+% I wanted to include this note for sanity's sake.
+%A2F_Gen_buses = [62 63 64 65 66 67 68];
+A2F_Gen_buses = [64 65 66 67 68]; %removed gen at bus 62 for ref bus and bus 63 for no ITM in base case
+GHI_Gen_buses = [53 54 60];
+NYC_Gen_buses = [55 56 57];
+LIs_Gen_buses = [58 59];
+NEw_Gen_buses = [61];
 A2F_gen_bus_count = length(A2F_Gen_buses);
 GHI_gen_bus_count = length(GHI_Gen_buses);
 NYC_gen_bus_count = length(NYC_Gen_buses);
 LIs_gen_bus_count = length(LIs_Gen_buses);
 NEw_gen_bus_count = length(NEw_Gen_buses);
+
+% Define Renewable Energy Buses by zone. %%%%% I pulled these arrays out of
+% the RunDAM.m, but I don't actually know where the values within them
+% come from. Perhaps they are all proper, but I don't have a physical
+% topological map of the system... I should probablly make one.
+A2F_RE_buses = [25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
+GHI_RE_buses = [15 16 22 30 31 37 45 46 52];
+NYC_RE_buses = [17 18 19 32 33 34 47 48 49];
+LIs_RE_buses = [20 21 35 36 20 21];
 
 % RTD Value Storage Arrays %%%%% I don't think these belong here... they
 % are preallocations.
@@ -366,7 +382,23 @@ input_vars = {
     A2F_2016_ITM_Bio_ICAP;
     A2F_2016_ITM_LFG_ICAP;
     EVSE_Gold_MWh;
-    EVSE_Gold_MW
+    EVSE_Gold_MW;
+    date_array;
+    ren_tab_array;
+    A2F_Gen_buses;
+    GHI_Gen_buses;
+    NYC_Gen_buses;
+    LIs_Gen_buses;
+    NEw_Gen_buses;
+    A2F_gen_bus_count;
+    GHI_gen_bus_count;
+    NYC_gen_bus_count;
+    LIs_gen_bus_count;
+    NEw_gen_bus_count;
+    A2F_RE_buses; 
+    GHI_RE_buses;
+    NYC_RE_buses;
+    LIs_RE_buses;
     };
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

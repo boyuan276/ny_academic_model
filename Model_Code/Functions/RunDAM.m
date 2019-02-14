@@ -42,6 +42,10 @@ useinstant = input_params(35);
 mustRun = input_params(36);
 undrbidfac = input_params(37);
 most_period_count = input_params(38);
+most_period_count_DAM = input_params(39);
+RTM_option = input_params(40);
+case_start = input_params(41);
+d_start = input_params(42);
 
 % Define input variables
 A2F_Load_buses = input_vars{1};
@@ -91,7 +95,22 @@ A2F_2016_ITM_Bio_ICAP = input_vars{44};
 A2F_2016_ITM_LFG_ICAP = input_vars{45};
 EVSE_Gold_MWh = input_vars{46};
 EVSE_Gold_MW = input_vars{47};
-
+date_array = input_vars{48};
+ren_tab_array = input_vars{49};
+A2F_Gen_buses = input_vars{50};
+GHI_Gen_buses = input_vars{51};
+NYC_Gen_buses = input_vars{52};
+LIs_Gen_buses = input_vars{53};
+NEw_Gen_buses = input_vars{54};
+A2F_gen_bus_count = input_vars{55};
+GHI_gen_bus_count = input_vars{56};
+NYC_gen_bus_count = input_vars{57};
+LIs_gen_bus_count = input_vars{58};
+NEw_gen_bus_count = input_vars{59};
+A2F_RE_buses = input_vars{60};
+GHI_RE_buses = input_vars{61};
+NYC_RE_buses = input_vars{62};
+LIs_RE_buses = input_vars{63};
 
 
 %% Create Strings
@@ -122,6 +141,7 @@ month_str = num2str(mon, '%02i');
 day_str = num2str(day_, '%02i');
 datestring = strcat(year_str,month_str,day_str);
 
+
 %% Get Net Load from OASIS
 %Define the filename
 m_file_loc = '../NYISO Data/ActualLoad5min/';
@@ -147,6 +167,7 @@ GHI_2016_net_load = (RT_actual_load.M(3 +(periods)*11,2)+...%Zone G
 NYC_2016_net_load = (RT_actual_load.M(9 +(periods)*11,2));  %Zone J
 LIs_2016_net_load = (RT_actual_load.M(6 +(periods)*11,2));  %Zone K
 
+
 %% Calculate Regional Load Only
 %Given: Incremental BTM Generation
 BTM = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C18:KD28');
@@ -161,6 +182,7 @@ GHI_Load_Only = GHI_2016_net_load + GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*GHI_BT
 NYC_Load_Only = NYC_2016_net_load + NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*NYC_BTM_2016_cap;
 LIs_Load_Only = LIs_2016_net_load + LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*LIs_BTM_2016_cap;
 NYCA_TrueLoad = A2F_Load_Only + GHI_Load_Only+ NYC_Load_Only+ LIs_Load_Only;
+
 
 %% Calculate Regional BTM Gen
 %Calculate: 2016 BTM Generation
@@ -183,6 +205,7 @@ NYC_CASE_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_CASE_cap + NYC
 LIs_CASE_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_CASE_cap + LIs_BTM_2016_cap );
 NYCA_CASE_BTM_gen = A2F_CASE_BTM_gen + GHI_CASE_BTM_gen + NYC_CASE_BTM_gen + LIs_CASE_BTM_gen;
 
+
 %% Calculate Regional Net Load
 %CASE Net Load (includes NEW)
 A2F_CASE_net_load = (A2F_Load_Only - A2F_CASE_BTM_gen);
@@ -190,6 +213,7 @@ GHI_CASE_net_load = (GHI_Load_Only - GHI_CASE_BTM_gen);
 NYC_CASE_net_load = (NYC_Load_Only - NYC_CASE_BTM_gen);
 LIs_CASE_net_load = (LIs_Load_Only - LIs_CASE_BTM_gen);
 NYCA_CASE_net_load = A2F_CASE_net_load + GHI_CASE_net_load + NYC_CASE_net_load + LIs_CASE_net_load;
+
 
 %% Populate Net Load into MOST
 most_busload = zeros(most_period_count,52);
@@ -207,9 +231,9 @@ for int = int_start:int_stop
     most_busload(int, LIs_Load_buses(i)) = LIs_CASE_net_load(int)./LIs_load_bus_count;
 end
 
+
 %% Modify for DAM (24 periods)
 %Take average of load values in an hour
-most_period_count_DAM = 24;
 most_busload_DAM = zeros(most_period_count_DAM,52);
 int_start_DAM = 1;
 int_stop_DAM = most_period_count_DAM;
@@ -224,6 +248,7 @@ end
 %Reduce by 100*(1 - undrbidfac)% to account for underbidding of load
 most_busload_DAM = most_busload_DAM.*undrbidfac;
 
+
 %% ITM Renewable Generation
 %Gather ITM Generation for INCREMENTAL generation capacity
 wind  = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C34:KD44');
@@ -231,6 +256,7 @@ hydro = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C49:KD59');
 PV = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C64:KD74');
 Bio = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C79:KD89');
 LFG   = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C94:KD104');
+
 
 %% Calculate output per MW installed capacity
 %WIND
@@ -250,6 +276,7 @@ GHI_ITM_wind_gen_per_iCAP_MW(isnan(GHI_ITM_wind_gen_per_iCAP_MW))=0;
 NYC_ITM_wind_gen_per_iCAP_MW(isnan(NYC_ITM_wind_gen_per_iCAP_MW))=0;
 LIs_ITM_wind_gen_per_iCAP_MW(isnan(LIs_ITM_wind_gen_per_iCAP_MW))=0;
 
+
 %HYDRO
 %ITM Generation for INCREMENTAL generation capacity by Zone
 A2F_INC_ITM_hydro_gen = sum(hydro(1:6,:));
@@ -266,6 +293,7 @@ A2F_ITM_hydro_gen_per_iCAP_MW(isnan(A2F_ITM_hydro_gen_per_iCAP_MW))=0;
 GHI_ITM_hydro_gen_per_iCAP_MW(isnan(GHI_ITM_hydro_gen_per_iCAP_MW))=0;
 NYC_ITM_hydro_gen_per_iCAP_MW(isnan(NYC_ITM_hydro_gen_per_iCAP_MW))=0;
 LIs_ITM_hydro_gen_per_iCAP_MW(isnan(LIs_ITM_hydro_gen_per_iCAP_MW))=0;
+
 
 %Utility-Scale PV
 %ITM Generation for INCREMENTAL generation capacity by Zone
@@ -284,6 +312,7 @@ GHI_ITM_PV_gen_per_iCAP_MW(isnan(GHI_ITM_PV_gen_per_iCAP_MW))=0;
 NYC_ITM_PV_gen_per_iCAP_MW(isnan(NYC_ITM_PV_gen_per_iCAP_MW))=0;
 LIs_ITM_PV_gen_per_iCAP_MW(isnan(LIs_ITM_PV_gen_per_iCAP_MW))=0;
 
+
 %BIOMASS
 %ITM Generation for INCREMENTAL generation capacity by Zone
 A2F_INC_ITM_Bio_gen = sum(Bio(1:6,:));
@@ -301,6 +330,7 @@ GHI_ITM_Bio_gen_per_iCAP_MW(isnan(GHI_ITM_Bio_gen_per_iCAP_MW))=0;
 NYC_ITM_Bio_gen_per_iCAP_MW(isnan(NYC_ITM_Bio_gen_per_iCAP_MW))=0;
 LIs_ITM_Bio_gen_per_iCAP_MW(isnan(LIs_ITM_Bio_gen_per_iCAP_MW))=0;
 
+
 %Landfill Gas (LFG)
 %ITM Generation for INCREMENTAL generation capacity by Zone
 A2F_INC_ITM_LFG_gen = sum(LFG(1:6,:));
@@ -317,6 +347,7 @@ A2F_ITM_LFG_gen_per_iCAP_MW(isnan(A2F_ITM_LFG_gen_per_iCAP_MW))=0;
 GHI_ITM_LFG_gen_per_iCAP_MW(isnan(GHI_ITM_LFG_gen_per_iCAP_MW))=0;
 NYC_ITM_LFG_gen_per_iCAP_MW(isnan(NYC_ITM_LFG_gen_per_iCAP_MW))=0;
 LIs_ITM_LFG_gen_per_iCAP_MW(isnan(LIs_ITM_LFG_gen_per_iCAP_MW))=0;
+
 
 %% Incremental Generation
 % Calculate ITM Capacity under current Case
@@ -376,6 +407,7 @@ LIs_ITM_CASE_Gen = LIs_ITM_CASE_windy_Gen + LIs_ITM_CASE_hydro_Gen + LIs_ITM_CAS
 
 Tot_ITM_CASE_Gen = A2F_ITM_CASE_Gen + GHI_ITM_CASE_Gen + NYC_ITM_CASE_Gen + LIs_ITM_CASE_Gen;
 
+
 %% 2016 Generation
 %Calculate output for existing A2F renewables
 A2F_2016_ITM_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_2016_ITM_wind_ICAP;
@@ -385,10 +417,11 @@ A2F_2016_ITM_other_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_2016_ITM_PV_ICAP + 
     A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_2016_ITM_LFG_ICAP; %%%%%
 A2F_2016_ITM_Gen = A2F_2016_ITM_windy_Gen + A2F_2016_ITM_hydro_Gen + A2F_2016_ITM_other_Gen;
 
+
 %% Gen Capacity by region for the current case
 %All gen by region
 A2F_all_CASE_gencap = A2F_2016_ITM_wind_ICAP + A2F_2016_ITM_hydro_ICAP + A2F_2016_ITM_PV_ICAP+ A2F_2016_ITM_Bio_ICAP + A2F_2016_ITM_LFG_ICAP + ...
-    A2F_ITM_CASE_wind_cap + A2F_ITM_CASE_hydro_cap + A2F_ITM_CASE_PV_cap+ A2F_ITM_CASE_Bio_cap + A2F_ITM_CASE_LFG_cap;
+    A2F_ITM_CASE_wind_cap + A2F_ITM_CASE_hydro_cap + A2F_ITM_CASE_PV_cap + A2F_ITM_CASE_Bio_cap + A2F_ITM_CASE_LFG_cap;
 GHI_all_CASE_gencap = GHI_ITM_CASE_wind_cap + GHI_ITM_CASE_hydro_cap + GHI_ITM_CASE_PV_cap+ GHI_ITM_CASE_Bio_cap + GHI_ITM_CASE_LFG_cap;
 NYC_all_CASE_gencap = NYC_ITM_CASE_wind_cap + NYC_ITM_CASE_hydro_cap + NYC_ITM_CASE_PV_cap+ NYC_ITM_CASE_Bio_cap + NYC_ITM_CASE_LFG_cap;
 LIs_all_CASE_gencap = LIs_ITM_CASE_wind_cap + LIs_ITM_CASE_hydro_cap + LIs_ITM_CASE_PV_cap+ LIs_ITM_CASE_Bio_cap + LIs_ITM_CASE_LFG_cap;
@@ -398,6 +431,7 @@ TOT_ITM_CASE_hydro_cap  = A2F_2016_ITM_hydro_ICAP + A2F_ITM_CASE_hydro_cap + GHI
 TOT_ITM_CASE_PV_cap     = A2F_2016_ITM_PV_ICAP    + A2F_ITM_CASE_PV_cap    + GHI_ITM_CASE_PV_cap    + NYC_ITM_CASE_PV_cap + LIs_ITM_CASE_PV_cap;
 TOT_ITM_CASE_Bio_cap    = A2F_2016_ITM_Bio_ICAP   + A2F_ITM_CASE_Bio_cap   + GHI_ITM_CASE_Bio_cap   + NYC_ITM_CASE_Bio_cap + LIs_ITM_CASE_Bio_cap;
 TOT_ITM_CASE_LFG_cap    = A2F_2016_ITM_LFG_ICAP   + A2F_ITM_CASE_LFG_cap   + GHI_ITM_CASE_LFG_cap   + NYC_ITM_CASE_LFG_cap + LIs_ITM_CASE_LFG_cap;
+
 
 %% Populate ITM Gen into MOST
 % Determine amount of renewable generation to be added to each region
@@ -425,6 +459,7 @@ LIs_ITM_gen_tot = LIs_ITM_windy_gen_tot + LIs_ITM_hydro_gen_tot + LIs_ITM_other_
 TOT_ITM_windy_gen_profile = A2F_ITM_windy_gen_tot + GHI_ITM_windy_gen_tot + NYC_ITM_windy_gen_tot + LIs_ITM_windy_gen_tot;
 TOT_ITM_hydro_gen_profile = A2F_ITM_hydro_gen_tot + GHI_ITM_hydro_gen_tot + NYC_ITM_hydro_gen_tot + LIs_ITM_hydro_gen_tot;
 TOT_ITM_other_gen_profile = A2F_ITM_other_gen_tot + GHI_ITM_other_gen_tot + NYC_ITM_other_gen_tot + LIs_ITM_other_gen_tot;
+
 
 %% First 5min generation value vs. Avg hourly value
 if Avg5mingencompare == 1
@@ -462,6 +497,7 @@ if Avg5mingencompare == 1
     %                     hold off
 end
 
+
 %% Format Renewables and Load for MOST
 % Wind
 most_bus_rengen_windy = zeros(most_period_count,68);
@@ -476,11 +512,12 @@ for int = int_start:int_stop
     i=1:LIs_gen_bus_count;
     most_bus_rengen_windy(int, LIs_Gen_buses(i)) = LIs_ITM_windy_gen_tot(int)./LIs_gen_bus_count;
 end
-%remove empty rows
+
+%Remove empty rows
 most_bus_rengen_windy(:,62) = [];
 most_bus_rengen_windy(:,1:52) = [];
-%DAM Averages
-%Take average of load values in an hour
+
+%DAM Averages - take average of load values in an hour
 most_windy_gen_DAM = zeros(most_period_count_DAM,15);
 for int_DAM = int_start_DAM: int_stop_DAM
     if useinstant ==1
@@ -489,6 +526,7 @@ for int_DAM = int_start_DAM: int_stop_DAM
         most_windy_gen_DAM(int_DAM,:) = mean(most_bus_rengen_windy(int_DAM*12-11:int_DAM*12,:));
     end
 end
+
 
 % Hydro
 most_bus_rengen_hydro = zeros(most_period_count,68);
@@ -503,11 +541,12 @@ for int = int_start:int_stop
     i=1:LIs_gen_bus_count;
     most_bus_rengen_hydro(int, LIs_Gen_buses(i)) = LIs_ITM_hydro_gen_tot(int)./LIs_gen_bus_count;
 end
-%remove empty rows
+
+%Remove empty rows
 most_bus_rengen_hydro(:,62) = [];
 most_bus_rengen_hydro(:,1:52) = [];
-%DAM Averages
-%Take average of load values in an hour
+
+%DAM Averages - take average of load values in an hour
 most_hydro_gen_DAM = zeros(most_period_count_DAM,15);
 for int_DAM = int_start_DAM: int_stop_DAM
     if useinstant ==1
@@ -517,8 +556,10 @@ for int_DAM = int_start_DAM: int_stop_DAM
     end
 end
 
+
 % Solar
 % !!!!!
+
 
 % Other
 most_bus_rengen_other = zeros(most_period_count,68);
@@ -533,11 +574,12 @@ for int = int_start:int_stop
     i=1:LIs_gen_bus_count;
     most_bus_rengen_other(int, LIs_Gen_buses(i)) = LIs_ITM_other_gen_tot(int)./LIs_gen_bus_count;
 end
-%remove empty rows
+
+%Remove empty rows
 most_bus_rengen_other(:,62) = [];
 most_bus_rengen_other(:,1:52) = [];
-%DAM Averages
-%Take average of load values in an hour
+
+%DAM Averages - take average of load values in an hour
 most_other_gen_DAM = zeros(most_period_count_DAM,15);
 for int_DAM = int_start_DAM: int_stop_DAM
     if useinstant ==1
@@ -547,7 +589,8 @@ for int_DAM = int_start_DAM: int_stop_DAM
     end
 end
 
-%Determine amount of thermal gen needed
+
+%Determine amount of thermal generation needed
 Tot_ITM_Gen = Tot_ITM_CASE_Gen + A2F_2016_ITM_Gen;
 Tot_BTM_Gen = NYCA_2016_BTM_gen + NYCA_CASE_BTM_gen;
 demand = NYCA_CASE_net_load - Tot_ITM_Gen.';
@@ -567,26 +610,32 @@ NYCA_TrueLoad_AVG_4hr = mean(NYCA_TrueLoad_DAM(10:14));
 NYCA_NetLoad_AVG_24hr = mean(NYCA_CASE_net_load_DAM);
 NYCA_NetLoad_AVG_4hr = mean(NYCA_CASE_net_load_DAM(10:14));
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MOST DAM Run
-%Add variable names
+%Add most constant parameter names
 define_constants;
+
 %Define initial data
-casefile = 'case_nyiso16';
+casefile = 'case_nyiso16'; %!!!!!
 mpc = loadcase(casefile);
-xgd = loadxgendata('xgd_DAM' , mpc);
-%determine number of thermal gens
+xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
+
+%Determine number of thermal gens
 [therm_gen_count,~] =  size(mpc.gen(:,9));
-%     %Reduce RAMP!
-%         if IncreasedDAMramp == 1
-%             for col = 17:19
-%                 mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor;
-%             end
-%         end
-%     %Retire a Nuke Unit?
-%         for gen = 2:killNuke
-%             xgd.CommitKey(gen) = -1;
-%         end
+
+%Reduce RAMP!
+if IncreasedDAMramp == 1
+    for col = 17:19
+        mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor;
+    end
+end
+
+%Retire a Nuke Unit?
+for gen = 2:killNuke
+    xgd.CommitKey(gen) = -1;
+end
+
 
 %% Add Renewables
 %WIND
@@ -596,27 +645,31 @@ xgd = loadxgendata('xgd_DAM' , mpc);
 profiles = getprofiles('wind_profile_Pmax' , iwind);
 profiles = getprofiles('wind_profile_Pmin' , profiles);
 
+
 %HYDRO
 %Add hydro Generators
 [ihydro, mpc, xgd] = addwind('hydro_gen' , mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles('hydro_profile_Pmax' , profiles);
+profiles = getprofiles('hydro_profile_Pmax' , profiles); %%%%% Mistake here?
 profiles = getprofiles('hydro_profile_Pmin' , profiles);
+
 
 %SOLAR
 %!!!!!
+
 
 %OTHER
 %Add other Generators
 [iother, mpc, xgd] = addwind('other_gen' , mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles('other_profile_Pmax' , profiles);
+profiles = getprofiles('other_profile_Pmax' , profiles); %%%%% Mistake here?
 profiles = getprofiles('other_profile_Pmin' , profiles);
 
 % Add load profile
 profiles = getprofiles('load_profile' , profiles);
 
-% Add RE Generator Profiles
+
+%% Add RE Generator Profiles
 %WIND
 %Max Gen
 profiles(1).values(:,1,:) = most_windy_gen_DAM;
@@ -626,6 +679,7 @@ if windyCurt == 1
 else
     profiles(2).values(:,1,:) = most_windy_gen_DAM;
 end
+
 
 %HYDRO
 %Max Gen
@@ -637,8 +691,10 @@ else
     profiles(4).values(:,1,:) = most_hydro_gen_DAM;
 end
 
+
 %SOLAR
 %!!!!!
+
 
 %OTHER
 %Max Gen
@@ -652,6 +708,7 @@ end
 
 % Add Load Profile
 profiles(7).values(:,1,:) = most_busload_DAM;
+
 
 %% Add EVSE Load
 if EVSE == 1
@@ -800,6 +857,7 @@ if EVSE == 1
     
 end
 
+
 %% Set Initial Pg for renewable gens
 % Does this really need to go this fard down in the program?
 xgd.InitialPg(15:29) = xgd.InitialPg(15:29) + most_windy_gen_DAM(1,1:15).';
@@ -807,17 +865,19 @@ xgd.InitialPg(30:44) = xgd.InitialPg(30:44) + most_hydro_gen_DAM(1,1:15).';
 xgd.InitialPg(45:59) = xgd.InitialPg(45:59) + most_other_gen_DAM(1,1:15).';
 xgd.InitialPg(15:59) = xgd.InitialPg(15:59) -1;
 
+
 %% Set renewable credit (negative cost) to avoid curtailment
-% Does this really need to go this fard down in the program?
+% Does this really need to go this far down in the program?
 mpc.gencost(15:29,6) = REC_Cost;
 mpc.gencost(30:44,6) = REC_hydro;
 mpc.gencost(45:59,6) = REC_Cost;
 mpc.gencost(15:59,4) = 3; %%%%% What is this, and why is it hard-coded?
 
+
 %% Update generator capacity
 %Determine number of renewable gens
 [all_gen_count,~] = size(mpc.gen(:,9));
-ren_gen_count = all_gen_count - therm_gen_count - 32;
+ren_gen_count = all_gen_count - therm_gen_count - 32; %%%%%Why 32?????
 
 %Determine size of renewable gen in each region
 A2F_ind = A2F_all_CASE_gencap/A2F_gen_bus_count;
@@ -848,11 +908,12 @@ end
 
 %Update renewable capacity
 for ss = 1:ren_gen_count
-    mpc.gen(ss+therm_gen_count,9) = ordered_gen_cap(ss);
+    mpc.gen(ss+therm_gen_count, PMAX) = ordered_gen_cap(ss); 
 end
 
 %Determine number of intervals in the simulation
-nt = most_period_count_DAM; % number of period
+nt = most_period_count_DAM; % number of periods
+
 
 %% Add transmission interface limits
 if IFlims == 1
@@ -860,6 +921,7 @@ if IFlims == 1
     mpc.if.lims  = lims_Array;
     mpc = toggle_iflims_most(mpc, 'on');
 end
+
 
 %% Add EVSE Profile
 %%%%% Why is this commented out?
@@ -869,13 +931,14 @@ end
 %         end
 %         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
 
-%% Run Algorithm
+
+%% Run MOST Algorithm
 %Set MOST options
 mpopt = mpoption;
 mpopt = mpoption(mpopt,'most.dc_model', 1); % use DC network model (default)
 mpopt = mpoption(mpopt,'most.solver', 'GUROBI');
-mpopt = mpoption(mpopt, 'verbose', 0);
-mpopt = mpoption(mpopt,'most.skip_prices', 0);
+mpopt = mpoption(mpopt,'verbose', 0);
+mpopt = mpoption(mpopt,'most.skip_prices', 0); %%%%% What does this do?????
 
 % Load all data
 clear mdi
@@ -886,9 +949,9 @@ else
     numm = 59;
     mdi = loadmd(mpc, nt, xgd, [], [], profiles);
 end
+
 %Set ramp costs to zero
 mdi.RampWearCostCoeff = zeros(numm,24);
-
 for tt = 1:24
     mdi.offer(tt).PositiveActiveReservePrice = zeros(numm,1);
     mdi.offer(tt).NegativeActiveReservePrice = zeros(numm,1);
@@ -907,21 +970,27 @@ else
 end
 
 % View Results
-ms = most_summary(mdo); %print results, depending on verbose option
+ms = most_summary(mdo); %print results - depending on verbose option
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Analyze DAM Results
 %Initialize Summary
-Summaryy = zeros(59,8);
+if RTM_option == 1
+    Summaryy = zeros(59,8);
+else
+    Summaryy = zeros(59,3);
+end
 
 %Gen output normalized by capacity (i.e., instantaneous CF)
 gen_output = ms.Pg;
-gen_capacity = mpc.gen(:,9);
+gen_capacity = mpc.gen(:, PMAX);
 
 for gen = 1:length(gen_capacity)
     gen_output_percent(gen,:) = gen_output(gen,:)./gen_capacity(gen);
 end
-%Remove
+
+%Remove NANs
 gen_output_percent(isnan(gen_output_percent)) = 0;
 
 %Modify CF to show offline/online units
@@ -939,7 +1008,23 @@ for gen = 1:therm_gen_count
     end
 end
 
-% Gen Output by Unit
+
+% GENERATION OUTPUT BY UNIT
+Nuke_1_DAM = zeros(1,24);
+Nuke_2_DAM = zeros(1,24);
+Nuke_3_DAM = zeros(1,24);
+Steam_1_DAM = zeros(1,24);
+Steam_2_DAM = zeros(1,24);
+Steam_3_DAM = zeros(1,24);
+Steam_4_DAM = zeros(1,24);
+Steam_5_DAM = zeros(1,24);
+NEimport_DAM = zeros(1,24);
+CCGen_1_DAM = zeros(1,24);
+CCGen_2_DAM = zeros(1,24);
+GTGen_1_DAM = zeros(1,24);
+GTGen_2_DAM = zeros(1,24);
+LOHIGen_DAM = zeros(1,24);
+
 for hour = 1:24
     Nuke_1_DAM(hour) = ms.Pg(1,hour);
     Nuke_2_DAM(hour) = ms.Pg(2,hour);
@@ -956,6 +1041,7 @@ for hour = 1:24
     GTGen_2_DAM(hour) = ms.Pg(13,hour);
     LOHIGen_DAM(hour) = ms.Pg(14,hour);
 end
+
 DAM_gen_storage = zeros(59,24);
 for hour = 1:24
     for gen = 1:59
@@ -963,8 +1049,8 @@ for hour = 1:24
     end
 end
 
-% Gen Output by Type
-%Initialize Variables
+
+% GENERATION OUTPUT BY TYPE
 NukeGenDAM = zeros(1,24);
 SteamGenDAM = zeros(1,24);
 CCGenDAM = zeros(1,24);
@@ -974,50 +1060,79 @@ RenGen_windyDAM = zeros(1,24);
 RenGen_otherDAM = zeros(1,24);
 BTM4GraphDAM = zeros(1,24);
 LOHIGenDAM = zeros(1,24);
+
 %Calculate Generation by type
 for iter = 1:int_stop_DAM
-    NukeGenDAM(iter) = ms.Pg(1,iter)+ms.Pg(2,iter)+ms.Pg(3,iter); %NUKE
-    SteamGenDAM(iter) = ms.Pg(4,iter)+ms.Pg(5,iter)+ms.Pg(6,iter)+ms.Pg(7,iter)+ms.Pg(8,iter);%STEAM
-    CCGenDAM(iter) = ms.Pg(10,iter)+ms.Pg(11,iter);%CC
-    GTGenDAM(iter) = ms.Pg(12,iter)+ms.Pg(13,iter);%GT
+    %NUKE
+    NukeGenDAM(iter) = ms.Pg(1,iter)+ms.Pg(2,iter)+ms.Pg(3,iter); 
+    
+    %STEAM
+    SteamGenDAM(iter) = ms.Pg(4,iter)+ms.Pg(5,iter)+ms.Pg(6,iter)+ms.Pg(7,iter)+ms.Pg(8,iter);
+    
+    %CC
+    CCGenDAM(iter) = ms.Pg(10,iter)+ms.Pg(11,iter);
+    
+    %GT
+    GTGenDAM(iter) = ms.Pg(12,iter)+ms.Pg(13,iter);
+    
+    %?????
     LOHIGenDAM(iter) = ms.Pg(14,iter);
+    
+    %WIND
     RenGen_windyDAM(iter) = 0;
     for renge = 15:29
         RenGen_windyDAM(iter) = RenGen_windyDAM(iter) + ms.Pg(renge,iter);
     end
+    
+    %HYDRO
     RenGen_hydroDAM(iter) = 0;
     for renge = 30:44
         RenGen_hydroDAM(iter) = RenGen_hydroDAM(iter) + ms.Pg(renge,iter);
     end
-    RenGen_otherDAM(iter) = 0;%RENEWABLE
+    
+    %SOLAR
+    %!!!!!
+    
+    %OTHER RENEWABLE
+    RenGen_otherDAM(iter) = 0; 
     for renge = 45:59
         RenGen_otherDAM(iter) = RenGen_otherDAM(iter) + ms.Pg(renge,iter);
     end
+    
+    %BTM
     BTM4GraphDAM(iter) = mean(NYCA_CASE_BTM_gen(iter*12-11:iter*12));
+    
 end
 
-% Gen Revenue -- OLD 24 hrs
-%         Gen_DAM_Revenue = zeros(59,1);
-%         for genn = 1:59
-%             for DAMhr = 1:24
-%                 Gen_DAM_Revenue(genn) = Gen_DAM_Revenue(genn) + ms.Pg(genn,DAMhr)*ms.lamP(mpc.gen(genn,1),DAMhr);
-%             end
-%         end
-%         Summaryy(:,1) = Gen_DAM_Revenue;
 
-% Gen Revenue -- NEW 21.5 hrs
-% 21.5 Hour Total
-Gen_DAM_Revenue = zeros(59,1);
-for gen = 1:59
-    for hour = 1:21
-        Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + ms.Pg(gen,hour)*ms.lamP(mpc.gen(gen,1),hour);
+% GENERATOR REVENUE
+Gen_DAM_Revenue = zeros(all_gen_count,1);
+if RTM_option == 0
+    % ----- DAM ONLY (24 hrs) ----- %
+    for gen = 1:59
+        for DAMhr = 1:24
+            Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + ms.Pg(gen,DAMhr)*ms.lamP(mpc.gen(gen,1),DAMhr);
+        end
     end
-    Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + 0.5*ms.Pg(gen,22)*ms.lamP(mpc.gen(gen,1),22);
+    
+else
+    % ----- DAM & RTM (21.5 hrs) ----- %
+    for gen = 1:59
+        for hour = 1:21
+            Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + ms.Pg(gen,hour)*ms.lamP(mpc.gen(gen,1),hour);
+        end
+        Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + 0.5*ms.Pg(gen,22)*ms.lamP(mpc.gen(gen,1),22);
+    end
+    
 end
+% Record DAM generator revenue in output summary 
 Summaryy(:,1) = Gen_DAM_Revenue;
 
+
+%%%%% Add a conditional statement here to determine for DAM ONLY!!!!!
+
 % By Hour
-Gen_DAM_Revenue_hr = zeros(4,24);
+Gen_DAM_Revenue_hr = zeros(4,24); %%%%% This is still set to 24h although only 22 values are calculated
 
 % Upstate (Zones A-F)
 for hour = 1:21
@@ -1141,80 +1256,99 @@ Gen_DAM_Revenue_hr(4,hour) =(ms.Pg(20,hour)*ms.lamP(mpc.gen(20,1),hour)+...
     ms.Pg(8,hour)*ms.lamP(mpc.gen(8,1),hour)+...
     ms.Pg(13,hour)*ms.lamP(mpc.gen(13,1),hour))*0.5;
 
+
 % Include renewables in operational cost?
 if RenInOpCost == 1
-    Gens = 59;
+    Gens = all_gen_count;
 else
-    Gens = 14;
+    Gens = therm_gen_count;
 end
 
-% Gen Op Costs -- OLD 24 hrs
-Gen_DAM_OpCost24 = zeros(Gens,1);
-for genn = 1:Gens
-    for DAMhr = 1:24
-        Gen_DAM_OpCost24(genn) = Gen_DAM_OpCost24(genn) + ...
-            mdo.UC.CommitSched(genn,DAMhr)*(mpc.gencost(genn,7) + ms.Pg(genn,DAMhr) *mpc.gencost(genn,6) + (ms.Pg(genn,DAMhr))^2 *mpc.gencost(genn,5));
-    end
-end
 
-% Gen Op Costs -- NEW 21.5 hrs
-Gen_DAM_OpCost = zeros(59,1);
-for gen = 1:Gens
-    for hour = 1:21
-        Gen_DAM_OpCost(gen) = Gen_DAM_OpCost(gen) + ...
-            mdo.UC.CommitSched(gen,hour)*(mpc.gencost(gen,7) + ms.Pg(gen,hour) *mpc.gencost(gen,6) + (ms.Pg(gen,hour))^2 *mpc.gencost(gen,5));
-    end
-    hour = 22;
-    Gen_DAM_OpCost(gen) = Gen_DAM_OpCost(gen) + 0.5*(...
-        mdo.UC.CommitSched(gen,hour)*(mpc.gencost(gen,7) + ms.Pg(gen,hour) *mpc.gencost(gen,6) + (ms.Pg(gen,hour))^2 *mpc.gencost(gen,5)));
-end
-Summaryy(:,2) = Gen_DAM_OpCost;
-
-% Gen Supply Costs -- OLD 24 hrs (For 24 Hr DAM Obj Fxn Val Cost)
-%Initialize
-Gen_DAM_SUPCost24 = zeros(59,1);
-%Top of the Morning
-for gen = 1:Gens
-    if mdo.UC.CommitSched(gen,1) == 1
-        Gen_DAM_SUPCost24(gen) = Gen_DAM_SUPCost24(gen) + mdi.mpc.gencost(gen,2);
-    end
-end
-%Later in the Day
-for gen = 1:Gens
-    for DAMhr = 2:24
-        if mdo.UC.CommitSched(gen,DAMhr) - mdo.UC.CommitSched(gen,DAMhr-1) == 1
-            Gen_DAM_SUPCost24(gen) = Gen_DAM_SUPCost24(gen) + mdi.mpc.gencost(gen,2);
+% GENERATOR OPERATIONAL COSTS
+Gen_DAM_OpCost = zeros(all_gen_count,1);
+if RTM_option == 0
+    % ----- DAM ONLY (24 hrs) ----- %
+    for gen = 1:Gens
+        for DAMhr = 1:24
+            Gen_DAM_OpCost(gen) = Gen_DAM_OpCost(gen) + ...
+                mdo.UC.CommitSched(gen,DAMhr)*(mpc.gencost(gen,7) + ...
+                ms.Pg(gen,DAMhr) *mpc.gencost(gen,6) + ...
+                (ms.Pg(gen,DAMhr))^2 *mpc.gencost(gen,5));
         end
     end
-end
-
-% Gen Supply Costs -- NEW 21.5 hrs
-%Initialize
-Gen_DAM_SUPCost = zeros(59,1);
-%Top of the Morning
-for gen = 1:Gens
-    if mdo.UC.CommitSched(gen,1) == 1
-        Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + mdi.mpc.gencost(gen,2);
+    
+else
+    % ----- DAM & RTM (21.5 hrs) ----- %
+    for gen = 1:Gens
+        for hour = 1:21
+            Gen_DAM_OpCost(gen) = Gen_DAM_OpCost(gen) + ...
+                mdo.UC.CommitSched(gen,hour)*(mpc.gencost(gen,7) + ...
+                ms.Pg(gen,hour) *mpc.gencost(gen,6) + ...
+                (ms.Pg(gen,hour))^2 *mpc.gencost(gen,5));
+        end
+        hour = 22;
+        Gen_DAM_OpCost(gen) = Gen_DAM_OpCost(gen) + ...
+            0.5*(mdo.UC.CommitSched(gen,hour)*(mpc.gencost(gen,7) + ...
+            ms.Pg(gen,hour) *mpc.gencost(gen,6) + ...
+            (ms.Pg(gen,hour))^2 *mpc.gencost(gen,5)));
     end
 end
-%Later in the Day
-for gen = 1:Gens
-    for hour = 2:21
-        if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
+% Record DAM operational cost in output summary
+Summaryy(:,2) = Gen_DAM_OpCost;
+
+
+% GENERATOR SUPPLY COSTS
+Gen_DAM_SUPCost = zeros(all_gen_count,1);
+if RTM_option == 0
+    % ----- DAM ONLY (24 hrs) ----- %
+    %Top of the Morning
+    for gen = 1:Gens
+        if mdo.UC.CommitSched(gen,1) == 1
             Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + mdi.mpc.gencost(gen,2);
         end
     end
-    hour = 22;
-    if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
-        Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + 0.5*mdi.mpc.gencost(gen,2);
+    
+    %Later in the Day
+    for gen = 1:Gens
+        for DAMhr = 2:24
+            if mdo.UC.CommitSched(gen,DAMhr) - mdo.UC.CommitSched(gen,DAMhr-1) == 1
+                Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + mdi.mpc.gencost(gen,2);
+            end
+        end
+    end
+    
+else
+    % ----- DAM & RTM (21.5 hrs) ----- %
+    %Top of the Morning
+    for gen = 1:Gens
+        if mdo.UC.CommitSched(gen,1) == 1
+            Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + mdi.mpc.gencost(gen,2);
+        end
+    end
+    
+    %Later in the Day
+    for gen = 1:Gens
+        for hour = 2:21
+            if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
+                Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + mdi.mpc.gencost(gen,2);
+            end
+        end
+        hour = 22;
+        if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
+            Gen_DAM_SUPCost(gen) = Gen_DAM_SUPCost(gen) + 0.5*mdi.mpc.gencost(gen,2);
+        end
     end
 end
 Summaryy(:,3) = Gen_DAM_SUPCost;
 
-% Record DAM scheduled starts and shutdowns for RTC
+
+% Record DAM scheduled starts and shutdowns for RTC 
+%%%%%Perhaps omit this if not running RTM.
 %Initialize
 DAMstarts = zeros(therm_gen_count,1);   %First int unit is online
 DAMshutdowns = zeros(therm_gen_count,1); %Last int unit is online
+
 %Find hours with starts and shutdowns
 for gen = 1:therm_gen_count
     for hour = 2:22
@@ -1227,49 +1361,50 @@ for gen = 1:therm_gen_count
     end
 end
 
-% LMP
-%Average LMP by Region
+
+% CALCULATE REGIONAL QUANTITIES
 AvgLoadLMP = zeros(4,24);
 AvgGenLMP  = zeros(4,24);
-for hour = 1:24
-    AvgLoadLMP(1, hour) = mean(ms.lamP([1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52],hour));
-    AvgLoadLMP(2, hour) = mean(ms.lamP([3 4 7 8 25],hour));
-    AvgLoadLMP(3, hour) = mean(ms.lamP([12 15 16 18 20 27],hour));
-    AvgLoadLMP(4, hour) = mean(ms.lamP([21 23 24],hour));
-    AvgGenLMP(1, hour) = mean(ms.lamP([64 65 66 67 68],hour));
-    AvgGenLMP(2, hour) = mean(ms.lamP([53 54 60],hour));
-    AvgGenLMP(3, hour) = mean(ms.lamP([55 56 57],hour));
-    AvgGenLMP(4, hour) = mean(ms.lamP([58 59],hour));
-end
-
-% Thermal Generation by Region
 DAMThermGenByRegion = zeros(4,24);
-for hour = 1:24
-    DAMThermGenByRegion(1,hour) = Nuke_1_DAM(hour)+Steam_1_DAM(hour)+Steam_2_DAM(hour)+CCGen_1_DAM(hour);
-    DAMThermGenByRegion(2,hour) = Nuke_2_DAM(hour) + Nuke_3_DAM(hour) + Steam_3_DAM(hour);
-    DAMThermGenByRegion(3,hour) = Steam_4_DAM(hour) + CCGen_2_DAM(hour)+ GTGen_1_DAM(hour);
-    DAMThermGenByRegion(4,hour) = Steam_5_DAM(hour) + GTGen_2_DAM(hour);
-end
-
-% Renewable Gen by Region
 DAMRenGenByRegion = zeros(4,24);
-for hour = 1:24
-    DAMRenGenByRegion(1,hour) = sum(mdo.results.Pc([25 26 27 28 29 40 41 42 43 44 55 56 57 58 59],hour));
-    DAMRenGenByRegion(2,hour) = sum(mdo.results.Pc([15 16 22 30 31 37 45 46 52],hour));
-    DAMRenGenByRegion(3,hour) = sum(mdo.results.Pc([17 18 19 32 33 34 47 48 49],hour));
-    DAMRenGenByRegion(4,hour) = sum(mdo.results.Pc([20 21 35 36 20 21],hour));
-end
-
-% Load by Region
 DAMloadByRegion = zeros(4,24);
+
 for hour = 1:24
-    DAMloadByRegion(1,hour) = sum(most_busload_DAM(hour,[1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52]));
-    DAMloadByRegion(2,hour) = sum(most_busload_DAM(hour,[3 4 7 8 25]));
-    DAMloadByRegion(3,hour) = sum(most_busload_DAM(hour,[12 15 16 18 20 27]));
-    DAMloadByRegion(4,hour) = sum(most_busload_DAM(hour,[21 23 24]));
+    
+    %Average LMP by Region
+    AvgLoadLMP(1, hour) = mean(ms.lamP(A2F_Load_buses, hour));
+    AvgLoadLMP(2, hour) = mean(ms.lamP(GHI_Load_buses, hour));
+    AvgLoadLMP(3, hour) = mean(ms.lamP(NYC_Load_buses, hour));
+    AvgLoadLMP(4, hour) = mean(ms.lamP(LIs_Load_buses, hour));
+    AvgGenLMP(1, hour) = mean(ms.lamP(A2F_Gen_buses, hour));
+    AvgGenLMP(2, hour) = mean(ms.lamP(GHI_Gen_buses, hour));
+    AvgGenLMP(3, hour) = mean(ms.lamP(NYC_Gen_buses, hour));
+    AvgGenLMP(4, hour) = mean(ms.lamP(LIs_Gen_buses, hour));
+    
+    % Thermal Generation by Region
+    DAMThermGenByRegion(1,hour) = Nuke_1_DAM(hour) + Steam_1_DAM(hour) +...
+        Steam_2_DAM(hour) + CCGen_1_DAM(hour);
+    DAMThermGenByRegion(2,hour) = Nuke_2_DAM(hour) + Nuke_3_DAM(hour) +...
+        Steam_3_DAM(hour);
+    DAMThermGenByRegion(3,hour) = Steam_4_DAM(hour) + CCGen_2_DAM(hour) +...
+        GTGen_1_DAM(hour);
+    DAMThermGenByRegion(4,hour) = Steam_5_DAM(hour) + GTGen_2_DAM(hour);
+    
+    % Renewable Generation by Region
+    DAMRenGenByRegion(1,hour) = sum(mdo.results.Pc(A2F_RE_buses, hour));
+    DAMRenGenByRegion(2,hour) = sum(mdo.results.Pc(GHI_RE_buses, hour));
+    DAMRenGenByRegion(3,hour) = sum(mdo.results.Pc(NYC_RE_buses, hour));
+    DAMRenGenByRegion(4,hour) = sum(mdo.results.Pc(LIs_RE_buses, hour));
+    
+    % Load by Region
+    DAMloadByRegion(1,hour) = sum(most_busload_DAM(hour, A2F_Load_buses));
+    DAMloadByRegion(2,hour) = sum(most_busload_DAM(hour, GHI_Load_buses));
+    DAMloadByRegion(3,hour) = sum(most_busload_DAM(hour, NYC_Load_buses));
+    DAMloadByRegion(4,hour) = sum(most_busload_DAM(hour, LIs_Load_buses));
+    
 end
 
-% MAP distribution by Region
+% MAP distribution by Region %?????
 DAMloadTotalByRegion = zeros(4,1);
 DAMloadTotalByRegion(1,1) = sum(DAMloadByRegion(1,:));
 DAMloadTotalByRegion(2,1) = sum(DAMloadByRegion(2,:));
@@ -1278,6 +1413,7 @@ DAMloadTotalByRegion(4,1) = sum(DAMloadByRegion(4,:));
 MAPratio(1,Case*4+d) = DAMloadTotalByRegion(1,1)/sum(DAMloadTotalByRegion(:,1));
 MAPratio(2,Case*4+d) = sum(DAMloadTotalByRegion(2:4,1))/sum(DAMloadTotalByRegion(:,1));
 
+%%%%% Add conditional statement to allow for DAM ONLY
 % Load Cost By Region
 DAM_LMP_energy = ms.lamP(62,1:int_stop_DAM);
 DAM_LMP = ms.lamP(1:68,1:int_stop_DAM);
@@ -1327,6 +1463,7 @@ DAMloadCostByRegionHr(4,22) = DAMloadCostByRegionHr(4,22)*.5;
 for Region = 1:4
     DAMloadCostByRegion(Region,(Case*4+d)) = sum(DAMloadCostByRegionHr(Region,1:24))./1000;
 end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot DAM results
