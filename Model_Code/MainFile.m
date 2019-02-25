@@ -47,6 +47,7 @@ fprintf('Changing font sizes to 14 and line width = 1.5\n')
 %%%%% to it and run based upon these input dates...
 
 % Pick Date Range
+days = [1];
 d_start = 1;
 d_end   = 1;
 date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
@@ -56,8 +57,16 @@ ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 %%%%% I need to figure out what exactly went into developing the 2030 case.
 %%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
 %%%%% numbered variables the way to go on these cases?????
+case_ids = [0];
 case_start = 0;
 case_end   = 0;
+case_nam_array = ['Base_Case','2030_Case','2x2030_Case','3x2030_Case'];
+
+% Figure output method
+Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
+
+% Do you want to write data to an output file?
+mat_save = 0;               %%[1 = yes; 0 = no]
 
 % Run real time market?
 RTM_option = 0;             %%[1 = yes; 0 = no]
@@ -196,6 +205,7 @@ input_params = [
     RTM_option;
     case_start;
     d_start;
+    Fig_save;
     ];
 
 %% Define Initial Variables
@@ -404,48 +414,19 @@ input_vars = {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DAY AHEAD MARKET MODEL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for Case = case_start:case_end
-    for d = d_start: d_end
 
-        [DAMresults, DAMifFlows ] = RunDAM(Case, d, input_params, input_vars);
+for Case = case_ids
+    for d = days
+
+        [DAMresults, DAMifFlows, Summaryy ] = ...
+            RunDAM(Case, d, input_params, input_vars);
         
-        % Store DAM Results
-        %%%%% Perhaps change the type of data structure that results are
-        %%%%% stored within
-        DAMresults(1,Case*4+d) = d;
-        DAMresults(2,Case*4+d) = Case;
-        DAMresults(3,Case*4+d) = windyCurt;
-        DAMresults(4,Case*4+d) = windyCurtFactor;
-        DAMresults(5,Case*4+d) = sum(Gen_DAM_OpCost24(1:Gens)) + sum(Gen_DAM_SUPCost24(1:Gens));
-        
-        
-        DAMresults(6,Case*4+d) = DAMwindyCurtMWh;
-        DAMresults(7,Case*4+d) = DAMhydroCurtMWh;
-        DAMresults(8,Case*4+d) = DAMotherCurtMWh;
-        DAMresults(9,Case*4+d) = ms.f;
-        
-        %% Debug MW and LMP values
-        %DAM MW - Load
-        DAM_MW_Load = zeros(24,1);
-        for hour = 1:24
-            for bus = 1:52
-                DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
-            end
+        if mat_save == 1
+            resultsfilestr = ['../../MarketModel_Output/', ...
+                case_nam_array(Case+1),ren_tab_array(d),'DAMRunData.mat'];
+            save(resultsfilestr, 'DAMresults')
+            %save(resultsfilestr, 'CC_results', 'DAMresults')
         end
-        
-        %DAM MW - Gen
-        DAM_MW_Gen = zeros(24,1);
-        for hour = 1:24
-            for gen = 1:59
-                DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
-            end
-        end
-        
-        %Calculate Error
-        DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
-        fprintf('For Case %d on %s, the mismatch (in MW) between day-ahead load and gen is:\n',...
-            Case, ren_tab_array(d))
-        disp(DAM_MW_error)
         
         % Print completion message for this case and day
         fprintf('Competed Case %d for %s\n', Case, ren_tab_array(d))
@@ -457,8 +438,8 @@ end
 %% REAL TIME MARKET MODEL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if RTM_option == 1
-    for Case = case_start:case_end
-        for d = d_start: d_end
+    for Case = case_ids
+        for d = days
             
             %% Real Time
             dubugIfNeeded = 1;
@@ -3070,8 +3051,8 @@ if RTM_option == 1
 end
 toc
 
-resultsfilestr = ['../../MarketModel_Output/',datestring,'RunData.mat'];
-save(resultsfilestr, 'AllRunsSummary', 'CC_results', 'DAMresults') %"load temp" then line above in 'try'
+% resultsfilestr = ['../../MarketModel_Output/Cases',datestring,'RunData.mat'];
+% save(resultsfilestr, 'AllRunsSummary', 'CC_results', 'DAMresults') %"load temp" then line above in 'try'
 
 
 

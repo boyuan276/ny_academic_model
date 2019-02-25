@@ -1,4 +1,4 @@
-function [DAMresults, DAMifFlows ] = RunDAM(Case, d, input_params, input_vars)
+function [DAMresults, DAMifFlows, Summaryy] = RunDAM(Case, d, input_params, input_vars)
 %RunDAM takes parameters, run days, cases, and resource profiles as inputs
 %and returns, a
 %   Detailed explanation goes here
@@ -46,6 +46,7 @@ most_period_count_DAM = input_params(39);
 RTM_option = input_params(40);
 case_start = input_params(41);
 d_start = input_params(42);
+Fig_save = input_params(43);
 
 % Define input variables
 A2F_Load_buses = input_vars{1};
@@ -1344,23 +1345,25 @@ Summaryy(:,3) = Gen_DAM_SUPCost;
 
 
 % Record DAM scheduled starts and shutdowns for RTC 
-%%%%%Perhaps omit this if not running RTM.
-%Initialize
-DAMstarts = zeros(therm_gen_count,1);   %First int unit is online
-DAMshutdowns = zeros(therm_gen_count,1); %Last int unit is online
-
-%Find hours with starts and shutdowns
-for gen = 1:therm_gen_count
-    for hour = 2:22
-        if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
-            DAMstarts(gen,1) = hour*12+1;
-        end
-        if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == -1
-            DAMshutdowns(gen,1) = hour*12-12;
+if RTM_option == 1
+    
+    %Initialize
+    DAMstarts = zeros(therm_gen_count,1);   %First int unit is online
+    DAMshutdowns = zeros(therm_gen_count,1); %Last int unit is online
+    
+    %Find hours with starts and shutdowns
+    for gen = 1:therm_gen_count
+        for hour = 2:22
+            if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == 1
+                DAMstarts(gen,1) = hour*12+1;
+            end
+            if mdo.UC.CommitSched(gen,hour) - mdo.UC.CommitSched(gen,hour-1) == -1
+                DAMshutdowns(gen,1) = hour*12-12;
+            end
         end
     end
+    
 end
-
 
 % CALCULATE REGIONAL QUANTITIES
 AvgLoadLMP = zeros(4,24);
@@ -1563,44 +1566,46 @@ format shortg
 grid on; grid minor; box on; hold off
 
 % Save to an output file
-outfile = ['../../MarketModel_Output/ResultsPlot.', casestr, datestring];
-%If this is the first loop through the iteration, open a new document
-if and(Case == case_start, d == d_start)
-    if ispc
-        % Capture current figure/model into clipboard:
-        matlab.graphics.internal.copyFigureHelper(hFigA)
-        % Start an ActiveX session with PowerPoint:
-        word = actxserver('Word.Application');
-        word.Visible = 1;
-        % Create new presentation:
-        op = invoke(word.Documents,'Add');
-        % Paste the contents of the Clipboard:
-        invoke(word.Selection,'Paste');
+if Fig_save == 1
+    outfile = ['../../MarketModel_Output/ResultsPlot.', casestr, datestring];
+    %If this is the first loop through the iteration, open a new document
+    if and(Case == case_start, d == d_start)
+        if ispc
+            % Capture current figure/model into clipboard:
+            matlab.graphics.internal.copyFigureHelper(hFigA)
+            % Start an ActiveX session with PowerPoint:
+            word = actxserver('Word.Application');
+            word.Visible = 1;
+            % Create new presentation:
+            op = invoke(word.Documents,'Add');
+            % Paste the contents of the Clipboard:
+            invoke(word.Selection,'Paste');
+        else
+            fig_cnt = 1;
+            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+            print(hFigA, '-dpdf','-bestfit', filestr)
+            fig_cnt = fig_cnt + 1;
+        end
+        %Otherwise grab the existing word or ps document and paste in there.
     else
-        fig_cnt = 1;
-        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        print(hFigA, '-dpdf','-bestfit', filestr)
-        fig_cnt = fig_cnt + 1;
+        if ispc
+            % Capture current figure/model into clipboard:
+            matlab.graphics.internal.copyFigureHelper(hFigA)
+            % Find end of document and make it the insertion point:
+            end_of_doc = get(word.activedocument.content,'end');
+            set(word.application.selection,'Start',end_of_doc);
+            set(word.application.selection,'End',end_of_doc);
+            % Paste the contents of the Clipboard:
+            invoke(word.Selection,'Paste');
+        else
+            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+            print(hFigA, '-dpdf','-bestfit', filestr)
+            fig_cnt = fig_cnt + 1;
+        end
     end
-    %Otherwise grab the existing word or ps document and paste in there.
-else
-    if ispc
-        % Capture current figure/model into clipboard:
-        matlab.graphics.internal.copyFigureHelper(hFigA)
-        % Find end of document and make it the insertion point:
-        end_of_doc = get(word.activedocument.content,'end');
-        set(word.application.selection,'Start',end_of_doc);
-        set(word.application.selection,'End',end_of_doc);
-        % Paste the contents of the Clipboard:
-        invoke(word.Selection,'Paste');
-    else
-        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        print(hFigA, '-dpdf','-bestfit', filestr)
-        fig_cnt = fig_cnt + 1;
-    end
+    
+    close all
 end
-
-close all
 
 %% Figure - LMP DAM
 hFigLMP = figure(1);
@@ -1656,22 +1661,24 @@ grid on; grid minor; box on; hold off
 %                 grid on; grid minor; box on; hold off
 
 % Save to an output file
-if ispc
-    %If this is the first loop through the iteration, open a new document
-    % Capture current figure/model into clipboard:
-    matlab.graphics.internal.copyFigureHelper(hFigLMP)
-    % Find end of document and make it the insertion point:
-    end_of_doc = get(word.activedocument.content,'end');
-    set(word.application.selection,'Start',end_of_doc);
-    set(word.application.selection,'End',end_of_doc);
-    % Paste the contents of the Clipboard:
-    invoke(word.Selection,'Paste');
-else
-    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-    print(hFigLMP, '-dpdf','-bestfit', filestr)
-    fig_cnt = fig_cnt + 1;
+if Fig_save == 1
+    if ispc
+        %If this is the first loop through the iteration, open a new document
+        % Capture current figure/model into clipboard:
+        matlab.graphics.internal.copyFigureHelper(hFigLMP)
+        % Find end of document and make it the insertion point:
+        end_of_doc = get(word.activedocument.content,'end');
+        set(word.application.selection,'Start',end_of_doc);
+        set(word.application.selection,'End',end_of_doc);
+        % Paste the contents of the Clipboard:
+        invoke(word.Selection,'Paste');
+    else
+        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+        print(hFigLMP, '-dpdf','-bestfit', filestr)
+        fig_cnt = fig_cnt + 1;
+    end
+    close all
 end
-close all
 
 %% Figure - Load and Gen by Region
 hFigLoad = figure(3); set(hFigLoad, 'Position', [450 50 650 550]) %Pixels: from left, from bottom, across, high
@@ -1734,21 +1741,23 @@ xlabel('Time (Hour Beginning)')
 grid on; grid minor; box on; hold off
 
 % Save to an output file
-if ispc
-    % Capture current figure/model into clipboard:
-    matlab.graphics.internal.copyFigureHelper(hFigLoad)
-    % Find end of document and make it the insertion point:
-    end_of_doc = get(word.activedocument.content,'end');
-    set(word.application.selection,'Start',end_of_doc);
-    set(word.application.selection,'End',end_of_doc);
-    % Paste the contents of the Clipboard:
-    invoke(word.Selection,'Paste');
-else
-    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-    print(hFigLoad, '-dpdf','-bestfit', filestr)
-    fig_cnt = fig_cnt + 1;
+if Fig_save == 1
+    if ispc
+        % Capture current figure/model into clipboard:
+        matlab.graphics.internal.copyFigureHelper(hFigLoad)
+        % Find end of document and make it the insertion point:
+        end_of_doc = get(word.activedocument.content,'end');
+        set(word.application.selection,'Start',end_of_doc);
+        set(word.application.selection,'End',end_of_doc);
+        % Paste the contents of the Clipboard:
+        invoke(word.Selection,'Paste');
+    else
+        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+        print(hFigLoad, '-dpdf','-bestfit', filestr)
+        fig_cnt = fig_cnt + 1;
+    end
+    close all
 end
-close all
 
 %% Congestion Charge DAM Difference (analysis only)
 % DAM Load Cost
@@ -1853,21 +1862,23 @@ yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000' 
 grid on; grid minor; box on; hold off
 
 % Save to an output file
-if ispc
-    % Capture current figure/model into clipboard:
-    matlab.graphics.internal.copyFigureHelper(hFigCC)
-    % Find end of document and make it the insertion point:
-    end_of_doc = get(word.activedocument.content,'end');
-    set(word.application.selection,'Start',end_of_doc);
-    set(word.application.selection,'End',end_of_doc);
-    % Paste the contents of the Clipboard:
-    invoke(word.Selection,'Paste');
-else
-    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-    print(hFigCC, '-dpdf','-bestfit', filestr)
-    fig_cnt = fig_cnt + 1;
+if Fig_save == 1
+    if ispc
+        % Capture current figure/model into clipboard:
+        matlab.graphics.internal.copyFigureHelper(hFigCC)
+        % Find end of document and make it the insertion point:
+        end_of_doc = get(word.activedocument.content,'end');
+        set(word.application.selection,'Start',end_of_doc);
+        set(word.application.selection,'End',end_of_doc);
+        % Paste the contents of the Clipboard:
+        invoke(word.Selection,'Paste');
+    else
+        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+        print(hFigCC, '-dpdf','-bestfit', filestr)
+        fig_cnt = fig_cnt + 1;
+    end
+    close all
 end
-close all
 
 %% Figure - Renewable curtailment in the DAM
 % Initialize
@@ -1986,22 +1997,24 @@ set(gca, 'XTick', [0 4 8 12 16 20 24]);
 format shortg
 grid on; grid minor; box on; hold off
 
-% Save to a word file
-if ispc
-    % Capture current figure/model into clipboard:
-    matlab.graphics.internal.copyFigureHelper(hFigA)
-    % Find end of document and make it the insertion point:
-    end_of_doc = get(word.activedocument.content,'end');
-    set(word.application.selection,'Start',end_of_doc);
-    set(word.application.selection,'End',end_of_doc);
-    % Paste the contents of the Clipboard:
-    invoke(word.Selection,'Paste');
-else
-    filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-    print(hFigA, '-dpdf','-bestfit', filestr)
-    fig_cnt = fig_cnt + 1;
+% Save to an output file
+if Fig_save == 1
+    if ispc
+        % Capture current figure/model into clipboard:
+        matlab.graphics.internal.copyFigureHelper(hFigA)
+        % Find end of document and make it the insertion point:
+        end_of_doc = get(word.activedocument.content,'end');
+        set(word.application.selection,'Start',end_of_doc);
+        set(word.application.selection,'End',end_of_doc);
+        % Paste the contents of the Clipboard:
+        invoke(word.Selection,'Paste');
+    else
+        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+        print(hFigA, '-dpdf','-bestfit', filestr)
+        fig_cnt = fig_cnt + 1;
+    end
+    close all
 end
-close all
 
 %% Store Constrained Interface Flow Values
 DAMifFlows = zeros(24,4);
@@ -2049,21 +2062,23 @@ if EVSE == 1
     grid on; grid minor; box on; hold off
     
     % Save to an output file
-    if ispc
-        % Capture current figure/model into clipboard:
-        matlab.graphics.internal.copyFigureHelper(hFigE)
-        % Find end of document and make it the insertion point:
-        end_of_doc = get(word.activedocument.content,'end');
-        set(word.application.selection,'Start',end_of_doc);
-        set(word.application.selection,'End',end_of_doc);
-        % Paste the contents of the Clipboard:
-        invoke(word.Selection,'Paste');
-    else
-        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        print(hFigE, '-dpdf','-bestfit', filestr)
-        fig_cnt = fig_cnt + 1;
+    if Fig_save == 1
+        if ispc
+            % Capture current figure/model into clipboard:
+            matlab.graphics.internal.copyFigureHelper(hFigE)
+            % Find end of document and make it the insertion point:
+            end_of_doc = get(word.activedocument.content,'end');
+            set(word.application.selection,'Start',end_of_doc);
+            set(word.application.selection,'End',end_of_doc);
+            % Paste the contents of the Clipboard:
+            invoke(word.Selection,'Paste');
+        else
+            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+            print(hFigE, '-dpdf','-bestfit', filestr)
+            fig_cnt = fig_cnt + 1;
+        end
+        close all
     end
-    close all
     
 end
 
@@ -2164,22 +2179,62 @@ if printCurt == 1
     grid on; grid minor; box on; hold off
     
     % Save to an output file
-    if ispc
-        % Capture current figure/model into clipboard:
-        matlab.graphics.internal.copyFigureHelper(hFigE)
-        % Find end of document and make it the insertion point:
-        end_of_doc = get(word.activedocument.content,'end');
-        set(word.application.selection,'Start',end_of_doc);
-        set(word.application.selection,'End',end_of_doc);
-        % Paste the contents of the Clipboard:
-        invoke(word.Selection,'Paste');
-    else
-        filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-        print(hFigE, '-dpdf','-bestfit', filestr)
-        fig_cnt = fig_cnt + 1;
+    if Fig_save == 1
+        if ispc
+            % Capture current figure/model into clipboard:
+            matlab.graphics.internal.copyFigureHelper(hFigE)
+            % Find end of document and make it the insertion point:
+            end_of_doc = get(word.activedocument.content,'end');
+            set(word.application.selection,'Start',end_of_doc);
+            set(word.application.selection,'End',end_of_doc);
+            % Paste the contents of the Clipboard:
+            invoke(word.Selection,'Paste');
+        else
+            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+            print(hFigE, '-dpdf','-bestfit', filestr)
+            fig_cnt = fig_cnt + 1;
+        end
+        close all
     end
-    close all
 end
+
+% Store DAM Results
+%%%%% Perhaps change the type of data structure that results are
+%%%%% stored within
+DAMresults(1,d) = d;
+DAMresults(2,d) = Case;
+DAMresults(3,d) = windyCurt;
+DAMresults(4,d) = windyCurtFactor;
+DAMresults(5,d) = sum(Gen_DAM_OpCost(1:Gens)) + sum(Gen_DAM_SUPCost(1:Gens));
+DAMresults(6,d) = DAMwindyCurtMWh;
+DAMresults(7,d) = DAMhydroCurtMWh;
+DAMresults(8,d) = DAMotherCurtMWh;
+DAMresults(9,d) = ms.f;
+
+%% Debug MW and LMP values
+%DAM MW - Load
+DAM_MW_Load = zeros(24,1);
+for hour = 1:24
+    for bus = 1:52
+        DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
+    end
+end
+
+%DAM MW - Gen
+DAM_MW_Gen = zeros(24,1);
+for hour = 1:24
+    for gen = 1:59
+        DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
+    end
+end
+
+%Calculate Error
+DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
+fprintf('For Case %d on %s, the mismatch (in MW) between day-ahead load and gen is:\n',...
+    Case, ren_tab_array(d))
+disp(DAM_MW_error)
+
+
 
 end
 
