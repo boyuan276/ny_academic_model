@@ -1370,31 +1370,55 @@ MAPratio(1,Case*4+d) = DAMloadTotalByRegion(1,1)/sum(DAMloadTotalByRegion(:,1));
 MAPratio(2,Case*4+d) = sum(DAMloadTotalByRegion(2:4,1))/sum(DAMloadTotalByRegion(:,1));
 
 
-%%%%% Add conditional statement to allow for DAM ONLY
 % Load Cost By Region
 DAM_LMP = ms.lamP(1:68,1:int_stop_DAM);
 DAMloadCostByRegionHr = zeros(4,24);
 
-for hour = 1:22
-    % Upstate (Zones A-F)
-    DAMloadCostByRegionHr(1,hour) = ...
-        sum(DAM_LMP(A2F_Load_buses,hour).*most_busload_DAM(hour,A2F_Load_buses)');
+if RTM_option == 1
+    % ----- DAM & RTM (21.5 hrs) ----- %
+    for hour = 1:22
+        % Upstate (Zones A-F)
+        DAMloadCostByRegionHr(1,hour) = ...
+            sum(DAM_LMP(A2F_Load_buses,hour).*most_busload_DAM(hour,A2F_Load_buses)');
+        
+        % Zones GHI
+        DAMloadCostByRegionHr(2,hour) = ...
+            sum(DAM_LMP(GHI_Load_buses,hour).*most_busload_DAM(hour,GHI_Load_buses)');
+        
+        % New York City (Zone J)
+        DAMloadCostByRegionHr(3,hour) = ...
+            sum(DAM_LMP(NYC_Load_buses,hour).*most_busload_DAM(hour,NYC_Load_buses)');
+        
+        % Long Island (Zone K)
+        DAMloadCostByRegionHr(4,hour) = ...
+            sum(DAM_LMP(LIs_Load_buses,hour).*most_busload_DAM(hour,LIs_Load_buses)');
+        
+    end
+    % Account for half period on the 22nd hour
+    DAMloadCostByRegionHr(:,22) = DAMloadCostByRegionHr(:,22)*.5;
     
-    % Zones GHI
-    DAMloadCostByRegionHr(2,hour) = ...
-        sum(DAM_LMP(GHI_Load_buses,hour).*most_busload_DAM(hour,GHI_Load_buses)');
-    
-    % New York City (Zone J)
-    DAMloadCostByRegionHr(3,hour) = ...
-        sum(DAM_LMP(NYC_Load_buses,hour).*most_busload_DAM(hour,NYC_Load_buses)');
-    
-    % Long Island (Zone K)
-    DAMloadCostByRegionHr(4,hour) = ...
-        sum(DAM_LMP(LIs_Load_buses,hour).*most_busload_DAM(hour,LIs_Load_buses)');
+else
+    % ----- DAM ONLY (24 hrs) ----- %
+    for hour = 1:24
+        % Upstate (Zones A-F)
+        DAMloadCostByRegionHr(1,hour) = ...
+            sum(DAM_LMP(A2F_Load_buses,hour).*most_busload_DAM(hour,A2F_Load_buses)');
+        
+        % Zones GHI
+        DAMloadCostByRegionHr(2,hour) = ...
+            sum(DAM_LMP(GHI_Load_buses,hour).*most_busload_DAM(hour,GHI_Load_buses)');
+        
+        % New York City (Zone J)
+        DAMloadCostByRegionHr(3,hour) = ...
+            sum(DAM_LMP(NYC_Load_buses,hour).*most_busload_DAM(hour,NYC_Load_buses)');
+        
+        % Long Island (Zone K)
+        DAMloadCostByRegionHr(4,hour) = ...
+            sum(DAM_LMP(LIs_Load_buses,hour).*most_busload_DAM(hour,LIs_Load_buses)');
+        
+    end
     
 end
-
-DAMloadCostByRegionHr(:,22) = DAMloadCostByRegionHr(:,22)*.5;
 
 
 for Region = 1:4
@@ -1402,13 +1426,234 @@ for Region = 1:4
 end
 
 
+%% CONGESTION CHARGE
+% The congestion charge is given by the difference in total regional load
+% cost and generation revenue for a given period. 
+
+% DAM Load Cost
+LoadCostDAM = zeros(52,1);
+LoadCostDAMhr = zeros(52,24);
+for bus = 1:52
+    if RTM_option == 0
+        % ----- DAM ONLY (24 hrs) ----- %
+        for hour = 1:24
+            LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
+            LoadCostDAMhr(bus,hour) = DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
+        end
+    else
+        % ----- DAM & RTM (21.5 hrs) ----- %
+        for hour = 1:21
+            LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
+            LoadCostDAMhr(bus,hour) = DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
+        end
+        LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
+        LoadCostDAMhr(bus,22) = 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
+    end
+end
+
+% Flat Scenario DAM Congestion Charge
+DAM_congCharge_region_hr = zeros(4,24);
+DAM_congCharge_hrr = zeros(1,24);
+if RTM_option == 0
+    % ----- DAM ONLY (24 hrs) ----- %
+    for hour = 1:24
+        DAM_congCharge_region_hr(1,hour) = DAMloadCostByRegionHr(1,hour) - Gen_DAM_Revenue_hr(1,hour);
+        DAM_congCharge_region_hr(2,hour) = DAMloadCostByRegionHr(2,hour) - Gen_DAM_Revenue_hr(2,hour);
+        DAM_congCharge_region_hr(3,hour) = DAMloadCostByRegionHr(3,hour) - Gen_DAM_Revenue_hr(3,hour);
+        DAM_congCharge_region_hr(4,hour) = DAMloadCostByRegionHr(4,hour) - Gen_DAM_Revenue_hr(4,hour);
+        
+        DAM_congCharge_hrr(1,hour) = sum(DAM_congCharge_region_hr(1:4,hour));
+    end
+    
+else
+    % ----- DAM & RTM (21.5 hrs) ----- %
+    for hour = 1:21
+        DAM_congCharge_region_hr(1,hour) = DAMloadCostByRegionHr(1,hour) - Gen_DAM_Revenue_hr(1,hour);
+        DAM_congCharge_region_hr(2,hour) = DAMloadCostByRegionHr(2,hour) - Gen_DAM_Revenue_hr(2,hour);
+        DAM_congCharge_region_hr(3,hour) = DAMloadCostByRegionHr(3,hour) - Gen_DAM_Revenue_hr(3,hour);
+        DAM_congCharge_region_hr(4,hour) = DAMloadCostByRegionHr(4,hour) - Gen_DAM_Revenue_hr(4,hour);
+    end
+    
+    for hour = 1:22
+        DAM_congCharge_hrr(1,hour) = sum(DAM_congCharge_region_hr(1:4,hour));
+    end
+end
+
+
+%% RENEWABLE CURTAILMENT
+
+% Initialize
+DAMwindy = zeros(24,2);
+for int = 1:24
+    if useinstant == 1
+        DAMwindy(int,1) = sum(most_bus_rengen_windy(int*12-11,:));
+    else
+        DAMwindy(int,1) = sum(mean(most_bus_rengen_windy(int*12-11:int*12,:)));
+    end
+    DAMwindy(int,2) = RenGen_windyDAM(int);
+end
+
+DAMhydro = zeros(24,2);
+for int = 1:24
+    if useinstant == 1
+        DAMhydro(int,1) = sum(most_bus_rengen_hydro(int*12-11,:));
+    else
+        DAMhydro(int,1) = sum(mean(most_bus_rengen_hydro(int*12-11:int*12,:)));
+    end
+    DAMhydro(int,2) = RenGen_hydroDAM(int);
+end
+
+DAMother = zeros(24,2);
+for int = 1:24
+    if useinstant == 1
+        DAMother(int,1) = sum(most_bus_rengen_other(int*12-11,:));
+    else
+        DAMother(int,1) = sum(mean(most_bus_rengen_other(int*12-11:int*12,:)));
+    end
+    DAMother(int,2) = RenGen_otherDAM(int);
+end
+
+% DAM Renewable Curtailment MWh - TOTAL
+%%%%% I have a suspicion that the following code is incorrect
+DAMwindyCurtMWh = 0;
+for hourr = 1:24
+    DAMwindyCurtMWh = DAMwindyCurtMWh + DAMwindy(hourr,1) - DAMwindy(hourr,2);
+end
+DAMhydroCurtMWh = 0;
+for hourr = 1:24
+    DAMhydroCurtMWh = DAMhydroCurtMWh + DAMhydro(hourr,1) - DAMhydro(hourr,2);
+end
+DAMotherCurtMWh = 0;
+for hourr = 1:24
+    DAMotherCurtMWh = DAMotherCurtMWh + DAMother(hourr,1) - DAMother(hourr,2);
+end
+
+% DAM Renewable Curtailment MWh - By Hour
+DAMCurtMWh_hrly = -(RenGen_windyDAM(:) - DAMwindy(:,1) + ...
+    RenGen_hydroDAM(:) - DAMhydro(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
+
+% DAM Scheduled renewable output by region
+DAMschedRegion = zeros(4,24);
+for hour = 1:24
+    %A2F
+    DAMschedRegion(1,hour) = sum(most_windy_gen_DAM(hour,11:15))+...
+        sum(most_hydro_gen_DAM(hour,11:15))+...
+        sum(most_other_gen_DAM(hour,11:15));
+    %GHI
+    DAMschedRegion(2,hour) = sum(most_windy_gen_DAM(hour,1:2))+most_windy_gen_DAM(hour,8)+...
+        sum(most_hydro_gen_DAM(hour,1:2))+most_hydro_gen_DAM(hour,8)+...
+        sum(most_other_gen_DAM(hour,1:2))+most_other_gen_DAM(hour,8);
+    %NYC
+    DAMschedRegion(3,hour) = sum(most_windy_gen_DAM(hour,3:5))+...
+        sum(most_hydro_gen_DAM(hour,3:5))+...
+        sum(most_other_gen_DAM(hour,3:5));
+    %LIs
+    DAMschedRegion(4,hour) = sum(most_windy_gen_DAM(hour,6:7))+...
+        sum(most_hydro_gen_DAM(hour,6:7))+...
+        sum(most_other_gen_DAM(hour,6:7));
+end
+
+% DAM Actual Renewable Generation by region
+DAMactualRegion = zeros(4,24);
+for hour = 1:24
+    %A2F
+    DAMactualRegion(1,hour) = sum(ms.Pg(25:29,hour))+...
+        sum(ms.Pg(40:44,hour))+...
+        sum(ms.Pg(55:59,hour));
+    %GHI
+    DAMactualRegion(2,hour) = sum(ms.Pg(15:16,hour))+ms.Pg(22,hour)+...
+        sum(ms.Pg(30:31,hour))+ms.Pg(37,hour)+...
+        sum(ms.Pg(45:46,hour))+ms.Pg(52,hour);
+    %NYC
+    DAMactualRegion(3,hour) = sum(ms.Pg(17:19,hour))+...
+        sum(ms.Pg(32:34,hour))+...
+        sum(ms.Pg(47:49,hour));
+    %LIs
+    DAMactualRegion(4,hour) = sum(ms.Pg(20:21,hour))+...
+        sum(ms.Pg(35:36,hour))+...
+        sum(ms.Pg(50:51,hour));
+end
+
+% Calculate curtailment by region
+DAMcurtRegion = DAMschedRegion - DAMactualRegion;
+
+
+%% INTERFACE FLOWS
+
+% Store Constrained Interface Flow Values
+DAMifFlows = zeros(24,4);
+for hour = 1:24
+    DAMifFlows(hour,1) = ms.Pf(1,hour)  - ms.Pf(16,hour);
+    DAMifFlows(hour,2) = ms.Pf(1,hour)  - ms.Pf(16,hour) + ms.Pf(86,hour);
+    DAMifFlows(hour,3) = ms.Pf(7,hour)  + ms.Pf(9,hour)  + ms.Pf(13,hour);
+    DAMifFlows(hour,4) = ms.Pf(28,hour) + ms.Pf(29,hour);
+end
+
+% Initialize
+DAM_CElimit = ones(1,25).*lims_Array(BoundedIF,3);
+
+
+%% EV LOAD
+if EVSE == 1
+    
+    % Initialize
+    DAMEVSEload = mdo.Storage.ExpectedStorageDispatch(1:32,1:24);
+    EVSEloadDAMgraph = zeros(4,24);
+    for hour = 1:24
+        EVSEloadDAMgraph(1,hour) = -DAMEVSEload(1,hour)-DAMEVSEload(6,hour)-sum(DAMEVSEload(17:32,hour)); %A2F
+        EVSEloadDAMgraph(2,hour) = -sum(DAMEVSEload(2:5,hour))-sum(DAMEVSEload(15,hour)); %GHI
+        EVSEloadDAMgraph(3,hour) = -sum(DAMEVSEload(7:11,hour))-DAMEVSEload(16,hour); %NYC
+        EVSEloadDAMgraph(4,hour) = -sum(DAMEVSEload(12:14,hour)); %Long Island
+    end
+    
+end
+
+
+%% Debug MW and LMP values; Store DAM Results
+%DAM MW - Load
+DAM_MW_Load = zeros(24,1);
+for hour = 1:24
+    for bus = 1:52
+        DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
+    end
+end
+
+%DAM MW - Gen
+DAM_MW_Gen = zeros(24,1);
+for hour = 1:24
+    for gen = 1:59
+        DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
+    end
+end
+
+%Calculate Error
+DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
+fprintf('For Case %d on %s, the mismatch (in MW) between day-ahead load and gen is:\n',...
+    Case, ren_tab_array(d))
+disp(DAM_MW_error)
+
+% Store DAM Results
+%%%%% Perhaps change the type of data structure that results are
+%%%%% stored within
+DAMresults(1,d) = d;
+DAMresults(2,d) = Case;
+DAMresults(3,d) = windyCurt;
+DAMresults(4,d) = windyCurtFactor;
+DAMresults(5,d) = sum(Gen_DAM_OpCost(1:Gens)) + sum(Gen_DAM_SUPCost(1:Gens));
+DAMresults(6,d) = DAMwindyCurtMWh;
+DAMresults(7,d) = DAMhydroCurtMWh;
+DAMresults(8,d) = DAMotherCurtMWh;
+DAMresults(9,d) = ms.f;
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot DAM results
+
 %Timescale
 BigTime_DAM = int_stop_DAM;
 Time4Graph = linspace(1,24,BigTime_DAM);
 
-%% Figure - DAM Generator output and gen by type
+%% Figure - DAM Generator Output by Type
 hFigA = figure(1);
 set(hFigA, 'Position', [250 50 800 400]) %Pixels: from left, from bottom, across, high
 
@@ -1541,8 +1786,8 @@ if Fig_save == 1
     close all
 end
 
-%% Figure - LMP DAM
-hFigLMP = figure(1);
+%% Figure - DAM LMP
+hFigLMP = figure(2);
 set(hFigLMP, 'Position', [250 50 650 300]) %Pixels: from left, from bottom, across, high
 
 % Graph Title (Same for all graphs)
@@ -1614,7 +1859,7 @@ if Fig_save == 1
     close all
 end
 
-%% Figure - Load and Gen by Region
+%% Figure - Load and Generation by Region
 hFigLoad = figure(3); set(hFigLoad, 'Position', [450 50 650 550]) %Pixels: from left, from bottom, across, high
 
 % A -- Thermal Gen by Region
@@ -1693,37 +1938,8 @@ if Fig_save == 1
     close all
 end
 
-%% Congestion Charge DAM Difference (analysis only)
-% DAM Load Cost
-LoadCostDAM = zeros(52,1);
-LoadCostDAMhr = zeros(52,24);
-for bus = 1:52
-    %for hour = 1:24
-    %    LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
-    %end
-    for hour = 1:21
-        LoadCostDAM(bus,1)   = LoadCostDAM(bus,1) + DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
-        LoadCostDAMhr(bus,hour) = DAM_LMP(bus,hour)*most_busload_DAM(hour,bus);
-    end
-    LoadCostDAM(bus,1) = LoadCostDAM(bus,1) + 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
-    LoadCostDAMhr(bus,22) = 0.5*DAM_LMP(bus,22)*most_busload_DAM(22,bus);
-end
-
-% Flat Scenario DAM Congestion Charge
-DAM_congCharge_region_hr = zeros(4,24);
-for hour = 1:21
-    DAM_congCharge_region_hr(1,hour) = DAMloadCostByRegionHr(1,hour) - Gen_DAM_Revenue_hr(1,hour);
-    DAM_congCharge_region_hr(2,hour) = DAMloadCostByRegionHr(2,hour) - Gen_DAM_Revenue_hr(2,hour);
-    DAM_congCharge_region_hr(3,hour) = DAMloadCostByRegionHr(3,hour) - Gen_DAM_Revenue_hr(3,hour);
-    DAM_congCharge_region_hr(4,hour) = DAMloadCostByRegionHr(4,hour) - Gen_DAM_Revenue_hr(4,hour);
-end
-DAM_congCharge_hrr = zeros(1,24);
-for hour = 1:22
-    DAM_congCharge_hrr(1,hour) = sum(DAM_congCharge_region_hr(1:4,hour));
-end
-
 %% Figure - Congestion charge by region
-hFigCC = figure(44); set(hFigCC, 'Position', [450 50 650 650]) %Pixels: from left, from bottom, across, high
+hFigCC = figure(4); set(hFigCC, 'Position', [450 50 650 650]) %Pixels: from left, from bottom, across, high
 
 % Title
 First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
@@ -1814,57 +2030,10 @@ if Fig_save == 1
     close all
 end
 
-%% Figure - Renewable curtailment in the DAM
-% Initialize
-DAMwindy = zeros(24,2);
-for int = 1:24
-    if useinstant == 1
-        DAMwindy(int,1) = sum(most_bus_rengen_windy(int*12-11,:));
-    else
-        DAMwindy(int,1) = sum(mean(most_bus_rengen_windy(int*12-11:int*12,:)));
-    end
-    DAMwindy(int,2) = RenGen_windyDAM(int);
-end
-
-DAMhydro = zeros(24,2);
-for int = 1:24
-    if useinstant == 1
-        DAMhydro(int,1) = sum(most_bus_rengen_hydro(int*12-11,:));
-    else
-        DAMhydro(int,1) = sum(mean(most_bus_rengen_hydro(int*12-11:int*12,:)));
-    end
-    DAMhydro(int,2) = RenGen_hydroDAM(int);
-end
-
-DAMother = zeros(24,2);
-for int = 1:24
-    if useinstant == 1
-        DAMother(int,1) = sum(most_bus_rengen_other(int*12-11,:));
-    else
-        DAMother(int,1) = sum(mean(most_bus_rengen_other(int*12-11:int*12,:)));
-    end
-    DAMother(int,2) = RenGen_otherDAM(int);
-end
-
-% DAM Renewable Curtailment MWh - TOTAL
-DAMwindyCurtMWh = 0;
-for hourr = 1:24
-    DAMwindyCurtMWh = DAMwindyCurtMWh + DAMwindy(hourr,1) - DAMwindy(hourr,2);
-end
-DAMhydroCurtMWh = 0;
-for hourr = 1:24
-    DAMhydroCurtMWh = DAMhydroCurtMWh + DAMhydro(hourr,1) - DAMhydro(hourr,2);
-end
-DAMotherCurtMWh = 0;
-for hourr = 1:24
-    DAMotherCurtMWh = DAMotherCurtMWh + DAMother(hourr,1) - DAMother(hourr,2);
-end
-
-% DAM Renewable Curtailment MWh - By Hour
-DAMCurtMWh_hrly = -(RenGen_windyDAM(:) - DAMwindy(:,1) + RenGen_hydroDAM(:) - DAMhydro(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
+%% Figure - Renewable Curtailment in the DAM
 
 % Open figure and set its size
-hFigA = figure(2); 
+hFigA = figure(5); 
 set(hFigA, 'Position', [450 50 650 600]) %Pixels: from left, from bottom, across, high
 
 % Graph Title (Same for all graphs)
@@ -1950,124 +2119,12 @@ if Fig_save == 1
     close all
 end
 
-%% Store Constrained Interface Flow Values
-DAMifFlows = zeros(24,4);
-for hour = 1:24
-    DAMifFlows(hour,1) = ms.Pf(1,hour)  - ms.Pf(16,hour);
-    DAMifFlows(hour,2) = ms.Pf(1,hour)  - ms.Pf(16,hour) + ms.Pf(86,hour);
-    DAMifFlows(hour,3) = ms.Pf(7,hour)  + ms.Pf(9,hour)  + ms.Pf(13,hour);
-    DAMifFlows(hour,4) = ms.Pf(28,hour) + ms.Pf(29,hour);
-end
-
-%% Figure - EVSE Load
-if EVSE == 1
-    % Initialize
-    DAMEVSEload = mdo.Storage.ExpectedStorageDispatch(1:32,1:24);
-    EVSEloadDAMgraph = zeros(4,24);
-    for hour = 1:24
-        EVSEloadDAMgraph(1,hour) = -DAMEVSEload(1,hour)-DAMEVSEload(6,hour)-sum(DAMEVSEload(17:32,hour)); %A2F
-        EVSEloadDAMgraph(2,hour) = -sum(DAMEVSEload(2:5,hour))-sum(DAMEVSEload(15,hour)); %GHI
-        EVSEloadDAMgraph(3,hour) = -sum(DAMEVSEload(7:11,hour))-DAMEVSEload(16,hour); %NYC
-        EVSEloadDAMgraph(4,hour) = -sum(DAMEVSEload(12:14,hour)); %Long Island
-    end
-    
-    % Create Figure
-    hFigE = figure(3); 
-    set(hFigE, 'Position', [450 50 650 200]) %Pixels: from left, from bottom, across, high
-    
-    % A -- EVSE
-    A1 = subplot(1,1,1); hold on;
-    A2 = get(A1,'position'); 
-    A2(4) = A2(4)*.80; 
-    A2(2) = A2(2)*2.1; set(A1, 'position', A2); 
-    A2(3) = A2(3)*0.75; set(A1, 'position', A2);
-    bar([EVSEloadDAMgraph(1,1:24);EVSEloadDAMgraph(2,1:24);EVSEloadDAMgraph(3,1:24);EVSEloadDAMgraph(4,1:24);].','stacked','FaceAlpha',.5)
-    ylabel('Real Power (MW)')
-    axis([0.5,24.5,0,1000]);
-    axis 'auto y';
-    A3 = legend('A2F','GHI','NYC','LIs');
-    reorderLegendbar([1 2 3 4])
-    rect = [.8, 0.25, 0.15, .35]; %[left bottom width height]
-    set(A3, 'Position', rect)
-    xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-    xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-    %set(gca, 'YTick', [0 250 500 1000])
-    xlabel('Time (hours)')
-    grid on; grid minor; box on; hold off
-    
-    % Save to an output file
-    if Fig_save == 1
-        if ispc
-            % Capture current figure/model into clipboard:
-            matlab.graphics.internal.copyFigureHelper(hFigE)
-            % Find end of document and make it the insertion point:
-            end_of_doc = get(word.activedocument.content,'end');
-            set(word.application.selection,'Start',end_of_doc);
-            set(word.application.selection,'End',end_of_doc);
-            % Paste the contents of the Clipboard:
-            invoke(word.Selection,'Paste');
-        else
-            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
-            print(hFigE, '-dpdf','-bestfit', filestr)
-            fig_cnt = fig_cnt + 1;
-        end
-        close all
-    end
-    
-end
 
 %% Figure - DAM Curtailment by Region
-% DAM Scheduled renewable output by region
-DAMschedRegion = zeros(4,24);
-for hour = 1:24
-    %A2F
-    DAMschedRegion(1,hour) = sum(most_windy_gen_DAM(hour,11:15))+...
-        sum(most_hydro_gen_DAM(hour,11:15))+...
-        sum(most_other_gen_DAM(hour,11:15));
-    %GHI
-    DAMschedRegion(2,hour) = sum(most_windy_gen_DAM(hour,1:2))+most_windy_gen_DAM(hour,8)+...
-        sum(most_hydro_gen_DAM(hour,1:2))+most_hydro_gen_DAM(hour,8)+...
-        sum(most_other_gen_DAM(hour,1:2))+most_other_gen_DAM(hour,8);
-    %NYC
-    DAMschedRegion(3,hour) = sum(most_windy_gen_DAM(hour,3:5))+...
-        sum(most_hydro_gen_DAM(hour,3:5))+...
-        sum(most_other_gen_DAM(hour,3:5));
-    %LIs
-    DAMschedRegion(4,hour) = sum(most_windy_gen_DAM(hour,6:7))+...
-        sum(most_hydro_gen_DAM(hour,6:7))+...
-        sum(most_other_gen_DAM(hour,6:7));
-end
-
-% DAM Actual Renewable Generation by region
-DAMactualRegion = zeros(4,24);
-for hour = 1:24
-    %A2F
-    DAMactualRegion(1,hour) = sum(ms.Pg(25:29,hour))+...
-        sum(ms.Pg(40:44,hour))+...
-        sum(ms.Pg(55:59,hour));
-    %GHI
-    DAMactualRegion(2,hour) = sum(ms.Pg(15:16,hour))+ms.Pg(22,hour)+...
-        sum(ms.Pg(30:31,hour))+ms.Pg(37,hour)+...
-        sum(ms.Pg(45:46,hour))+ms.Pg(52,hour);
-    %NYC
-    DAMactualRegion(3,hour) = sum(ms.Pg(17:19,hour))+...
-        sum(ms.Pg(32:34,hour))+...
-        sum(ms.Pg(47:49,hour));
-    %LIs
-    DAMactualRegion(4,hour) = sum(ms.Pg(20:21,hour))+...
-        sum(ms.Pg(35:36,hour))+...
-        sum(ms.Pg(50:51,hour));
-end
-
-% Calculate curtailment by region
-DAMcurtRegion = DAMschedRegion - DAMactualRegion;
-
-% Initialize
-DAM_CElimit = ones(1,25).*lims_Array(BoundedIF,3);
 
 % Create Figure
 if printCurt == 1
-    hFigE = figure(3); 
+    hFigE = figure(6); 
     set(hFigE, 'Position', [450 50 650 450]) %Pixels: from left, from bottom, across, high
     
     % A -- Curtailment by Region
@@ -2132,43 +2189,52 @@ if printCurt == 1
     end
 end
 
-% Store DAM Results
-%%%%% Perhaps change the type of data structure that results are
-%%%%% stored within
-DAMresults(1,d) = d;
-DAMresults(2,d) = Case;
-DAMresults(3,d) = windyCurt;
-DAMresults(4,d) = windyCurtFactor;
-DAMresults(5,d) = sum(Gen_DAM_OpCost(1:Gens)) + sum(Gen_DAM_SUPCost(1:Gens));
-DAMresults(6,d) = DAMwindyCurtMWh;
-DAMresults(7,d) = DAMhydroCurtMWh;
-DAMresults(8,d) = DAMotherCurtMWh;
-DAMresults(9,d) = ms.f;
-
-%% Debug MW and LMP values
-%DAM MW - Load
-DAM_MW_Load = zeros(24,1);
-for hour = 1:24
-    for bus = 1:52
-        DAM_MW_Load(hour,1) = DAM_MW_Load(hour,1) + most_busload_DAM(hour,bus);
+%% Figure - EVSE Load
+if EVSE == 1
+    % Create Figure
+    hFigE = figure(7); 
+    set(hFigE, 'Position', [450 50 650 200]) %Pixels: from left, from bottom, across, high
+    
+    % A -- EVSE
+    A1 = subplot(1,1,1); hold on;
+    A2 = get(A1,'position'); 
+    A2(4) = A2(4)*.80; 
+    A2(2) = A2(2)*2.1; set(A1, 'position', A2); 
+    A2(3) = A2(3)*0.75; set(A1, 'position', A2);
+    bar([EVSEloadDAMgraph(1,1:24);EVSEloadDAMgraph(2,1:24);EVSEloadDAMgraph(3,1:24);EVSEloadDAMgraph(4,1:24);].','stacked','FaceAlpha',.5)
+    ylabel('Real Power (MW)')
+    axis([0.5,24.5,0,1000]);
+    axis 'auto y';
+    A3 = legend('A2F','GHI','NYC','LIs');
+    reorderLegendbar([1 2 3 4])
+    rect = [.8, 0.25, 0.15, .35]; %[left bottom width height]
+    set(A3, 'Position', rect)
+    xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
+    xticklabels({'0' '4' '8' '12' '16' '20' '24'})
+    %set(gca, 'YTick', [0 250 500 1000])
+    xlabel('Time (hours)')
+    grid on; grid minor; box on; hold off
+    
+    % Save to an output file
+    if Fig_save == 1
+        if ispc
+            % Capture current figure/model into clipboard:
+            matlab.graphics.internal.copyFigureHelper(hFigE)
+            % Find end of document and make it the insertion point:
+            end_of_doc = get(word.activedocument.content,'end');
+            set(word.application.selection,'Start',end_of_doc);
+            set(word.application.selection,'End',end_of_doc);
+            % Paste the contents of the Clipboard:
+            invoke(word.Selection,'Paste');
+        else
+            filestr = [outfile,sprintf('_%02d_',fig_cnt),'.pdf'];
+            print(hFigE, '-dpdf','-bestfit', filestr)
+            fig_cnt = fig_cnt + 1;
+        end
+        close all
     end
+    
 end
-
-%DAM MW - Gen
-DAM_MW_Gen = zeros(24,1);
-for hour = 1:24
-    for gen = 1:59
-        DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
-    end
-end
-
-%Calculate Error
-DAM_MW_error = DAM_MW_Load - DAM_MW_Gen;
-fprintf('For Case %d on %s, the mismatch (in MW) between day-ahead load and gen is:\n',...
-    Case, ren_tab_array(d))
-disp(DAM_MW_error)
-
-
 
 end
 
