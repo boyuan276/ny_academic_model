@@ -238,7 +238,7 @@ end
 
 
 %% Modify for DAM (24 periods)
-%Take average of load values in an hour
+%Take average of load values over each hour
 most_busload_DAM = zeros(most_period_count_DAM,52);
 int_start_DAM = 1;
 int_stop_DAM = most_period_count_DAM;
@@ -430,7 +430,8 @@ A2F_all_CASE_gencap = A2F_2016_ITM_wind_ICAP + A2F_2016_ITM_hydro_ICAP + A2F_201
 GHI_all_CASE_gencap = GHI_ITM_CASE_wind_cap + GHI_ITM_CASE_hydro_cap + GHI_ITM_CASE_PV_cap+ GHI_ITM_CASE_Bio_cap + GHI_ITM_CASE_LFG_cap;
 NYC_all_CASE_gencap = NYC_ITM_CASE_wind_cap + NYC_ITM_CASE_hydro_cap + NYC_ITM_CASE_PV_cap+ NYC_ITM_CASE_Bio_cap + NYC_ITM_CASE_LFG_cap;
 LIs_all_CASE_gencap = LIs_ITM_CASE_wind_cap + LIs_ITM_CASE_hydro_cap + LIs_ITM_CASE_PV_cap+ LIs_ITM_CASE_Bio_cap + LIs_ITM_CASE_LFG_cap;
-%Renewable statewide totals
+%Renewable statewide totals...
+%%%%%These only have the A2F capacity. However, they are also unused.
 TOT_ITM_CASE_wind_cap   = A2F_2016_ITM_wind_ICAP  + A2F_ITM_CASE_wind_cap  + GHI_ITM_CASE_wind_cap  + NYC_ITM_CASE_wind_cap + LIs_ITM_CASE_wind_cap;
 TOT_ITM_CASE_hydro_cap  = A2F_2016_ITM_hydro_ICAP + A2F_ITM_CASE_hydro_cap + GHI_ITM_CASE_hydro_cap + NYC_ITM_CASE_hydro_cap + LIs_ITM_CASE_hydro_cap;
 TOT_ITM_CASE_PV_cap     = A2F_2016_ITM_PV_ICAP    + A2F_ITM_CASE_PV_cap    + GHI_ITM_CASE_PV_cap    + NYC_ITM_CASE_PV_cap + LIs_ITM_CASE_PV_cap;
@@ -507,7 +508,7 @@ end
 % Wind
 most_bus_rengen_windy = zeros(most_period_count,68);
 for int = int_start:int_stop
-    %Distribute ITM renewable generation
+    %Distribute ITM renewable generation evenly across all wind buses
     i=1:A2F_gen_bus_count;
     most_bus_rengen_windy(int, A2F_Gen_buses(i)) = A2F_ITM_windy_gen_tot(int)./A2F_gen_bus_count;
     i=1:GHI_gen_bus_count;
@@ -1081,6 +1082,7 @@ for iter = 1:int_stop_DAM
     GTGenDAM(iter) = ms.Pg(12,iter)+ms.Pg(13,iter);
     
     %?????
+    
     LOHIGenDAM(iter) = ms.Pg(14,iter);
     
     %WIND
@@ -1211,7 +1213,6 @@ end
  
 
 %% GENERATOR OPERATIONAL COSTS
-
 % Include renewables in operational cost?
 if RenInOpCost == 1
     Gens = all_gen_count;
@@ -1368,53 +1369,34 @@ DAMloadTotalByRegion(4,1) = sum(DAMloadByRegion(4,:));
 MAPratio(1,Case*4+d) = DAMloadTotalByRegion(1,1)/sum(DAMloadTotalByRegion(:,1));
 MAPratio(2,Case*4+d) = sum(DAMloadTotalByRegion(2:4,1))/sum(DAMloadTotalByRegion(:,1));
 
+
 %%%%% Add conditional statement to allow for DAM ONLY
 % Load Cost By Region
-DAM_LMP_energy = ms.lamP(62,1:int_stop_DAM);
 DAM_LMP = ms.lamP(1:68,1:int_stop_DAM);
 DAMloadCostByRegionHr = zeros(4,24);
+
 for hour = 1:22
-    DAMloadCostByRegionHr(1,hour) =   DAM_LMP(1,hour)*most_busload_DAM(hour,1)+...
-        DAM_LMP(9,hour)*most_busload_DAM(hour,9)+...
-        DAM_LMP(33,hour)*most_busload_DAM(hour,33)+...
-        DAM_LMP(36,hour)*most_busload_DAM(hour,36)+...
-        DAM_LMP(37,hour)*most_busload_DAM(hour,37)+...
-        DAM_LMP(39,hour)*most_busload_DAM(hour,39)+...
-        DAM_LMP(40,hour)*most_busload_DAM(hour,40)+...
-        DAM_LMP(41,hour)*most_busload_DAM(hour,41)+...
-        DAM_LMP(42,hour)*most_busload_DAM(hour,42)+...
-        DAM_LMP(44,hour)*most_busload_DAM(hour,44)+...
-        DAM_LMP(45,hour)*most_busload_DAM(hour,45)+...
-        DAM_LMP(46,hour)*most_busload_DAM(hour,46)+...
-        DAM_LMP(47,hour)*most_busload_DAM(hour,47)+...
-        DAM_LMP(48,hour)*most_busload_DAM(hour,48)+...
-        DAM_LMP(49,hour)*most_busload_DAM(hour,49)+...
-        DAM_LMP(50,hour)*most_busload_DAM(hour,50)+...
-        DAM_LMP(51,hour)*most_busload_DAM(hour,51)+...
-        DAM_LMP(52,hour)*most_busload_DAM(hour,52);
+    % Upstate (Zones A-F)
+    DAMloadCostByRegionHr(1,hour) = ...
+        sum(DAM_LMP(A2F_Load_buses,hour).*most_busload_DAM(hour,A2F_Load_buses)');
     
-    DAMloadCostByRegionHr(2,hour) =   DAM_LMP(3,hour)*most_busload_DAM(hour,3)+...
-        DAM_LMP(4,hour)*most_busload_DAM(hour,4)+...
-        DAM_LMP(7,hour)*most_busload_DAM(hour,7)+...
-        DAM_LMP(8,hour)*most_busload_DAM(hour,8)+...
-        DAM_LMP(25,hour)*most_busload_DAM(hour,25);
+    % Zones GHI
+    DAMloadCostByRegionHr(2,hour) = ...
+        sum(DAM_LMP(GHI_Load_buses,hour).*most_busload_DAM(hour,GHI_Load_buses)');
     
-    DAMloadCostByRegionHr(3,hour) =   DAM_LMP(12,hour)*most_busload_DAM(hour,12)+...
-        DAM_LMP(15,hour)*most_busload_DAM(hour,15)+...
-        DAM_LMP(16,hour)*most_busload_DAM(hour,16)+...
-        DAM_LMP(18,hour)*most_busload_DAM(hour,18)+...
-        DAM_LMP(20,hour)*most_busload_DAM(hour,20)+...
-        DAM_LMP(27,hour)*most_busload_DAM(hour,27);
+    % New York City (Zone J)
+    DAMloadCostByRegionHr(3,hour) = ...
+        sum(DAM_LMP(NYC_Load_buses,hour).*most_busload_DAM(hour,NYC_Load_buses)');
     
-    DAMloadCostByRegionHr(4,hour) =   DAM_LMP(21,hour)*most_busload_DAM(hour,21)+...
-        DAM_LMP(23,hour)*most_busload_DAM(hour,23)+...
-        DAM_LMP(24,hour)*most_busload_DAM(hour,24);
+    % Long Island (Zone K)
+    DAMloadCostByRegionHr(4,hour) = ...
+        sum(DAM_LMP(LIs_Load_buses,hour).*most_busload_DAM(hour,LIs_Load_buses)');
     
 end
-DAMloadCostByRegionHr(1,22) = DAMloadCostByRegionHr(1,22)*.5;
-DAMloadCostByRegionHr(2,22) = DAMloadCostByRegionHr(2,22)*.5;
-DAMloadCostByRegionHr(3,22) = DAMloadCostByRegionHr(3,22)*.5;
-DAMloadCostByRegionHr(4,22) = DAMloadCostByRegionHr(4,22)*.5;
+
+DAMloadCostByRegionHr(:,22) = DAMloadCostByRegionHr(:,22)*.5;
+
+
 for Region = 1:4
     DAMloadCostByRegion(Region,(Case*4+d)) = sum(DAMloadCostByRegionHr(Region,1:24))./1000;
 end
