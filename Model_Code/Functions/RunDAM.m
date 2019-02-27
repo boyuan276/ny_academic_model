@@ -154,12 +154,8 @@ m_file_loc = '../NYISO Data/ActualLoad5min/';
 %Get data file
 RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
 
-%Initialize
-periods = 0:most_period_count-1;
-BigTime = most_period_count;
-Time4Graph = linspace(0,24,BigTime);
-
 %Given: 2016 Net Load (Source: NYISO OASIS)
+periods = 0:most_period_count-1;
 A2F_2016_net_load = (RT_actual_load.M(1 +(periods)*11,2)+...%Zone A
     RT_actual_load.M(2 +(periods)*11,2)+...                 %Zone B
     RT_actual_load.M(4 +(periods)*11,2)+...                 %Zone C
@@ -1655,14 +1651,20 @@ Time4Graph = linspace(1,24,BigTime_DAM);
 
 %% Figure - DAM Generator Output by Type
 hFigA = figure(1);
-set(hFigA, 'Position', [250 50 800 400]) %Pixels: from left, from bottom, across, high
+set(hFigA, 'Position', [250 50 800 500]) %Pixels: from left, from bottom, across, high
 
-% Graph Title (Same for all graphs)
-%             First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-%             ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-%                 'Units','normalized', 'clipping' , 'off');
-%             text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-%                 'center', 'VerticalAlignment', 'top')
+% Get the width and height of the figure
+lbwh = get(hFigA, 'position');
+figw = lbwh(3);
+figh = lbwh(4);
+
+% Number of rows and columns of axes
+ncols = 1;
+nrows = 2;
+
+% w and h of each axis in normalized units
+axisw = (1 / ncols) * 0.85;
+axish = (1 / nrows) * 0.85;
 
 % A -- True Load, Net Load, Demand
 %             A1 = subplot(3,1,1); hold on;
@@ -1695,12 +1697,21 @@ set(hFigA, 'Position', [250 50 800 400]) %Pixels: from left, from bottom, across
 %                 grid on; grid minor; box on; hold off
 
 % B -- Generator Output (%)
+% Create plot
 %B1 = subplot(3,1,2); hold on;
 B1 = subplot(2,1,1); hold on;
-B2 = get(B1,'position'); B2(4) = B2(4)*1.15; B2(2) = B2(2)*1; set(B1, 'position', B2); B2(3) = B2(3)*1; set(B1, 'position', B2);
-plot(Time4Graph,gen_output_percent(1,:),'LineStyle',':','color',[0 .447 .741])
-plot(Time4Graph,gen_output_percent(2,:),'LineStyle',':','color',[.635 .078 .184])
-plot(Time4Graph,gen_output_percent(3,:),'LineStyle',':','color',[.85 .325 .098])
+% Set the size and position of the subplot frame
+% B2 = get(B1,'position');
+% set(B1, 'position', [B2(1) B2(2) axisw axish]); 
+% B2(4) = B2(4)*1.15; B2(2) = B2(2)*1; set(B1, 'position', B2); 
+% B2(3) = B2(3)*1; set(B1, 'position', B2);
+% Plot multiple lines from the same matrix
+plot(Time4Graph,gen_output_percent(1,:),'LineStyle',':',...
+    'LineWidth',2,'color',[0 .447 .741])
+plot(Time4Graph,gen_output_percent(2,:),'LineStyle',':',...
+    'LineWidth',2,'color',[.635 .078 .184])
+plot(Time4Graph,gen_output_percent(3,:),'LineStyle',':',...
+    'LineWidth',2,'color',[.85 .325 .098])
 plot(Time4Graph,gen_output_percent(4,:),'LineStyle','--','color',[0 .447 .741])
 plot(Time4Graph,gen_output_percent(5,:),'LineStyle','--','color',[.301 .745 .933])
 plot(Time4Graph,gen_output_percent(6,:),'LineStyle','--','color',[.635 .078 .184])
@@ -1710,39 +1721,59 @@ plot(Time4Graph,gen_output_percent(10,:),'LineStyle','-.','color',[0 .447 .741])
 plot(Time4Graph,gen_output_percent(11,:),'LineStyle','-.','color',[.494 .184 .556])
 plot(Time4Graph,gen_output_percent(12,:),'LineStyle','-','color',[.494 .184 .556])
 plot(Time4Graph,gen_output_percent(13,:),'LineStyle','-','color',[.466 .674 .188])
-%B3 = legend('Nuke A2F','Nuke GHI','Nuke GHI','Steam A2F','Steam A2F','Steam GHI','Steam NYC','Steam LI',...
-%            'CC A2F','CC NYC','GT NYC','GT LI');
-%title('Generator Output (% of Nameplate)')
-%rect = [.8, 0.45, 0.15, .12]; %[left bottom width height]
-%set(B3, 'Position', rect)
+% Create title
+title('Generator Output (% of Nameplate)')
+% Create the legend for subplot B
+legendB = legend('Nuke A2F','Nuke GHI','Nuke GHI','Steam A2F','Steam A2F',...
+    'Steam GHI','Steam NYC','Steam LI','CC A2F','CC NYC','GT NYC','GT LI');
+% Set the position of the legend
+set(legendB,'Location','eastoutside','FontSize',10);
+legszB = get(legendB,'Position');
+% rect = [.9, 0.65, 0.15, .12]; %[left bottom width height]
+% set(legendB, 'Position', rect)
+% Set y-axis label
 ylabel('Real Power (%)')
+% Set remaining plot settings
 xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
-xticklabels({' ' ' ' ' ' ' ' ' ' ' ' ' '})
-%set(gca, 'XTick', [0 4 8 12 16 20 24]);
-axis([0.5,24.5,-0.16,1]);
+xticklabels({'0' '4' '8' '12' '16' '20' '24'})
+%xticklabels({' ',' ',' ',' ',' ',' ',' '})
+axis([0.5,24.5,-0.16,1.1]);
 yticklabels({' 0','50','100'});
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % C -- Generation by Type
 %C1 = subplot(3,1,3); hold on;
 C1 = subplot(2,1,2); hold on;
-C2 = get(C1,'position'); C2(4) = C2(4)*1.15; C2(2) = C2(2)*1.35; set(C1, 'position', C2); C2(3) = C2(3)*1; set(C1, 'position', C2);
+% C2 = get(C1,'position');
+% set(C1, 'position', [C2(1) C2(2) axisw axish]);  
+% C2(4) = C2(4)*1.15; C2(2) = C2(2)*1.35; set(C1, 'position', C2); 
+% C2(3) = C2(3)*1; set(C1, 'position', C2);
 bar([NukeGenDAM;SteamGenDAM;CCGenDAM;GTGenDAM;RenGen_windyDAM;RenGen_hydroDAM;RenGen_otherDAM;BTM4GraphDAM;].'./1000,'stacked','FaceAlpha',.5)
-%C3 = legend('Nuke', 'Steam', 'CC', 'GT', 'Wind', 'Hydro', 'Other', 'BTM');
-%reorderLegendbar([1 2 3 4 5 6 7 8])
-%title('Generation by Type')
-%rect = [.8, 0.125, 0.15, .12]; %[left bottom width height]
-%set(C3, 'Position', rect)
+
+title('Generation by Type')
+legendC = legend('Nuke','Steam','CC','GT','Wind','Hydro','Other','BTM');
+reorderLegendbar([1 2 3 4 5 6 7 8])
+% rect = [.9, 0.13, 0.15, .12]; %[left bottom width height]
+legszC = get(legendC,'Position');
+legszC(3) = legszB(3);
+legszC(1) = legszB(1);
+set(legendC, 'Position', legszC, 'Location','eastoutside','FontSize',10)
 ylabel('Real Power (GW)')
-xlabel('Time (Hour Beginning)');
+xlabel('Time (Hour)');
 axis([0.5,24.5,0,30]);
-%axis 'auto y';
 xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
-%set(gca, 'XTick', [0 4 8 12 16 20 24]);
 set(gca, 'YTick', [0 10 20 30])
 format shortg
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
+
+% Graph Title (Same for all graphs)
+First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+     datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+supt = suptitle(First_Line_Title);
+supt.FontSize = 16;
+supt.FontWeight = 'bold';
+
 
 % Save to an output file
 if Fig_save == 1
@@ -1790,16 +1821,19 @@ end
 hFigLMP = figure(2);
 set(hFigLMP, 'Position', [250 50 650 300]) %Pixels: from left, from bottom, across, high
 
-% Graph Title (Same for all graphs)
-First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-    'Units','normalized', 'clipping' , 'off');
-text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-    'center', 'VerticalAlignment', 'top')
+% % Graph Title (Same for all graphs)
+% First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
+% ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
+%     'Units','normalized', 'clipping' , 'off');
+% text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+%     'center', 'VerticalAlignment', 'top')
 
 % B -- Load Weighted LMP
 B1 = subplot(1,1,1); hold on;  %Pixels: from left, from bottom, across, high
-B2 = get(B1,'position'); B2(4) = B2(4)*.5; B2(2) = B2(2)*1.5; set(B1, 'position', B2); B2(3) = B2(3)*.85; set(B1, 'position', B2);
+% Set the position of the plot
+B2 = get(B1,'Position'); 
+B2(4) = B2(4)*.5; B2(2) = B2(2)*1.5+0.05; B2(3) = B2(3)*.85; B2(4) = B2(4)*1.5;
+set(B1, 'Position', B2);
 plot(1:24,AvgLoadLMP(1,:),'LineStyle','--','color',[0 .447 .741])
 plot(1:24,AvgLoadLMP(2,:),'LineStyle','--','color',[.635 .078 .184])
 plot(1:24,AvgLoadLMP(3,:),'LineStyle','--','color',[.85 .325 .098])
@@ -1807,7 +1841,8 @@ plot(1:24,AvgLoadLMP(4,:),'LineStyle','--','color',[.466 .674 .188])
 
 B3 = legend('Upstate','LHV','NYC','LI');
 title('Average Load Bus LMP by Region')
-rect = [.8, 0.3, 0.15, .12]; %[left bottom width height]
+% Set the positon of the legend
+rect = [.82, 0.45, 0.15, .12]; %[left bottom width height]
 set(B3, 'Position', rect)
 ylabel('LMP ($/MWh)')
 xlabel('Time (Hour Beginning)');
@@ -1819,7 +1854,7 @@ axis 'auto y';
 minval = max(max(max(AvgLoadLMP)),15);
 ylim([0 minval])
 %yticklabels({' 0','50','100'});
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % C -- Gen Weighted LMP
 %              C1 = subplot(2,1,2); hold on;
@@ -1838,6 +1873,13 @@ grid on; grid minor; box on; hold off
 %                 axis 'auto y';
 % %                 yticklabels({' 0','50','100'});
 %                 grid on; grid minor; box on; hold off
+
+% Graph Title (Same for all graphs)
+First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+     datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+supt = suptitle(First_Line_Title);
+supt.FontSize = 16;
+supt.FontWeight = 'bold';
 
 % Save to an output file
 if Fig_save == 1
@@ -1873,7 +1915,7 @@ title('Thermal Generation by Region')
 First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
 ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
     'Units','normalized', 'clipping' , 'off');
-text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
+text(0.5, 1.0, {'\bf \fontsize{12}' First_Line_Title}, 'HorizontalAlignment' ,...
     'center', 'VerticalAlignment', 'top')
 
 axis([0.5,24.5,0,1500]);
@@ -1883,7 +1925,7 @@ xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000])
 yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000'})
-grid on; grid minor; box on; hold off
+grid on;  box on; hold off
 
 % B -- Renewable Gen by Region
 B1 = subplot(3,1,2); hold on;
@@ -1901,9 +1943,9 @@ xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 set(gca, 'YTick', [0 2000 4000 6000 8000 10000])
 yticklabels({'0' '2,000' '4,000' '6,000' '8,000' '10,000'})
-grid on; grid minor; box on; hold off
+grid on;  box on; hold off
 
-% C -- Renewable Gen by Region
+% C -- Load by Region
 C1 = subplot(3,1,3); hold on;
 C2 = get(C1,'position'); C2(4) = C2(4)*.85; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*0.85; set(C1, 'position', C2);
 bar([DAMloadByRegion(1,1:24);DAMloadByRegion(2,1:24);DAMloadByRegion(3,1:24);DAMloadByRegion(4,1:24);].','stacked','FaceAlpha',.5)
@@ -1917,7 +1959,14 @@ xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000])
 yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000'})
 xlabel('Time (Hour Beginning)')
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
+
+% Graph Title (Same for all graphs)
+First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+     datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+supt = suptitle(First_Line_Title);
+supt.FontSize = 16;
+supt.FontWeight = 'bold';
 
 % Save to an output file
 if Fig_save == 1
@@ -1939,7 +1988,7 @@ if Fig_save == 1
 end
 
 %% Figure - Congestion charge by region
-hFigCC = figure(4); set(hFigCC, 'Position', [450 50 650 650]) %Pixels: from left, from bottom, across, high
+hFigCC = figure(4); set(hFigCC, 'Position', [450 50 800 650]) %Pixels: from left, from bottom, across, high
 
 % Title
 First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
@@ -1950,7 +1999,12 @@ text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,.
 
 % A -- Load Cost by Region
 A1 = subplot(3,1,1); hold on;
-A2 = get(A1,'position'); A2(4) = A2(4)*.95; A2(2) = A2(2)*.95; set(A1, 'position', A2); A2(3) = A2(3)*0.85; set(A1, 'position', A2);
+% Set the position of the subplot
+A2 = get(A1,'position'); 
+A2(2) = A2(2)*0.95; 
+A2(3) = A2(3)*0.85; A2(4) = A2(4)*.95;
+set(A1, 'position', A2);
+% Create bar plot
 %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
 bar([DAMloadCostByRegionHr(1,1:24);DAMloadCostByRegionHr(2,1:24);DAMloadCostByRegionHr(3,1:24);DAMloadCostByRegionHr(4,1:24);].','stacked','FaceAlpha',.5)
 ylabel('Cost ($)')
@@ -1971,7 +2025,11 @@ grid on; grid minor; box on; hold off
 
 % B -- Gen Payment by Region
 B1 = subplot(3,1,2); hold on;
-B2 = get(B1,'position'); B2(4) = B2(4)*.95; B2(2) = B2(2)*.95; set(B1, 'position', B2); B2(3) = B2(3)*0.85; set(B1, 'position', B2);
+% Set the position of the subplot
+B2 = get(B1,'position'); 
+B2(2) = B2(2)*.95; 
+B2(3) = B2(3)*0.85; B2(4) = B2(4)*.95;  
+set(B1, 'position', B2);
 %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
 bar([Gen_DAM_Revenue_hr(1,1:24);Gen_DAM_Revenue_hr(2,1:24);Gen_DAM_Revenue_hr(3,1:24);Gen_DAM_Revenue_hr(4,1:24);].','stacked','FaceAlpha',.5)
 ylabel('Payment ($)')
@@ -1991,7 +2049,10 @@ grid on; grid minor; box on; hold off
 
 % C -- Congestion Charge by Region
 C1 = subplot(3,1,3); hold on;
-C2 = get(C1,'position'); C2(4) = C2(4)*.95; C2(2) = C2(2)*.95; set(C1, 'position', C2); C2(3) = C2(3)*0.85; set(C1, 'position', C2);
+C2 = get(C1,'position'); 
+C2(2) = C2(2)*.95; 
+C2(3) = C2(3)*0.85; C2(4) = C2(4)*.95;
+set(C1, 'position', C2);
 %bar([DAM_congCharge_region_hr(1,1:24);DAM_congCharge_region_hr(2,1:24);DAM_congCharge_region_hr(3,1:24);DAM_congCharge_region_hr(4,1:24);].','stacked','FaceAlpha',.5)
 bar([DAM_congCharge_hrr(1,1:24);].','FaceAlpha',.5)
 ylabel('Charge ($)')
@@ -2010,6 +2071,13 @@ xlabel('Time (Hour Beginning)');
 set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000 110000 120000])
 yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000' '80,000' '90,000' '100,000' '110,000' '120,000'})
 grid on; grid minor; box on; hold off
+
+% Graph Title (Same for all graphs)
+First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+     datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+supt = suptitle(First_Line_Title);
+supt.FontSize = 16;
+supt.FontWeight = 'bold';
 
 % Save to an output file
 if Fig_save == 1
@@ -2045,60 +2113,76 @@ text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,.
 
 % A -- Wind
 A1 = subplot(3,1,1); hold on;
-A2 = get(A1,'position'); A2(4) = A2(4)*0.80; set(A1, 'position', A2); A2(3) = A2(3)*0.75; set(A1, 'position', A2);
+% Set the position of the subplot
+A2 = get(A1,'position'); 
+A2(3) = A2(3)*0.75; A2(4) = A2(4)*0.80;
+set(A1, 'position', A2);
+% Create the bar plot
 bar(DAMwindy)
-title('DAM Wind Curtailment')
-if useinstant == 1
-    A3 = legend('first value in hour','DAM committed');
-else
-    A3 = legend('hourly average','DAM committed');
-end
-rect = [.8, 0.76, 0.15, 0.0875]; %[left bottom width height]
+% Make title
+title('DAM Wind Generation')
+% Make legend and set its positon
+A3 = legend('DAM actual','DAM available');
+rect = [.75, 0.76, 0.15, 0.0875]; %[left bottom width height]
 set(A3, 'Position', rect)
-ylabel('Real Power (MW)')
+% Set all other plot setting
+ylabel('Power (MW)')
 set(gca, 'XTick', [0 4 8 12 16 20 24]);
 axis 'auto y';
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % B -- Hydro
 B1 = subplot(3,1,2); hold on;
-B2 = get(B1,'position'); B2(4) = B2(4)*1.; B2(2) = B2(2)*1; set(B1, 'position', B2); B2(3) = B2(3)*0.75; set(B1, 'position', B2);
+% Set the position of the subplot
+B2 = get(B1,'position'); 
+B2(3) = B2(3)*0.75; B2(4) = B2(4)*1.;
+set(B1, 'position', B2);
+% Create the bar plot
 bar(DAMhydro)
-title('DAM Hydro Curtailment')
-if useinstant == 1
-    B3 = legend('first value in hour','DAM committed');
-else
-    B3 = legend('hourly average','DAM committed');
-end
-rect = [.8, 0.45, 0.15, .12]; %[left bottom width height]
+% Make title
+title('DAM Hydro Generation')
+% Make legend and set its positon
+B3 = legend('DAM actual','DAM available');
+rect = [.75, 0.45, 0.15, .12]; %[left bottom width height]
 set(B3, 'Position', rect)
-ylabel('Real Power (MW)')
+% Set all other plot setting
+ylabel('Power (MW)')
 axis([0.5,24.5,0,1]);
 axis 'auto y';
 set(gca, 'XTick', [0 4 8 12 16 20 24]);
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % C -- Solar
 
 % C -- Other
 C1 = subplot(3,1,3); hold on;
-C2 = get(C1,'position'); C2(4) = C2(4)*1; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*0.75; set(C1, 'position', C2);
+% Set the position of the subplot
+C2 = get(C1,'Position');  
+C2(3) = C2(3)*0.75; C2(4) = C2(4)*1;
+set(C1, 'Position', C2);
+% Create the bar plot
 bar(DAMother)
-title('DAM Other Curtailment')
-if useinstant == 1
-    C3 = legend('first value in hour','DAM committed');
-else
-    C3 = legend('hourly average','DAM committed');
-end
-rect = [.8, 0.125, 0.15, .12]; %[left bottom width height]
+% Make title
+title('DAM Other VRE Generation')
+% Make legend and set its positon
+C3 = legend('DAM actual','DAM available');
+rect = [.75, 0.125, 0.15, .12]; %[left bottom width height]
 set(C3, 'Position', rect)
-ylabel('Real Power (MW)')
+% Set all other plot setting
+ylabel('Power (MW)')
 xlabel('Time (hours)');
 axis([0.5,24.5,0,30000]);
 axis 'auto y';
 set(gca, 'XTick', [0 4 8 12 16 20 24]);
 format shortg
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
+
+% Graph Title (Same for all graphs)
+First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+     datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+supt = suptitle(First_Line_Title);
+supt.FontSize = 16;
+supt.FontWeight = 'bold';
 
 % Save to an output file
 if Fig_save == 1
@@ -2168,6 +2252,13 @@ if printCurt == 1
     xlabel('Time (hours)')
     ylabel('Real Power (MW)')
     grid on; grid minor; box on; hold off
+    
+    % Graph Title (Same for all graphs)
+    First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
+        datestring(7:8), '-', datestring(1:4), ' for the ',Case_Name_String];
+    supt = suptitle(First_Line_Title);
+    supt.FontSize = 16;
+    supt.FontWeight = 'bold';
     
     % Save to an output file
     if Fig_save == 1
