@@ -1910,14 +1910,6 @@ A2 = get(A1,'position'); A2(4) = A2(4)*.85; A2(2) = A2(2)*.95; set(A1, 'position
 bar([DAMThermGenByRegion(1,1:24);DAMThermGenByRegion(2,1:24);DAMThermGenByRegion(3,1:24);DAMThermGenByRegion(4,1:24);].','stacked','FaceAlpha',.5)
 ylabel('Real Power (MW)')
 title('Thermal Generation by Region')
-
-% Title
-First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-    'Units','normalized', 'clipping' , 'off');
-text(0.5, 1.0, {'\bf \fontsize{12}' First_Line_Title}, 'HorizontalAlignment' ,...
-    'center', 'VerticalAlignment', 'top')
-
 axis([0.5,24.5,0,1500]);
 axis 'auto y';
 %set(gca, 'YTick', [0 500 1000 1500])
@@ -1990,13 +1982,6 @@ end
 %% Figure - Congestion charge by region
 hFigCC = figure(4); set(hFigCC, 'Position', [450 50 800 650]) %Pixels: from left, from bottom, across, high
 
-% Title
-First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-    'Units','normalized', 'clipping' , 'off');
-text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-    'center', 'VerticalAlignment', 'top')
-
 % A -- Load Cost by Region
 A1 = subplot(3,1,1); hold on;
 % Set the position of the subplot
@@ -2021,7 +2006,7 @@ xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 set(gca, 'YTick', [0 100000 200000 300000 400000 500000 ])
 yticklabels({'0' '100,000' '200,000'  '300,000' '400,000' '500,000'})
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % B -- Gen Payment by Region
 B1 = subplot(3,1,2); hold on;
@@ -2045,7 +2030,7 @@ xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 set(gca, 'YTick', [0 100000 200000 300000 400000 500000 ])
 yticklabels({'0' '100,000' '200,000'  '300,000' '400,000' '500,000'})
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % C -- Congestion Charge by Region
 C1 = subplot(3,1,3); hold on;
@@ -2070,7 +2055,7 @@ xticklabels({'0' '4' '8' '12' '16' '20' '24'})
 xlabel('Time (Hour Beginning)');
 set(gca, 'YTick', [0 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000 110000 120000])
 yticklabels({'0' '10,000' '20,000' '30,000' '40,000' '50,000' '60,000' '70,000' '80,000' '90,000' '100,000' '110,000' '120,000'})
-grid on; grid minor; box on; hold off
+grid on; box on; hold off
 
 % Graph Title (Same for all graphs)
 First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
@@ -2103,13 +2088,6 @@ end
 % Open figure and set its size
 hFigA = figure(5); 
 set(hFigA, 'Position', [450 50 650 600]) %Pixels: from left, from bottom, across, high
-
-% Graph Title (Same for all graphs)
-First_Line_Title = ['Simulation for: ', datestring(5:6), ' ', datestring(7:8), ' ', datestring(1:4), ' in the ',Case_Name_String];
-ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off',...
-    'Units','normalized', 'clipping' , 'off');
-text(0.5, 1.0,[{'\bf \fontsize{12}' First_Line_Title}], 'HorizontalAlignment' ,...
-    'center', 'VerticalAlignment', 'top')
 
 % A -- Wind
 A1 = subplot(3,1,1); hold on;
@@ -2231,7 +2209,7 @@ if printCurt == 1
     %set(gca, 'YTick', [0 250 500 1000])
     %xlabel('Time (hours)')
     ylabel('Curtailment (MW)')
-    grid on; grid minor; box on; hold off
+    grid on;  box on; hold off
     
     % B -- Central-East Interface Flows
     B1 = subplot(2,1,2); hold on;
@@ -2251,7 +2229,7 @@ if printCurt == 1
     %set(gca, 'YTick', [0 250 500 1000])
     xlabel('Time (hours)')
     ylabel('Real Power (MW)')
-    grid on; grid minor; box on; hold off
+    grid on;  box on; hold off
     
     % Graph Title (Same for all graphs)
     First_Line_Title = ['DAM Model -- ', datestring(5:6), '-',...
@@ -2304,7 +2282,7 @@ if EVSE == 1
     xticklabels({'0' '4' '8' '12' '16' '20' '24'})
     %set(gca, 'YTick', [0 250 500 1000])
     xlabel('Time (hours)')
-    grid on; grid minor; box on; hold off
+    grid on; box on; hold off
     
     % Save to an output file
     if Fig_save == 1
