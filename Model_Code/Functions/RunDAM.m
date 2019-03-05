@@ -642,18 +642,18 @@ end
 %% Add Renewables
 %WIND
 %Add wind Generators
-[iwind, mpc, xgd] = addwind('wind_gen' , mpc, xgd);
+[iwind, mpc, xgd] = addwind('wind_gen', mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles('wind_profile_Pmax' , iwind);
-profiles = getprofiles('wind_profile_Pmin' , profiles);
+profiles = getprofiles(wind_profile_Pmax(iwind) , iwind);
+profiles = getprofiles(wind_profile_Pmin(iwind) , profiles);
 
 
 %HYDRO
 %Add hydro Generators
-[ihydro, mpc, xgd] = addwind('hydro_gen' , mpc, xgd);
+[ihydro, mpc, xgd] = addwind('hydro_gen', mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles('hydro_profile_Pmax' , profiles); %%%%% Mistake here?
-profiles = getprofiles('hydro_profile_Pmin' , profiles);
+profiles = getprofiles(hydro_profile_Pmax(ihydro), profiles); %%%%% Mistake here?
+profiles = getprofiles(hydro_profile_Pmin(ihydro), profiles);
 
 
 %SOLAR
@@ -664,17 +664,20 @@ profiles = getprofiles('hydro_profile_Pmin' , profiles);
 %Add other Generators
 [iother, mpc, xgd] = addwind('other_gen' , mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles('other_profile_Pmax' , profiles); %%%%% Mistake here?
-profiles = getprofiles('other_profile_Pmin' , profiles);
+profiles = getprofiles(other_profile_Pmax(iother) , profiles); 
+profiles = getprofiles(other_profile_Pmin(iother) , profiles);
 
 % Add load profile
 profiles = getprofiles('load_profile' , profiles);
 
 
 %% Add RE Generator Profiles
+%%%%% How can we improve the indexing so we dont need to call out the
+%%%%% profile values individually? (i.e. I don't want to have to write
+%%%%% profiles(1).values(:,1,:)...
 %WIND
 %Max Gen
-profiles(1).values(:,1,:) = most_windy_gen_DAM;
+ profiles(1).values(:,1,:) = most_windy_gen_DAM;
 %Min Gen
 if windyCurt == 1
     profiles(2).values(:,1,:) = most_windy_gen_DAM.*windyCurtFactor;
@@ -859,21 +862,30 @@ if EVSE == 1
     
 end
 
+%% Add EVSE Profile
+%%%%% Why is this commented out?
+%         EVSE_PminProfile_DAM = zeros(24,32);
+%         for hour = 1:24
+%             EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
+%         end
+%         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
+
+
 
 %% Set Initial Pg for renewable gens
 % Does this really need to go this fard down in the program?
-xgd.InitialPg(15:29) = xgd.InitialPg(15:29) + most_windy_gen_DAM(1,1:15).';
-xgd.InitialPg(30:44) = xgd.InitialPg(30:44) + most_hydro_gen_DAM(1,1:15).';
-xgd.InitialPg(45:59) = xgd.InitialPg(45:59) + most_other_gen_DAM(1,1:15).';
-xgd.InitialPg(15:59) = xgd.InitialPg(15:59) -1;
+xgd.InitialPg(iwind) = xgd.InitialPg(15:29) + most_windy_gen_DAM(1,1:15).';
+xgd.InitialPg(ihydro) = xgd.InitialPg(30:44) + most_hydro_gen_DAM(1,1:15).';
+xgd.InitialPg(iother) = xgd.InitialPg(45:59) + most_other_gen_DAM(1,1:15).';
+xgd.InitialPg(iwind) = xgd.InitialPg(15:59) -1;
 
 
 %% Set renewable credit (negative cost) to avoid curtailment
 % Does this really need to go this far down in the program?
-mpc.gencost(15:29,6) = REC_Cost;
-mpc.gencost(30:44,6) = REC_hydro;
-mpc.gencost(45:59,6) = REC_Cost;
-mpc.gencost(15:59,4) = 3; %%%%% What is this, and why is it hard-coded?
+mpc.gencost(iwind,6) = REC_Cost;
+mpc.gencost(ihydro,6) = REC_hydro;
+mpc.gencost(iother,6) = REC_Cost;
+mpc.gencost(iwind ,4) = 3; %%%%% What is this, and why is it hard-coded?
 
 
 %% Update generator capacity
@@ -923,15 +935,6 @@ if IFlims == 1
     mpc.if.lims = lims_Array;
     mpc = toggle_iflims_most(mpc, 'on');
 end
-
-
-%% Add EVSE Profile
-%%%%% Why is this commented out?
-%         EVSE_PminProfile_DAM = zeros(24,32);
-%         for hour = 1:24
-%             EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
-%         end
-%         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
 
 
 %% Run MOST Algorithm

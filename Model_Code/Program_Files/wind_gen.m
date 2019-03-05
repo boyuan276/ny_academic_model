@@ -1,4 +1,4 @@
-function wind = wind_DAM(mpc)
+function wind = wind_gen(mpc)
 % generator data
 % 1	 GEN_BUS	bus number
 % 2	 PG         Pg, real power output (MW)

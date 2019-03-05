@@ -269,13 +269,6 @@ GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];
 NYC_gens = [7 11 12 17 18 19 32 33 34 47 48 49];
 LIs_gens = [8 13 20 21 35 36 50 51];
 
-% RTD Value Storage Arrays %%%%% I don't think these belong here... they
-% are preallocations.
-RTD_Load_Storage = zeros(68,288);
-RTD_Gen_Storage = zeros(59,288);
-RTD_RenGen_Max_Storage = zeros(45,288);
-RTD_RenGen_Min_Storage = zeros(45,288);
-
 % Add Transmission Interface Limits
 map_Array  = [  1 -16;...
     1   1;...

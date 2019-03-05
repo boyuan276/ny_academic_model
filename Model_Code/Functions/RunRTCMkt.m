@@ -115,6 +115,12 @@ GHI_RE_buses = input_vars{61};
 NYC_RE_buses = input_vars{62};
 LIs_RE_buses = input_vars{63};
 
+% RTD Value Storage Arrays 
+RTD_Load_Storage = zeros(68,288);
+RTD_Gen_Storage = zeros(59,288);
+RTD_RenGen_Max_Storage = zeros(45,288);
+RTD_RenGen_Min_Storage = zeros(45,288);
+
 %% Real Time
 dubugIfNeeded = 1;
 %% Initialize
