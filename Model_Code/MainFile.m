@@ -337,12 +337,34 @@ GHI_ITM_inc_LFG_cap =    3;
 NYC_ITM_inc_LFG_cap =   34;
 LIs_ITM_inc_LFG_cap =    3;
 
-% Existing renewable capacity in A2F (other locations ignored due  to low penetration
+% Existing renewable capacity in A2F (other locations ignored due to low
+% penetration)
 A2F_2016_ITM_wind_ICAP  = 1755;
 A2F_2016_ITM_hydro_ICAP = 5219;
 A2F_2016_ITM_PV_ICAP    =    0;
 A2F_2016_ITM_Bio_ICAP   =  148;
 A2F_2016_ITM_LFG_ICAP   =  126;
+
+% Existing renewable capacity in GHI
+GHI_2016_ITM_wind_ICAP  =    0;
+GHI_2016_ITM_hydro_ICAP =    0;
+GHI_2016_ITM_PV_ICAP    =    0;
+GHI_2016_ITM_Bio_ICAP   =    0;
+GHI_2016_ITM_LFG_ICAP   =    0;
+
+% Existing renewable capacity in NYC
+NYC_2016_ITM_wind_ICAP  =    0;
+NYC_2016_ITM_hydro_ICAP =    0;
+NYC_2016_ITM_PV_ICAP    =    0;
+NYC_2016_ITM_Bio_ICAP   =    0;
+NYC_2016_ITM_LFG_ICAP   =    0;
+
+% Existing renewable capacity in NYC
+LIs_2016_ITM_wind_ICAP  =    0;
+LIs_2016_ITM_hydro_ICAP =    0;
+LIs_2016_ITM_PV_ICAP    =    0;
+LIs_2016_ITM_Bio_ICAP   =    0;
+LIs_2016_ITM_LFG_ICAP   =    0;
 
 % Get EVSE Load Data (MWh total for the Day)
 % Electric Vehicle Energy Usage Forecast (2018 Gold Book) in GWh
