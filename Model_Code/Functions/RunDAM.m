@@ -1019,14 +1019,13 @@ mpopt = mpoption(mpopt,'most.skip_prices', 0); %%%%% What does this do?????
 % Load all data
 clear mdi
 if EVSE == 1
-    numm = 91;
     mdi = loadmd(mpc, nt, xgd, storage, [], profiles);
 else
-    numm = 59;
     mdi = loadmd(mpc, nt, xgd, [], [], profiles);
 end
 
 %Set ramp costs to zero
+numm = length(xgd.CommitSched);
 mdi.RampWearCostCoeff = zeros(numm,24);
 for tt = 1:24
     mdi.offer(tt).PositiveActiveReservePrice = zeros(numm,1);
@@ -1053,9 +1052,9 @@ ms = most_summary(mdo); %print results - depending on verbose option
 %% Analyze DAM Results
 %Initialize Summary
 if RTM_option == 1
-    Summaryy = zeros(59,8);
+    Summaryy = zeros(numm,8);
 else
-    Summaryy = zeros(59,3);
+    Summaryy = zeros(numm,3);
 end
 
 %Gen output normalized by capacity (i.e., instantaneous CF)
@@ -1133,6 +1132,7 @@ CCGenDAM = zeros(1,24);
 GTGenDAM = zeros(1,24);
 RenGen_hydroDAM = zeros(1,24);
 RenGen_windyDAM = zeros(1,24);
+RenGen_solarDAM = zeros(1,24);
 RenGen_otherDAM = zeros(1,24);
 BTM4GraphDAM = zeros(1,24);
 LOHIGenDAM = zeros(1,24);
@@ -1157,25 +1157,25 @@ for iter = 1:int_stop_DAM
     
     %WIND
     RenGen_windyDAM(iter) = 0;
-    for renge = iwind
+    for renge = iwind(1):iwind(end)
         RenGen_windyDAM(iter) = RenGen_windyDAM(iter) + ms.Pg(renge,iter);
     end
     
     %HYDRO
     RenGen_hydroDAM(iter) = 0;
-    for renge = ihydro
+    for renge = ihydro(1):ihydro(end)
         RenGen_hydroDAM(iter) = RenGen_hydroDAM(iter) + ms.Pg(renge,iter);
     end
     
     %SOLAR
     RenGen_solarDAM(iter) = 0;
-    for renge = isolar
+    for renge = isolar(1):isolar(end)
         RenGen_solarDAM(iter) = RenGen_solarDAM(iter) + ms.Pg(renge,iter);
     end
     
     %OTHER RENEWABLE
     RenGen_otherDAM(iter) = 0; 
-    for renge = iother
+    for renge = iother(1):iother(end)
         RenGen_otherDAM(iter) = RenGen_otherDAM(iter) + ms.Pg(renge,iter);
     end
     

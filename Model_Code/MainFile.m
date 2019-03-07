@@ -458,7 +458,7 @@ for Case = case_ids
             RunDAM(Case, d, input_params, input_vars);
         
         if RTM_option == 0
-            AllRunsSummary(1:59,(1+3*(Case*4+d-1)):(3+3*(Case*4+d-1))) = Summaryy;
+            AllRunsSummary(:,(1+3*(Case*4+d-1)):(3+3*(Case*4+d-1))) = Summaryy;
         end
         
         if mat_save == 1
