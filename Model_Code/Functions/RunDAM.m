@@ -89,33 +89,48 @@ A2F_ITM_inc_LFG_cap = input_vars{37};
 GHI_ITM_inc_LFG_cap = input_vars{38};
 NYC_ITM_inc_LFG_cap = input_vars{39};
 LIs_ITM_inc_LFG_cap = input_vars{40};
-A2F_2016_ITM_wind_ICAP = input_vars{41};
-A2F_2016_ITM_hydro_ICAP = input_vars{42};
-A2F_2016_ITM_PV_ICAP = input_vars{43};
-A2F_2016_ITM_Bio_ICAP = input_vars{44};
-A2F_2016_ITM_LFG_ICAP = input_vars{45};
-EVSE_Gold_MWh = input_vars{46};
-EVSE_Gold_MW = input_vars{47};
-date_array = input_vars{48};
-ren_tab_array = input_vars{49};
-A2F_Gen_buses = input_vars{50};
-GHI_Gen_buses = input_vars{51};
-NYC_Gen_buses = input_vars{52};
-LIs_Gen_buses = input_vars{53};
-NEw_Gen_buses = input_vars{54};
-A2F_gen_bus_count = input_vars{55};
-GHI_gen_bus_count = input_vars{56};
-NYC_gen_bus_count = input_vars{57};
-LIs_gen_bus_count = input_vars{58};
-NEw_gen_bus_count = input_vars{59};
-A2F_RE_buses = input_vars{60};
-GHI_RE_buses = input_vars{61};
-NYC_RE_buses = input_vars{62};
-LIs_RE_buses = input_vars{63};
-A2F_gens = input_vars{64}; 
-GHI_gens = input_vars{65};
-NYC_gens = input_vars{66};
-LIs_gens = input_vars{67};
+A2F_existing_ITM_wind_ICAP = input_vars{41};
+A2F_existing_ITM_hydro_ICAP = input_vars{42};
+A2F_existing_ITM_PV_ICAP = input_vars{43};
+A2F_existing_ITM_Bio_ICAP = input_vars{44};
+A2F_existing_ITM_LFG_ICAP = input_vars{45};
+GHI_existing_ITM_wind_ICAP = input_vars{46};
+GHI_existing_ITM_hydro_ICAP = input_vars{47};
+GHI_existing_ITM_PV_ICAP = input_vars{48};
+GHI_existing_ITM_Bio_ICAP = input_vars{49};
+GHI_existing_ITM_LFG_ICAP = input_vars{50};
+NYC_existing_ITM_wind_ICAP = input_vars{51};
+NYC_existing_ITM_hydro_ICAP = input_vars{52};
+NYC_existing_ITM_PV_ICAP = input_vars{53};
+NYC_existing_ITM_Bio_ICAP = input_vars{54};
+NYC_existing_ITM_LFG_ICAP = input_vars{55};
+LIs_existing_ITM_wind_ICAP = input_vars{56};
+LIs_existing_ITM_hydro_ICAP = input_vars{57};
+LIs_existing_ITM_PV_ICAP = input_vars{58};
+LIs_existing_ITM_Bio_ICAP = input_vars{59};
+LIs_existing_ITM_LFG_ICAP = input_vars{60};
+EVSE_Gold_MWh = input_vars{61};
+EVSE_Gold_MW = input_vars{62};
+date_array = input_vars{63};
+ren_tab_array = input_vars{64};
+A2F_Gen_buses = input_vars{65};
+GHI_Gen_buses = input_vars{66};
+NYC_Gen_buses = input_vars{67};
+LIs_Gen_buses = input_vars{68};
+NEw_Gen_buses = input_vars{69};
+A2F_gen_bus_count = input_vars{70};
+GHI_gen_bus_count = input_vars{71};
+NYC_gen_bus_count = input_vars{72};
+LIs_gen_bus_count = input_vars{73};
+NEw_gen_bus_count = input_vars{74};
+A2F_RE_buses = input_vars{75};
+GHI_RE_buses = input_vars{76};
+NYC_RE_buses = input_vars{77};
+LIs_RE_buses = input_vars{78};
+A2F_gens = input_vars{79}; 
+GHI_gens = input_vars{80};
+NYC_gens = input_vars{81};
+LIs_gens = input_vars{82};
 
 
 %% Create Strings
@@ -430,68 +445,114 @@ Tot_ITM_CASE_Gen = A2F_ITM_CASE_Gen + GHI_ITM_CASE_Gen + ...
     NYC_ITM_CASE_Gen + LIs_ITM_CASE_Gen;
 
 
-%% 2016 Generation
+%% Existing Generation
 %Calculate output for existing A2F renewables
-A2F_2016_ITM_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_2016_ITM_wind_ICAP;
-A2F_2016_ITM_hydro_Gen = A2F_ITM_hydro_gen_per_iCAP_MW .*A2F_2016_ITM_hydro_ICAP;
-A2F_2016_ITM_solar_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_2016_ITM_PV_ICAP;
-% A2F_2016_ITM_other_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_2016_ITM_PV_ICAP + ...
-%     A2F_ITM_Bio_gen_per_iCAP_MW   .*A2F_2016_ITM_Bio_ICAP + ...
-%     A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_2016_ITM_LFG_ICAP;
-A2F_2016_ITM_other_Gen = A2F_ITM_Bio_gen_per_iCAP_MW   .*A2F_2016_ITM_Bio_ICAP + ...
-    A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_2016_ITM_LFG_ICAP;
-% A2F_2016_ITM_Gen = A2F_2016_ITM_windy_Gen + A2F_2016_ITM_hydro_Gen + A2F_2016_ITM_other_Gen;
-A2F_2016_ITM_Gen = A2F_2016_ITM_windy_Gen + A2F_2016_ITM_hydro_Gen + ...
-    A2F_2016_ITM_solar_Gen + A2F_2016_ITM_other_Gen;
+A2F_existing_ITM_windy_Gen = A2F_ITM_wind_gen_per_iCAP_MW  .*A2F_existing_ITM_wind_ICAP;
+A2F_existing_ITM_hydro_Gen = A2F_ITM_hydro_gen_per_iCAP_MW .*A2F_existing_ITM_hydro_ICAP;
+A2F_existing_ITM_solar_Gen = A2F_ITM_PV_gen_per_iCAP_MW    .*A2F_existing_ITM_PV_ICAP;
+A2F_existing_ITM_other_Gen = A2F_ITM_Bio_gen_per_iCAP_MW   .*A2F_existing_ITM_Bio_ICAP + ...
+    A2F_ITM_LFG_gen_per_iCAP_MW   .*A2F_existing_ITM_LFG_ICAP;
+A2F_existing_ITM_Gen = A2F_existing_ITM_windy_Gen + A2F_existing_ITM_hydro_Gen + ...
+    A2F_existing_ITM_solar_Gen + A2F_existing_ITM_other_Gen;
 
-%% Gen Capacity by region for the current case
-%All gen by region
-A2F_all_CASE_gencap = A2F_2016_ITM_wind_ICAP + A2F_2016_ITM_hydro_ICAP + A2F_2016_ITM_PV_ICAP+ A2F_2016_ITM_Bio_ICAP + A2F_2016_ITM_LFG_ICAP + ...
-    A2F_ITM_CASE_wind_cap + A2F_ITM_CASE_hydro_cap + A2F_ITM_CASE_PV_cap + A2F_ITM_CASE_Bio_cap + A2F_ITM_CASE_LFG_cap;
-GHI_all_CASE_gencap = GHI_ITM_CASE_wind_cap + GHI_ITM_CASE_hydro_cap + GHI_ITM_CASE_PV_cap+ GHI_ITM_CASE_Bio_cap + GHI_ITM_CASE_LFG_cap;
-NYC_all_CASE_gencap = NYC_ITM_CASE_wind_cap + NYC_ITM_CASE_hydro_cap + NYC_ITM_CASE_PV_cap+ NYC_ITM_CASE_Bio_cap + NYC_ITM_CASE_LFG_cap;
-LIs_all_CASE_gencap = LIs_ITM_CASE_wind_cap + LIs_ITM_CASE_hydro_cap + LIs_ITM_CASE_PV_cap+ LIs_ITM_CASE_Bio_cap + LIs_ITM_CASE_LFG_cap;
+%Calculate output for existing GHI renewables
+GHI_existing_ITM_windy_Gen = GHI_ITM_wind_gen_per_iCAP_MW  .*GHI_existing_ITM_wind_ICAP;
+GHI_existing_ITM_hydro_Gen = GHI_ITM_hydro_gen_per_iCAP_MW .*GHI_existing_ITM_hydro_ICAP;
+GHI_existing_ITM_solar_Gen = GHI_ITM_PV_gen_per_iCAP_MW    .*GHI_existing_ITM_PV_ICAP;
+GHI_existing_ITM_other_Gen = GHI_ITM_Bio_gen_per_iCAP_MW   .*GHI_existing_ITM_Bio_ICAP + ...
+    GHI_ITM_LFG_gen_per_iCAP_MW   .*GHI_existing_ITM_LFG_ICAP;
+GHI_existing_ITM_Gen = GHI_existing_ITM_windy_Gen + GHI_existing_ITM_hydro_Gen + ...
+    GHI_existing_ITM_solar_Gen + GHI_existing_ITM_other_Gen;
 
-%Renewable statewide totals...
-%%%%%These only have the A2F capacity. However, they are also unused.
-% TOT_ITM_CASE_wind_cap   = A2F_2016_ITM_wind_ICAP  + A2F_ITM_CASE_wind_cap  + GHI_ITM_CASE_wind_cap  + NYC_ITM_CASE_wind_cap + LIs_ITM_CASE_wind_cap;
-% TOT_ITM_CASE_hydro_cap  = A2F_2016_ITM_hydro_ICAP + A2F_ITM_CASE_hydro_cap + GHI_ITM_CASE_hydro_cap + NYC_ITM_CASE_hydro_cap + LIs_ITM_CASE_hydro_cap;
-% TOT_ITM_CASE_PV_cap     = A2F_2016_ITM_PV_ICAP    + A2F_ITM_CASE_PV_cap    + GHI_ITM_CASE_PV_cap    + NYC_ITM_CASE_PV_cap + LIs_ITM_CASE_PV_cap;
-% TOT_ITM_CASE_Bio_cap    = A2F_2016_ITM_Bio_ICAP   + A2F_ITM_CASE_Bio_cap   + GHI_ITM_CASE_Bio_cap   + NYC_ITM_CASE_Bio_cap + LIs_ITM_CASE_Bio_cap;
-% TOT_ITM_CASE_LFG_cap    = A2F_2016_ITM_LFG_ICAP   + A2F_ITM_CASE_LFG_cap   + GHI_ITM_CASE_LFG_cap   + NYC_ITM_CASE_LFG_cap + LIs_ITM_CASE_LFG_cap;
+%Calculate output for existing NYC renewables
+NYC_existing_ITM_windy_Gen = NYC_ITM_wind_gen_per_iCAP_MW  .*NYC_existing_ITM_wind_ICAP;
+NYC_existing_ITM_hydro_Gen = NYC_ITM_hydro_gen_per_iCAP_MW .*NYC_existing_ITM_hydro_ICAP;
+NYC_existing_ITM_solar_Gen = NYC_ITM_PV_gen_per_iCAP_MW    .*NYC_existing_ITM_PV_ICAP;
+NYC_existing_ITM_other_Gen = NYC_ITM_Bio_gen_per_iCAP_MW   .*NYC_existing_ITM_Bio_ICAP + ...
+    NYC_ITM_LFG_gen_per_iCAP_MW   .*NYC_existing_ITM_LFG_ICAP;
+NYC_existing_ITM_Gen = NYC_existing_ITM_windy_Gen + NYC_existing_ITM_hydro_Gen + ...
+    NYC_existing_ITM_solar_Gen + NYC_existing_ITM_other_Gen;
+
+%Calculate output for existing LIs renewables
+LIs_existing_ITM_windy_Gen = LIs_ITM_wind_gen_per_iCAP_MW  .*LIs_existing_ITM_wind_ICAP;
+LIs_existing_ITM_hydro_Gen = LIs_ITM_hydro_gen_per_iCAP_MW .*LIs_existing_ITM_hydro_ICAP;
+LIs_existing_ITM_solar_Gen = LIs_ITM_PV_gen_per_iCAP_MW    .*LIs_existing_ITM_PV_ICAP;
+LIs_existing_ITM_other_Gen = LIs_ITM_Bio_gen_per_iCAP_MW   .*LIs_existing_ITM_Bio_ICAP + ...
+    LIs_ITM_LFG_gen_per_iCAP_MW   .*LIs_existing_ITM_LFG_ICAP;
+LIs_existing_ITM_Gen = LIs_existing_ITM_windy_Gen + LIs_existing_ITM_hydro_Gen + ...
+    LIs_existing_ITM_solar_Gen + LIs_existing_ITM_other_Gen;
 
 
-%% Populate ITM Gen into MOST
+%% Renewable Capacity for the current case
+%Renwable capacity by region
+A2F_all_CASE_gencap = A2F_existing_ITM_wind_ICAP + A2F_existing_ITM_hydro_ICAP + ...
+    A2F_existing_ITM_PV_ICAP + A2F_existing_ITM_Bio_ICAP + A2F_existing_ITM_LFG_ICAP + ...
+    A2F_ITM_CASE_wind_cap + A2F_ITM_CASE_hydro_cap + A2F_ITM_CASE_PV_cap + ...
+    A2F_ITM_CASE_Bio_cap + A2F_ITM_CASE_LFG_cap;
+GHI_all_CASE_gencap = GHI_existing_ITM_wind_ICAP + GHI_existing_ITM_hydro_ICAP + ...
+    GHI_existing_ITM_PV_ICAP + GHI_existing_ITM_Bio_ICAP + GHI_existing_ITM_LFG_ICAP + ...
+    GHI_ITM_CASE_wind_cap + GHI_ITM_CASE_hydro_cap + GHI_ITM_CASE_PV_cap + ...
+    GHI_ITM_CASE_Bio_cap + GHI_ITM_CASE_LFG_cap;
+NYC_all_CASE_gencap = NYC_existing_ITM_wind_ICAP + NYC_existing_ITM_hydro_ICAP + ...
+    NYC_existing_ITM_PV_ICAP + NYC_existing_ITM_Bio_ICAP + NYC_existing_ITM_LFG_ICAP + ...
+    NYC_ITM_CASE_wind_cap + NYC_ITM_CASE_hydro_cap + NYC_ITM_CASE_PV_cap + ...
+    NYC_ITM_CASE_Bio_cap + NYC_ITM_CASE_LFG_cap;
+LIs_all_CASE_gencap = LIs_existing_ITM_wind_ICAP + LIs_existing_ITM_hydro_ICAP + ...
+    LIs_existing_ITM_PV_ICAP+ LIs_existing_ITM_Bio_ICAP + LIs_existing_ITM_LFG_ICAP + ...
+    LIs_ITM_CASE_wind_cap + LIs_ITM_CASE_hydro_cap + LIs_ITM_CASE_PV_cap + ...
+    LIs_ITM_CASE_Bio_cap + LIs_ITM_CASE_LFG_cap;
+
+%Renewable capacity by type
+%%%%%These values are unused.
+TOT_ITM_CASE_wind_cap   = A2F_existing_ITM_wind_ICAP  + GHI_existing_ITM_wind_ICAP + ...
+    NYC_existing_ITM_wind_ICAP  + LIs_existing_ITM_wind_ICAP  + A2F_ITM_CASE_wind_cap + ...
+    GHI_ITM_CASE_wind_cap  + NYC_ITM_CASE_wind_cap + LIs_ITM_CASE_wind_cap;
+TOT_ITM_CASE_hydro_cap  = A2F_existing_ITM_hydro_ICAP + GHI_existing_ITM_hydro_ICAP +...
+    NYC_existing_ITM_hydro_ICAP + LIs_existing_ITM_hydro_ICAP + A2F_ITM_CASE_hydro_cap +...
+    GHI_ITM_CASE_hydro_cap + NYC_ITM_CASE_hydro_cap + LIs_ITM_CASE_hydro_cap;
+TOT_ITM_CASE_PV_cap     = A2F_existing_ITM_PV_ICAP + GHI_existing_ITM_PV_ICAP + ...
+    NYC_existing_ITM_PV_ICAP + LIs_existing_ITM_PV_ICAP + A2F_ITM_CASE_PV_cap + ...
+    GHI_ITM_CASE_PV_cap    + NYC_ITM_CASE_PV_cap + LIs_ITM_CASE_PV_cap;
+TOT_ITM_CASE_Bio_cap    = A2F_existing_ITM_Bio_ICAP   + GHI_existing_ITM_Bio_ICAP   + ...
+    NYC_existing_ITM_Bio_ICAP   + LIs_existing_ITM_Bio_ICAP   + A2F_ITM_CASE_Bio_cap   + ...
+    GHI_ITM_CASE_Bio_cap   + NYC_ITM_CASE_Bio_cap + LIs_ITM_CASE_Bio_cap;
+TOT_ITM_CASE_LFG_cap    = A2F_existing_ITM_LFG_ICAP   + GHI_existing_ITM_LFG_ICAP   + ...
+    NYC_existing_ITM_LFG_ICAP   + LIs_existing_ITM_LFG_ICAP   + A2F_ITM_CASE_LFG_cap   + ...
+    GHI_ITM_CASE_LFG_cap   + NYC_ITM_CASE_LFG_cap + LIs_ITM_CASE_LFG_cap;
+
+
+%% Calculate ITM Generation for MOST
 % Determine amount of renewable generation to be added to each region
-A2F_ITM_windy_gen_tot = A2F_ITM_CASE_windy_Gen + A2F_2016_ITM_windy_Gen;
-A2F_ITM_hydro_gen_tot = A2F_ITM_CASE_hydro_Gen + A2F_2016_ITM_hydro_Gen;
-A2F_ITM_solar_gen_tot = A2F_ITM_CASE_solar_Gen + A2F_2016_ITM_solar_Gen;
-A2F_ITM_other_gen_tot = A2F_ITM_CASE_other_Gen + A2F_2016_ITM_other_Gen;
+
+A2F_ITM_windy_gen_tot = A2F_ITM_CASE_windy_Gen + A2F_existing_ITM_windy_Gen;
+A2F_ITM_hydro_gen_tot = A2F_ITM_CASE_hydro_Gen + A2F_existing_ITM_hydro_Gen;
+A2F_ITM_solar_gen_tot = A2F_ITM_CASE_solar_Gen + A2F_existing_ITM_solar_Gen;
+A2F_ITM_other_gen_tot = A2F_ITM_CASE_other_Gen + A2F_existing_ITM_other_Gen;
 A2F_ITM_gen_tot = A2F_ITM_windy_gen_tot + A2F_ITM_hydro_gen_tot + ...
     A2F_ITM_solar_gen_tot + A2F_ITM_other_gen_tot;
 
-GHI_ITM_windy_gen_tot = GHI_ITM_CASE_windy_Gen;
-GHI_ITM_hydro_gen_tot = GHI_ITM_CASE_hydro_Gen;
-GHI_ITM_solar_gen_tot = GHI_ITM_CASE_solar_Gen;
-GHI_ITM_other_gen_tot = GHI_ITM_CASE_other_Gen;
+GHI_ITM_windy_gen_tot = GHI_ITM_CASE_windy_Gen + GHI_existing_ITM_windy_Gen;
+GHI_ITM_hydro_gen_tot = GHI_ITM_CASE_hydro_Gen + GHI_existing_ITM_hydro_Gen;
+GHI_ITM_solar_gen_tot = GHI_ITM_CASE_solar_Gen + GHI_existing_ITM_solar_Gen;
+GHI_ITM_other_gen_tot = GHI_ITM_CASE_other_Gen + GHI_existing_ITM_other_Gen;
 GHI_ITM_gen_tot = GHI_ITM_windy_gen_tot + GHI_ITM_hydro_gen_tot + ...
     GHI_ITM_solar_gen_tot + GHI_ITM_other_gen_tot;
 
-NYC_ITM_windy_gen_tot = NYC_ITM_CASE_windy_Gen;
-NYC_ITM_hydro_gen_tot = NYC_ITM_CASE_hydro_Gen;
-NYC_ITM_solar_gen_tot = NYC_ITM_CASE_solar_Gen;
-NYC_ITM_other_gen_tot = NYC_ITM_CASE_other_Gen;
+NYC_ITM_windy_gen_tot = NYC_ITM_CASE_windy_Gen + NYC_existing_ITM_windy_Gen;
+NYC_ITM_hydro_gen_tot = NYC_ITM_CASE_hydro_Gen + NYC_existing_ITM_hydro_Gen;
+NYC_ITM_solar_gen_tot = NYC_ITM_CASE_solar_Gen + NYC_existing_ITM_solar_Gen;
+NYC_ITM_other_gen_tot = NYC_ITM_CASE_other_Gen + NYC_existing_ITM_other_Gen;
 NYC_ITM_gen_tot = NYC_ITM_windy_gen_tot + NYC_ITM_hydro_gen_tot + ...
     NYC_ITM_solar_gen_tot + NYC_ITM_other_gen_tot;
 
-LIs_ITM_windy_gen_tot = LIs_ITM_CASE_windy_Gen;
-LIs_ITM_hydro_gen_tot = LIs_ITM_CASE_hydro_Gen;
-LIs_ITM_solar_gen_tot = LIs_ITM_CASE_solar_Gen;
-LIs_ITM_other_gen_tot = LIs_ITM_CASE_other_Gen;
+LIs_ITM_windy_gen_tot = LIs_ITM_CASE_windy_Gen + LIs_existing_ITM_windy_Gen;
+LIs_ITM_hydro_gen_tot = LIs_ITM_CASE_hydro_Gen + LIs_existing_ITM_hydro_Gen;
+LIs_ITM_solar_gen_tot = LIs_ITM_CASE_solar_Gen + LIs_existing_ITM_solar_Gen;
+LIs_ITM_other_gen_tot = LIs_ITM_CASE_other_Gen + LIs_existing_ITM_other_Gen;
 LIs_ITM_gen_tot = LIs_ITM_windy_gen_tot + LIs_ITM_hydro_gen_tot + ...
     LIs_ITM_solar_gen_tot + LIs_ITM_other_gen_tot;
 
-%Statewide Totals by rengen type
+%Statewide generation totals by renewable type
 TOT_ITM_windy_gen_profile = A2F_ITM_windy_gen_tot + GHI_ITM_windy_gen_tot + NYC_ITM_windy_gen_tot + LIs_ITM_windy_gen_tot;
 TOT_ITM_hydro_gen_profile = A2F_ITM_hydro_gen_tot + GHI_ITM_hydro_gen_tot + NYC_ITM_hydro_gen_tot + LIs_ITM_hydro_gen_tot;
 TOT_ITM_solar_gen_profile = A2F_ITM_solar_gen_tot + GHI_ITM_solar_gen_tot + NYC_ITM_solar_gen_tot + LIs_ITM_solar_gen_tot;
@@ -501,7 +562,8 @@ TOT_ITM_other_gen_profile = A2F_ITM_other_gen_tot + GHI_ITM_other_gen_tot + NYC_
 %% First 5min generation value vs. Avg hourly value
 if Avg5mingencompare == 1
     %get 24 hr profile for all renewables together
-    TOT_ITM_profile = TOT_ITM_windy_gen_profile + TOT_ITM_hydro_gen_profile + TOT_ITM_other_gen_profile;
+    TOT_ITM_profile = TOT_ITM_windy_gen_profile + TOT_ITM_hydro_gen_profile + ...
+        TOT_ITM_solar_gen_profile + TOT_ITM_other_gen_profile;
     %find first of the hour values
     FirstValues = zeros(24,1);
     for int = 1:24
@@ -535,7 +597,8 @@ if Avg5mingencompare == 1
 end
 
 
-%% Format Renewables and Load for MOST
+%% Format Renewable and Load Profiles for MOST input
+
 % Wind
 most_bus_rengen_windy = zeros(most_period_count,68);
 for int = int_start:int_stop
@@ -653,7 +716,7 @@ end
 
 
 %Determine amount of thermal generation needed
-Tot_ITM_Gen = Tot_ITM_CASE_Gen + A2F_2016_ITM_Gen;
+Tot_ITM_Gen = Tot_ITM_CASE_Gen + A2F_existing_ITM_Gen;
 Tot_BTM_Gen = NYCA_2016_BTM_gen + NYCA_CASE_BTM_gen;
 demand = NYCA_CASE_net_load - Tot_ITM_Gen.';
 
@@ -684,12 +747,15 @@ mpc = loadcase(casefile);
 xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
 
 %Determine number of thermal gens
-[therm_gen_count,~] =  size(mpc.gen(:,9));
+[therm_gen_count,~] =  size(mpc.gen(:, GEN_BUS));
 
 %Reduce RAMP!
+%%%%%Why are only generators 4 - 11 included in this? Generators 12 & 13
+%%%%%are gas turbines, so should be included, and 9 -- the NEISO import --
+%%%%%should probably not be. 
 if IncreasedDAMramp == 1
-    for col = 17:19
-        mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor;
+    for col = [RAMP_AGC, RAMP_10, RAMP_30] 
+        mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor; 
     end
 end
 
@@ -699,7 +765,8 @@ for gen = 2:killNuke
 end
 
 
-%% Add Renewables
+%% Add Renewables to MOST data matpower data and extra generator data
+
 %WIND
 %Add wind Generators
 [iwind, mpc, xgd] = addwind('wind_gen', mpc, xgd);
@@ -712,7 +779,7 @@ profiles = getprofiles(wind_profile_Pmin(iwind) , profiles);
 %Add hydro Generators
 [ihydro, mpc, xgd] = addwind('hydro_gen', mpc, xgd);
 %Add empty max & min profiles
-profiles = getprofiles(hydro_profile_Pmax(ihydro), profiles); %%%%% Mistake here?
+profiles = getprofiles(hydro_profile_Pmax(ihydro), profiles);
 profiles = getprofiles(hydro_profile_Pmin(ihydro), profiles);
 
 
@@ -734,59 +801,8 @@ profiles = getprofiles(other_profile_Pmin(iother) , profiles);
 % Add load profile
 profiles = getprofiles('load_profile' , profiles);
 
-
-%% Add RE Generator Profiles
-%%%%% How can we improve the indexing so we dont need to call out the
-%%%%% profile values individually? (i.e. I don't want to have to write
-%%%%% profiles(1).values(:,1,:)...
-%WIND
-%Max Gen
- profiles(1).values(:,1,:) = most_windy_gen_DAM;
-%Min Gen
-if windyCurt == 1
-    profiles(2).values(:,1,:) = most_windy_gen_DAM.*windyCurtFactor;
-else
-    profiles(2).values(:,1,:) = most_windy_gen_DAM;
-end
-
-
-%HYDRO
-%Max Gen
-profiles(3).values(:,1,:) = most_hydro_gen_DAM;
-%Min Gen
-if hydroCurt == 1
-    profiles(4).values(:,1,:) = most_hydro_gen_DAM.*hydroCurtFactor;
-else
-    profiles(4).values(:,1,:) = most_hydro_gen_DAM;
-end
-
-
-%SOLAR
-%Max Gen
-profiles(5).values(:,1,:) = most_solar_gen_DAM;
-%Min Gen
-if hydroCurt == 1
-    profiles(6).values(:,1,:) = most_solar_gen_DAM.*solarCurtFactor;
-else
-    profiles(6).values(:,1,:) = most_solar_gen_DAM;
-end
-
-
-%OTHER
-%Max Gen
-profiles(7).values(:,1,:) = most_other_gen_DAM;
-%Min Gen
-if otherCurt == 1
-    profiles(8).values(:,1,:) = most_other_gen_DAM.*otherCurtFactor;
-else
-    profiles(8).values(:,1,:) = most_other_gen_DAM;
-end
-
-% Add Load Profile
-profiles(9).values(:,1,:) = most_busload_DAM;
-
-
-%% Add EVSE Load
+%EVSE Load
+%%%%% REALLY need to put this into a separate function...
 if EVSE == 1
     % Calculate EVSE MWh load at each bus
     %Pick load for the current Case & convert to MWh
@@ -933,14 +949,68 @@ if EVSE == 1
     
 end
 
-%% Add EVSE Profile
-%%%%% Why is this commented out?
-%         EVSE_PminProfile_DAM = zeros(24,32);
-%         for hour = 1:24
-%             EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
-%         end
-%         profiles(8).values(:,1,:) = EVSE_PminProfile_DAM;
 
+%% Add RE Generator Profiles
+%%%%% How can we improve the indexing so we dont need to call out the
+%%%%% profile values individually? (i.e. I don't want to have to write
+%%%%% profiles(1).values(:,1,:)...
+
+%WIND Profile
+%Max Gen
+ profiles(1).values(:,1,:) = most_windy_gen_DAM;
+%Min Gen
+if windyCurt == 1
+    profiles(2).values(:,1,:) = most_windy_gen_DAM.*windyCurtFactor;
+else
+    profiles(2).values(:,1,:) = most_windy_gen_DAM;
+end
+
+
+%HYDRO Profile
+%Max Gen
+profiles(3).values(:,1,:) = most_hydro_gen_DAM;
+%Min Gen
+if hydroCurt == 1
+    profiles(4).values(:,1,:) = most_hydro_gen_DAM.*hydroCurtFactor;
+else
+    profiles(4).values(:,1,:) = most_hydro_gen_DAM;
+end
+
+
+%SOLAR Profile
+%Max Gen
+profiles(5).values(:,1,:) = most_solar_gen_DAM;
+%Min Gen
+if hydroCurt == 1
+    profiles(6).values(:,1,:) = most_solar_gen_DAM.*solarCurtFactor;
+else
+    profiles(6).values(:,1,:) = most_solar_gen_DAM;
+end
+
+
+%OTHER Profile
+%Max Gen
+profiles(7).values(:,1,:) = most_other_gen_DAM;
+%Min Gen
+if otherCurt == 1
+    profiles(8).values(:,1,:) = most_other_gen_DAM.*otherCurtFactor;
+else
+    profiles(8).values(:,1,:) = most_other_gen_DAM;
+end
+
+%LOAD Profile
+profiles(9).values(:,1,:) = most_busload_DAM;
+
+%EVSE Profile
+if EVSE == 1
+   
+    EVSE_PminProfile_DAM = zeros(24,32);
+    for hour = 1:24
+        EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
+    end
+    profiles(10).values(:,1,:) = EVSE_PminProfile_DAM;
+    
+end
 
 
 %% Set Initial Pg for renewable gens
@@ -956,7 +1026,7 @@ mpc.gencost(iwind,6) = REC_Cost;
 mpc.gencost(ihydro,6) = REC_hydro;
 mpc.gencost(isolar,6) = REC_solar;
 mpc.gencost(iother,6) = REC_Cost;
-mpc.gencost(iwind ,4) = 3; %%%%% What is this, and why is it hard-coded?
+mpc.gencost(iwind ,4) = 3; %%%%% This is the polynomial order for the cost function
 
 
 %% Update generator capacity
@@ -1025,15 +1095,14 @@ else
 end
 
 %Set ramp costs to zero
-numm = length(xgd.CommitSched);
-mdi.RampWearCostCoeff = zeros(numm,24);
+mdi.RampWearCostCoeff = zeros(all_gen_count,24);
 for tt = 1:24
-    mdi.offer(tt).PositiveActiveReservePrice = zeros(numm,1);
-    mdi.offer(tt).NegativeActiveReservePrice = zeros(numm,1);
-    mdi.offer(tt).PositiveActiveDeltaPrice = zeros(numm,1);
-    mdi.offer(tt).NegativeActiveDeltaPrice = zeros(numm,1);
-    mdi.offer(tt).PositiveLoadFollowReservePrice = zeros(numm,1);
-    mdi.offer(tt).NegativeLoadFollowReservePrice = zeros(numm,1);
+    mdi.offer(tt).PositiveActiveReservePrice = zeros(all_gen_count,1);
+    mdi.offer(tt).NegativeActiveReservePrice = zeros(all_gen_count,1);
+    mdi.offer(tt).PositiveActiveDeltaPrice = zeros(all_gen_count,1);
+    mdi.offer(tt).NegativeActiveDeltaPrice = zeros(all_gen_count,1);
+    mdi.offer(tt).PositiveLoadFollowReservePrice = zeros(all_gen_count,1);
+    mdi.offer(tt).NegativeLoadFollowReservePrice = zeros(all_gen_count,1);
 end
 
 % Run the UC/ED algorithm
@@ -1052,9 +1121,9 @@ ms = most_summary(mdo); %print results - depending on verbose option
 %% Analyze DAM Results
 %Initialize Summary
 if RTM_option == 1
-    Summaryy = zeros(numm,8);
+    Summaryy = zeros(all_gen_count,8);
 else
-    Summaryy = zeros(numm,3);
+    Summaryy = zeros(all_gen_count,3);
 end
 
 %Gen output normalized by capacity (i.e., instantaneous CF)
@@ -1085,6 +1154,7 @@ end
 
 
 %% GENERATION OUTPUT BY UNIT
+
 Nuke_1_DAM = zeros(1,24);
 Nuke_2_DAM = zeros(1,24);
 Nuke_3_DAM = zeros(1,24);
@@ -1117,9 +1187,9 @@ for hour = 1:24
     LOHIGen_DAM(hour) = ms.Pg(14,hour);
 end
 
-DAM_gen_storage = zeros(59,24);
+DAM_gen_storage = zeros(all_gen_count,24);
 for hour = 1:24
-    for gen = 1:59
+    for gen = 1:all_gen_count
         DAM_gen_storage(gen,hour) = ms.Pg(gen,hour);
     end
 end
@@ -1151,7 +1221,7 @@ for iter = 1:int_stop_DAM
     %GT
     GTGenDAM(iter) = ms.Pg(12,iter)+ms.Pg(13,iter);
     
-    %?????
+    %Import: HQ --> A2F 
     
     LOHIGenDAM(iter) = ms.Pg(14,iter);
     
@@ -1189,7 +1259,7 @@ end
 Gen_DAM_Revenue = zeros(all_gen_count,1);
 if RTM_option == 0
     % ----- DAM ONLY (24 hrs) ----- %
-    for gen = 1:59
+    for gen = 1:all_gen_count
         for DAMhr = 1:24
             Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + ms.Pg(gen,DAMhr)*ms.lamP(mpc.gen(gen,1),DAMhr);
         end
@@ -1197,7 +1267,7 @@ if RTM_option == 0
     
 else
     % ----- DAM & RTM (21.5 hrs) ----- %
-    for gen = 1:59
+    for gen = 1:all_gen_count
         for hour = 1:21
             Gen_DAM_Revenue(gen) = Gen_DAM_Revenue(gen) + ms.Pg(gen,hour)*ms.lamP(mpc.gen(gen,1),hour);
         end
@@ -1704,7 +1774,7 @@ end
 %DAM MW - Gen
 DAM_MW_Gen = zeros(24,1);
 for hour = 1:24
-    for gen = 1:59
+    for gen = 1:all_gen_count
         DAM_MW_Gen(hour,1) = DAM_MW_Gen(hour,1) + ms.Pg(gen,hour);
     end
 end
