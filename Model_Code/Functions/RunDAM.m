@@ -276,12 +276,12 @@ LFG   = xlsread('rtd_profiles.xlsx',ren_tab_array(d),'C94:KD104');
 
 %% Calculate output per MW installed capacity
 %WIND
-%ITM Generation for INCREMENTAL generation capacity by Zone
+%ITM Generation for INCREMENTAL generation capacity by region
 A2F_INC_ITM_wind_gen = sum(wind(1:6,:));
 GHI_INC_ITM_wind_gen = sum(wind(7:9,:));
 NYC_INC_ITM_wind_gen =     wind(10,:);
 LIs_INC_ITM_wind_gen =     wind(11,:);
-%Amount of ITM Wind Generation per MW of ICAP by Zone
+%Amount of ITM Wind Generation per MW of ICAP by region
 A2F_ITM_wind_gen_per_iCAP_MW  = A2F_INC_ITM_wind_gen./A2F_ITM_inc_wind_cap;
 GHI_ITM_wind_gen_per_iCAP_MW  = GHI_INC_ITM_wind_gen./GHI_ITM_inc_wind_cap;
 NYC_ITM_wind_gen_per_iCAP_MW  = NYC_INC_ITM_wind_gen./NYC_ITM_inc_wind_cap;
@@ -294,12 +294,12 @@ LIs_ITM_wind_gen_per_iCAP_MW(isnan(LIs_ITM_wind_gen_per_iCAP_MW))=0;
 
 
 %HYDRO
-%ITM Generation for INCREMENTAL generation capacity by Zone
+%ITM Generation for INCREMENTAL generation capacity by region
 A2F_INC_ITM_hydro_gen = sum(hydro(1:6,:));
 GHI_INC_ITM_hydro_gen = sum(hydro(7:9,:));
 NYC_INC_ITM_hydro_gen =     hydro(10,:);
 LIs_INC_ITM_hydro_gen =     hydro(11,:);
-%Amount of ITM Hydro Generation per MW of ICAP by Zone
+%Amount of ITM Hydro Generation per MW of ICAP by region
 A2F_ITM_hydro_gen_per_iCAP_MW  = A2F_INC_ITM_hydro_gen./A2F_ITM_inc_hydro_cap;
 GHI_ITM_hydro_gen_per_iCAP_MW  = GHI_INC_ITM_hydro_gen./GHI_ITM_inc_hydro_cap;
 NYC_ITM_hydro_gen_per_iCAP_MW  = NYC_INC_ITM_hydro_gen./NYC_ITM_inc_hydro_cap;
@@ -312,12 +312,12 @@ LIs_ITM_hydro_gen_per_iCAP_MW(isnan(LIs_ITM_hydro_gen_per_iCAP_MW))=0;
 
 
 %Utility-Scale PV
-%ITM Generation for INCREMENTAL generation capacity by Zone
+%ITM Generation for INCREMENTAL generation capacity by region
 A2F_INC_ITM_PV_gen = sum(PV(1:6,:));
 GHI_INC_ITM_PV_gen = sum(PV(7:9,:));
 NYC_INC_ITM_PV_gen =     PV(10,:);
 LIs_INC_ITM_PV_gen =     PV(11,:);
-%Amount of ITM PV Generation per MW of ICAP by Zone
+%Amount of ITM PV Generation per MW of ICAP by region 
 A2F_ITM_PV_gen_per_iCAP_MW  = A2F_INC_ITM_PV_gen./A2F_ITM_inc_PV_cap;
 GHI_ITM_PV_gen_per_iCAP_MW  = GHI_INC_ITM_PV_gen./GHI_ITM_inc_PV_cap;
 NYC_ITM_PV_gen_per_iCAP_MW  = NYC_INC_ITM_PV_gen./NYC_ITM_inc_PV_cap;
@@ -330,12 +330,12 @@ LIs_ITM_PV_gen_per_iCAP_MW(isnan(LIs_ITM_PV_gen_per_iCAP_MW))=0;
 
 
 %BIOMASS
-%ITM Generation for INCREMENTAL generation capacity by Zone
+%ITM Generation for INCREMENTAL generation capacity by region
 A2F_INC_ITM_Bio_gen = sum(Bio(1:6,:));
 GHI_INC_ITM_Bio_gen = sum(Bio(7:9,:));
 NYC_INC_ITM_Bio_gen =     Bio(10,:);
 LIs_INC_ITM_Bio_gen =     Bio(11,:);
-%Amount of ITM Bio Generation per MW of ICAP by Zone
+%Amount of ITM Bio Generation per MW of ICAP by region
 A2F_ITM_Bio_gen_per_iCAP_MW  = A2F_INC_ITM_Bio_gen./A2F_ITM_inc_Bio_cap;
 GHI_ITM_Bio_gen_per_iCAP_MW  = GHI_INC_ITM_Bio_gen./GHI_ITM_inc_Bio_cap;
 NYC_ITM_Bio_gen_per_iCAP_MW  = NYC_INC_ITM_Bio_gen./NYC_ITM_inc_Bio_cap;
@@ -348,12 +348,12 @@ LIs_ITM_Bio_gen_per_iCAP_MW(isnan(LIs_ITM_Bio_gen_per_iCAP_MW))=0;
 
 
 %Landfill Gas (LFG)
-%ITM Generation for INCREMENTAL generation capacity by Zone
+%ITM Generation for INCREMENTAL generation capacity by region
 A2F_INC_ITM_LFG_gen = sum(LFG(1:6,:));
 GHI_INC_ITM_LFG_gen = sum(LFG(7:9,:));
 NYC_INC_ITM_LFG_gen =     LFG(10,:);
 LIs_INC_ITM_LFG_gen =     LFG(11,:);
-%Amount of ITM LFG Generation per MW of ICAP by Zone
+%Amount of ITM LFG Generation per MW of ICAP by region
 A2F_ITM_LFG_gen_per_iCAP_MW  = A2F_INC_ITM_LFG_gen./A2F_ITM_inc_LFG_cap;
 GHI_ITM_LFG_gen_per_iCAP_MW  = GHI_INC_ITM_LFG_gen./GHI_ITM_inc_LFG_cap;
 NYC_ITM_LFG_gen_per_iCAP_MW  = NYC_INC_ITM_LFG_gen./NYC_ITM_inc_LFG_cap;
@@ -613,9 +613,9 @@ for int = int_start:int_stop
     most_bus_rengen_windy(int, LIs_Gen_buses(i)) = LIs_ITM_windy_gen_tot(int)./LIs_gen_bus_count;
 end
 
-%Remove empty rows
-most_bus_rengen_windy(:,62) = [];
-most_bus_rengen_windy(:,1:52) = [];
+%Remove empty rows 
+most_bus_rengen_windy(:,62) = []; %62 is the reference bus
+most_bus_rengen_windy(:,1:52) = []; %Buses 1 - 52 may be load buses... however some are also listed as RE buses.
 
 %DAM Averages - take average of load values in an hour
 most_windy_gen_DAM = zeros(most_period_count_DAM,15);
@@ -792,7 +792,7 @@ profiles = getprofiles(solar_profile_Pmin(isolar), profiles);
 
 
 %OTHER
-%Add other Generators
+%Add other VRE Generators
 [iother, mpc, xgd] = addwind('other_gen' , mpc, xgd);
 %Add empty max & min profiles
 profiles = getprofiles(other_profile_Pmax(iother) , profiles); 
@@ -802,149 +802,14 @@ profiles = getprofiles(other_profile_Pmin(iother) , profiles);
 profiles = getprofiles('load_profile' , profiles);
 
 %EVSE Load
-%%%%% REALLY need to put this into a separate function...
 if EVSE == 1
-    % Calculate EVSE MWh load at each bus
-    %Pick load for the current Case & convert to MWh
-    EVSE_Zone = EVSE_Gold_MWh(Case+1,:).*1000; %convert from GWh to MWh
-    %Group by Region
-    EVSE_Region = [sum(EVSE_Zone(1:6)) sum(EVSE_Zone(7:9)) EVSE_Zone(10) EVSE_Zone(11) 0];
-    %Divide by # of load buses in each region = EVSE MWh to add to each load bus in each region [A2F, GHI, NYC, LIs]
-    EVSE_Region_Ind = EVSE_Region./[A2F_load_bus_count GHI_load_bus_count NYC_load_bus_count LIs_load_bus_count 1];
     
-    % Calculate EVSE MW peak at each bus
-    %Determine Max EVSE Load in each region
-    EVSE_Region_MW = [sum(EVSE_Gold_MW(Case+1,1:6)) sum(EVSE_Gold_MW(Case+1,7:9)) EVSE_Gold_MW(Case+1,10) EVSE_Gold_MW(Case+1,11) 0];
-    EVSE_Region_Ind_MW = EVSE_Region_MW./[A2F_load_bus_count GHI_load_bus_count NYC_load_bus_count LIs_load_bus_count 1];
+    % Characterize load and storage resource of EVs
+    [storage, EVSE_PminProfile] = ...
+    EVSE_resource(EVSE_Gold_MWh, A2F_load_bus_count, GHI_load_bus_count,...
+    NYC_load_bus_count, LIs_load_bus_count);
     
-    % Add Batteries to each Load Bus
-    % How Many Batteries we adding here?
-    BatCount = A2F_load_bus_count+GHI_load_bus_count+NYC_load_bus_count+LIs_load_bus_count;
-    
-    % Initialize
-    %Tables
-    storage.gen             = zeros(BatCount,21);
-    storage.sd_table.data   = zeros(BatCount,13);
-    storage.xgd_table.data  = zeros(BatCount,2);
-    storage.gencost         = zeros(BatCount, 7);
-    EVSE_PminProfile = zeros(32,1);
-    %                     storage.ExpectedTerminalStorageAim = zeros(BatCount,1);
-    %                     storage.InitialStorage  = zeros(BatCount,1);
-    %                     storage.InitialStorageCost  = zeros(BatCount,1);
-    %                     storage.InitialStorageLowerBound  = zeros(BatCount,1);
-    %                     storage.InitialStorageUpperBound  = zeros(BatCount,1);
-    %                     storage.TerminalStorageUpperBound  = zeros(BatCount,1);
-    %StorageData Parameters
-    storage.sd_table.OutEff				= 1;
-    storage.sd_table.InEff				= 1;
-    storage.sd_table.LossFactor			= 0;
-    storage.sd_table.rho				= 0;
-    storage.sd_table.colnames = {
-        'InitialStorage', ...
-        'InitialStorageLowerBound', ...
-        'InitialStorageUpperBound', ...
-        'InitialStorageCost', ...
-        'TerminalStoragePrice', ...
-        'MinStorageLevel', ...
-        'MaxStorageLevel', ...
-        'OutEff', ...
-        'InEff', ...
-        'LossFactor', ...
-        'rho', ...
-        'ExpectedTerminalStorageMin',...
-        'ExpectedTerminalStorageMax',...
-        };
-    storage.xgd_table.colnames = {
-        'CommitKey', ...
-        'CommitSched', ...
-        };
-    %                             'PositiveActiveReservePrice', ...
-    %                                     'PositiveActiveReserveQuantity', ...
-    %                                         'NegativeActiveReservePrice', ...
-    %                                             'NegativeActiveReserveQuantity', ...
-    %                                                 'PositiveActiveDeltaPrice', ...
-    %                                                     'NegativeActiveDeltaPrice', ...
-    %                                                         'PositiveLoadFollowReservePrice', ...
-    %                                                             'PositiveLoadFollowReserveQuantity', ...
-    %                                                                 'NegativeLoadFollowReservePrice', ...
-    %                                                                     'NegativeLoadFollowReserveQuantity', ...
-    
-    % Create Battery Data Containers
-    for Bat = 1:BatCount
-        % Which Region are we in?
-        if sum(ismember(NYCA_Load_buses(Bat),A2F_Load_buses)) > 0
-            Region = 1; %Region 1 is A2F
-        else
-            if sum(ismember(NYCA_Load_buses(Bat),GHI_Load_buses)) >0
-                Region = 2; %Region 2 is GHI
-            else
-                if sum(ismember(NYCA_Load_buses(Bat),NYC_Load_buses)) >0
-                    Region = 3; %Region 3 is NYC
-                else
-                    if sum(ismember(NYCA_Load_buses(Bat),LIs_Load_buses)) >0
-                        Region = 4; %Region 4 is Long Island
-                    else
-                        Region = 5;
-                    end
-                end
-            end
-        end
-        
-        % Add individual battery parameters
-        % bus            Qmin    mBase   Pmax    Pc1     Qc1min	Qc2min	ramp_agc	ramp_q
-        % 	Pg	Qg	Qmax	Vg      status	Pmin	Pc2     Qc1max	Qc2max	ramp_10     apf
-        %                                                                        ramp_30
-        storage.gen(Bat,:) = [NYCA_Load_buses(Bat)...
-            0   0   0   0   1   100 1   -0.00001   -EVSE_Region_Ind_MW(Region)...
-            0   0   0   0   0   0   0   0   EVSE_Region_Ind_MW(Region)   0   0];
-        
-        % Record Pmin Data
-        EVSE_PminProfile(Bat) = -EVSE_Region_Ind_MW(Region);
-        
-        % Add storage data. Input parameters are defined below:
-        %1 InitialStorage
-        %2 InitialStorageLowerBound
-        %3 InitialStorageUpperBound
-        %4 InitialStorageCost
-        %5 TerminalStoragePrice
-        %6 MinStorageLevel
-        %7 MaxStorageLevel
-        %8 OutEff
-        %9 InEff
-        %10 LossFactor
-        %11 rho
-        %12 Expected Terminal Storage Min
-        %13 Expected Terminal Storage Max
-        %1   2   3   4   5   6   7                         8   9   10  11  12                      13
-        storage.sd_table.data(Bat,:) =   [0   0   0   0   0   0   EVSE_Region_Ind(Region)   1   1   0   0   EVSE_Region_Ind(Region) EVSE_Region_Ind(Region)];
-        
-        % Add storage XGD data. Input parameters are defined below:
-        %1 CommitKey
-        %2 CommitSched
-        %3 PositiveActiveReservePrice
-        %4 PositiveActiveReserveQuantity
-        %5 NegativeActiveReservePrice
-        %6 NegativeActiveReserveQuantity
-        %7 PositiveActiveDeltaPrice
-        %8 NegativeActiveDeltaPrice
-        %9 PositiveLoadFollowReservePrice
-        %10 PositiveLoadFollowReserveQuantity
-        %11 NegativeLoadFollowReservePrice
-        %12 NegativeLoadFollowReserveQuantity
-        %1    2      3   4   5   6   7   8   9   10  11  12
-        storage.xgd_table.data(Bat,:) = [2    1  ];% 0   0   0   0   0   0   0   0   0   0];
-        
-        %Add storage cost data; 1 row for each battery. Each row
-        %has the following parameter definitions. Note that the
-        %first column is must be filled in with the interger 2 in
-        %order to invoke these options:
-        %2	startup    shutdown     n	c(n-1)	...	 c0
-        
-        %storage.gencost(Bat,:) = [2	0	0	3	0.01 10 100];
-        storage.gencost(Bat,:) = [2	0	0	2	0   0   0];
-    end
-    
-    %Push Battery Data to MOST
+    % Push EV battery data to MOST
     [~,mpc,xgd,storage] = addstorage(storage,mpc,xgd);
     
 end
@@ -981,7 +846,7 @@ end
 %Max Gen
 profiles(5).values(:,1,:) = most_solar_gen_DAM;
 %Min Gen
-if hydroCurt == 1
+if solarCurt == 1
     profiles(6).values(:,1,:) = most_solar_gen_DAM.*solarCurtFactor;
 else
     profiles(6).values(:,1,:) = most_solar_gen_DAM;

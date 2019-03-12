@@ -112,14 +112,14 @@ EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
 % Is Renewable Curtailable in DAM?
 % [1 = mingen is zero; 0 = mingen is maxgen]
 windyCurt = 1;
-solarCurt = 1; %%%%% this variable doesn't do anything yet
+solarCurt = 1;
 hydroCurt = 1;
 otherCurt = 1;
 
 % Reduce mingen from maxgen by a factor
 % [Value between 0 (full curtailment allowed) and 1 (No curtailment allowed)]
 windyCurtFactor = 0;
-solarCurtFactor = 0; %%%%% this variable doesn't do anything yet
+solarCurtFactor = 0;
 hydroCurtFactor = 0;
 otherCurtFactor = 0;
 
@@ -263,7 +263,7 @@ GHI_RE_buses = [15 16 22 30 31 37 45 46 52];
 NYC_RE_buses = [17 18 19 32 33 34 47 48 49];
 LIs_RE_buses = [20 21 35 36 20 21];
 
-% Define Generators by zone. Where is gen 9?????
+% Define Generators by zone. Where is gen 9; perhaps NE gen bus?????
 A2F_gens = [1  4  5 10 25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
 GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];
 NYC_gens = [7 11 12 17 18 19 32 33 34 47 48 49];
@@ -289,7 +289,7 @@ lims_Array   = [1 -2700 2700;...
     4 -9000 9000;];
 
 % Given: Incremental BTM Capacity. Are these for a future case? Are
-% they only for solar?????
+% they only for BTM solar?????
 A2F_BTM_inc_cap = 1358;
 GHI_BTM_inc_cap =  793;
 NYC_BTM_inc_cap =  419;
