@@ -1548,7 +1548,8 @@ end
 
 % DAM Renewable Curtailment MWh - By Hour
 DAMCurtMWh_hrly = -(RenGen_windyDAM(:) - DAMwindy(:,1) + ...
-    RenGen_hydroDAM(:) - DAMhydro(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
+    RenGen_hydroDAM(:) - DAMhydro(:,1) + ...
+    RenGen_solarDAM(:) - DAMsolar(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
 
 % DAM Scheduled renewable output by region
 DAMschedRegion = zeros(4,24);
@@ -1681,12 +1682,12 @@ figw = lbwh(3);
 figh = lbwh(4);
 
 % Number of rows and columns of axes
-ncols = 1;
-nrows = 2;
-
+% ncols = 1;
+% nrows = 2;
+% 
 % w and h of each axis in normalized units
-axisw = (1 / ncols) * 0.85;
-axish = (1 / nrows) * 0.85;
+% axisw = (1 / ncols) * 0.85;
+% axish = (1 / nrows) * 0.85;
 
 % A -- True Load, Net Load, Demand
 %             A1 = subplot(3,1,1); hold on;
@@ -1754,7 +1755,7 @@ legszB = get(legendB,'Position');
 % rect = [.9, 0.65, 0.15, .12]; %[left bottom width height]
 % set(legendB, 'Position', rect)
 % Set y-axis label
-ylabel('Real Power (%)')
+ylabel('Power (%)')
 % Set remaining plot settings
 xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
 xticklabels({'0' '4' '8' '12' '16' '20' '24'})
@@ -1770,17 +1771,17 @@ C1 = subplot(2,1,2); hold on;
 % set(C1, 'position', [C2(1) C2(2) axisw axish]);  
 % C2(4) = C2(4)*1.15; C2(2) = C2(2)*1.35; set(C1, 'position', C2); 
 % C2(3) = C2(3)*1; set(C1, 'position', C2);
-bar([NukeGenDAM;SteamGenDAM;CCGenDAM;GTGenDAM;RenGen_windyDAM;RenGen_hydroDAM;RenGen_otherDAM;BTM4GraphDAM;].'./1000,'stacked','FaceAlpha',.5)
+bar([NukeGenDAM;SteamGenDAM;CCGenDAM;GTGenDAM;RenGen_windyDAM;RenGen_hydroDAM;RenGen_solarDAM;RenGen_otherDAM;BTM4GraphDAM;].'./1000,'stacked','FaceAlpha',.5)
 
 title('Generation by Type')
-legendC = legend('Nuke','Steam','CC','GT','Wind','Hydro','Other','BTM');
+legendC = legend('Nuke','Steam','CC','GT','Wind','Hydro','Solar','Other','BTM');
 reorderLegendbar([1 2 3 4 5 6 7 8])
 % rect = [.9, 0.13, 0.15, .12]; %[left bottom width height]
 legszC = get(legendC,'Position');
 legszC(3) = legszB(3);
 legszC(1) = legszB(1);
 set(legendC, 'Position', legszC, 'Location','eastoutside','FontSize',10)
-ylabel('Real Power (GW)')
+ylabel('Power (GW)')
 xlabel('Time (Hour)');
 axis([0.5,24.5,0,30]);
 xticks([0.5 4.5 8.5 12.5 16.5 20.5 24.5])
@@ -1930,7 +1931,7 @@ hFigLoad = figure(3); set(hFigLoad, 'Position', [450 50 650 550]) %Pixels: from 
 A1 = subplot(3,1,1); hold on;
 A2 = get(A1,'position'); A2(4) = A2(4)*.85; A2(2) = A2(2)*.95; set(A1, 'position', A2); A2(3) = A2(3)*0.85; set(A1, 'position', A2);
 bar([DAMThermGenByRegion(1,1:24);DAMThermGenByRegion(2,1:24);DAMThermGenByRegion(3,1:24);DAMThermGenByRegion(4,1:24);].','stacked','FaceAlpha',.5)
-ylabel('Real Power (MW)')
+ylabel('Power (MW)')
 title('Thermal Generation by Region')
 axis([0.5,24.5,0,1500]);
 axis 'auto y';
@@ -1945,7 +1946,7 @@ grid on;  box on; hold off
 B1 = subplot(3,1,2); hold on;
 B2 = get(B1,'position'); B2(4) = B2(4)*.85; B2(2) = B2(2)*.95; set(B1, 'position', B2); B2(3) = B2(3)*0.85; set(B1, 'position', B2);
 bar([DAMRenGenByRegion(1,1:24);DAMRenGenByRegion(2,1:24);DAMRenGenByRegion(3,1:24);DAMRenGenByRegion(4,1:24);].','stacked','FaceAlpha',.5)
-ylabel('Real Power (MW)')
+ylabel('Power (MW)')
 axis([0.5,24.5,0,4000]);
 axis 'auto y';
 title('Renewable Generation by Region')
@@ -1963,7 +1964,7 @@ grid on;  box on; hold off
 C1 = subplot(3,1,3); hold on;
 C2 = get(C1,'position'); C2(4) = C2(4)*.85; C2(2) = C2(2)*1; set(C1, 'position', C2); C2(3) = C2(3)*0.85; set(C1, 'position', C2);
 bar([DAMloadByRegion(1,1:24);DAMloadByRegion(2,1:24);DAMloadByRegion(3,1:24);DAMloadByRegion(4,1:24);].','stacked','FaceAlpha',.5)
-ylabel('Real Power (MW)')
+ylabel('Power (MW)')
 title('Load by Region')
 axis([0.5,24.5,0,4000]);
 axis 'auto y';
@@ -2112,7 +2113,7 @@ hFigA = figure(5);
 set(hFigA, 'Position', [450 50 650 600]) %Pixels: from left, from bottom, across, high
 
 % A -- Wind
-A1 = subplot(3,1,1); hold on;
+A1 = subplot(4,1,1); hold on;
 % Set the position of the subplot
 A2 = get(A1,'position'); 
 A2(3) = A2(3)*0.75; A2(4) = A2(4)*0.80;
@@ -2132,7 +2133,7 @@ axis 'auto y';
 grid on; box on; hold off
 
 % B -- Hydro
-B1 = subplot(3,1,2); hold on;
+B1 = subplot(4,1,2); hold on;
 % Set the position of the subplot
 B2 = get(B1,'position'); 
 B2(3) = B2(3)*0.75; B2(4) = B2(4)*1.;
@@ -2153,21 +2154,42 @@ set(gca, 'XTick', [0 4 8 12 16 20 24]);
 grid on; box on; hold off
 
 % C -- Solar
-
-% C -- Other
-C1 = subplot(3,1,3); hold on;
+C1 = subplot(4,1,3); hold on;
 % Set the position of the subplot
 C2 = get(C1,'Position');  
 C2(3) = C2(3)*0.75; C2(4) = C2(4)*1;
 set(C1, 'Position', C2);
 % Create the bar plot
-bar(DAMother)
+bar(DAMsolar)
 % Make title
-title('DAM Other VRE Generation')
+title('DAM Solar VRE Generation')
 % Make legend and set its positon
 C3 = legend('DAM actual','DAM available');
 rect = [.75, 0.125, 0.15, .12]; %[left bottom width height]
 set(C3, 'Position', rect)
+% Set all other plot setting
+ylabel('Power (MW)')
+axis([0.5,24.5,0,30000]);
+axis 'auto y';
+set(gca, 'XTick', [0 4 8 12 16 20 24]);
+format shortg
+grid on; box on; hold off
+
+
+% D -- Other
+D1 = subplot(4,1,4); hold on;
+% Set the position of the subplot
+D2 = get(D1,'Position');  
+D2(3) = D2(3)*0.75; D2(4) = D2(4)*1;
+set(D1, 'Position', D2);
+% Create the bar plot
+bar(DAMother)
+% Make title
+title('DAM Other VRE Generation')
+% Make legend and set its positon
+D3 = legend('DAM actual','DAM available');
+rect = [.75, 0.125, 0.15, .12]; %[left bottom width height]
+set(D3, 'Position', rect)
 % Set all other plot setting
 ylabel('Power (MW)')
 xlabel('Time (hours)');
