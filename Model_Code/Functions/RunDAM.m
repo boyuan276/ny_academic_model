@@ -888,7 +888,7 @@ xgd.InitialPg(iother) = xgd.InitialPg(iother) + most_other_gen_DAM(1,:).';
 
 
 %% Set renewable credit (negative cost) to avoid curtailment
-mpc.gencost(iwind,6) = REC_Cost;
+mpc.gencost(iwind,6) = REC_wind;
 mpc.gencost(ihydro,6) = REC_hydro;
 mpc.gencost(isolar,6) = REC_solar;
 mpc.gencost(iother,6) = REC_Cost;

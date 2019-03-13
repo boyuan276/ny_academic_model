@@ -98,11 +98,11 @@ RTC_hrs = RTC_periods/12;
 % Renewable Energy Credit (REC) Cost
 %%%%% Should add a separate REC for Wind and Solar.
 REC_Cost =  0; %set to negative number ($-5/MWh) for Renewable Energy Credit
-REC_wind = 0; %%%%% this variable doesn't do anything yet
-REC_solar = 0; %%%%% this variable doesn't do anything yet
+REC_wind =  0;
+REC_solar = 0; 
 REC_hydro = 0;
 
-% Include renewables in the opweraional cost?
+% Include renewables in the operaional cost?
 RenInOpCost = 0;            %%[1 = yes; 0 = no]
 
 % Electric Vehicle (EVSE) Load?
@@ -110,7 +110,7 @@ EVSE = 0;                   %%[1 = ON; 0 = OFF]
 EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
 
 % Is Renewable Curtailable in DAM?
-% [1 = mingen is zero; 0 = mingen is maxgen]
+% [1 = yes curtailment; 0 = no curtailment]
 windyCurt = 1;
 solarCurt = 1;
 hydroCurt = 1;
@@ -268,7 +268,7 @@ GHI_RE_buses = [15 16 22 30 31 37 45 46 52];
 NYC_RE_buses = [17 18 19 32 33 34 47 48 49];
 LIs_RE_buses = [20 21 35 36 20 21];
 
-% Define Generators by zone. Where is gen 9; perhaps NE gen bus?????
+% Define Generators by zone. Where is gen 9; perhaps NE gen?????
 A2F_gens = [1  4  5 10 25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
 GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];
 NYC_gens = [7 11 12 17 18 19 32 33 34 47 48 49];
@@ -293,19 +293,15 @@ lims_Array   = [1 -2700 2700;...
     3 -9000 9000;...
     4 -9000 9000;];
 
-% Given: Incremental BTM Capacity. Are these for a future case? Are
-% they only for BTM solar?????
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input FUTURE Capacity Values Here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Amount of Incremental BTM Capacity.
 A2F_BTM_inc_cap = 1358;
 GHI_BTM_inc_cap =  793;
 NYC_BTM_inc_cap =  419;
 LIs_BTM_inc_cap = 1069;
-
-% Given: 2016 BTM Capacity. Are these from NYISO? Are they only for
-% solar?????
-A2F_BTM_2016_cap =  266;
-GHI_BTM_2016_cap =  155;
-NYC_BTM_2016_cap =   82;
-LIs_BTM_2016_cap =  209;
 
 % Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. Where
 % did these come from?????
@@ -341,6 +337,16 @@ A2F_ITM_inc_LFG_cap =   13;
 GHI_ITM_inc_LFG_cap =    3;
 NYC_ITM_inc_LFG_cap =   34;
 LIs_ITM_inc_LFG_cap =    3;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input EXISTING Capacity Values Here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Existing BTM Capacity (values here are for 2016).
+A2F_BTM_existing_cap =  266;
+GHI_BTM_existing_cap =  155;
+NYC_BTM_existing_cap =   82;
+LIs_BTM_existing_cap =  209;
 
 % Existing renewable capacity in A2F (values here are for 2016. Other 
 % regions are set to zero installed capacity due to low penetration).
@@ -399,10 +405,10 @@ input_vars = {
     GHI_BTM_inc_cap;
     NYC_BTM_inc_cap;
     LIs_BTM_inc_cap;
-    A2F_BTM_2016_cap;
-    GHI_BTM_2016_cap;
-    NYC_BTM_2016_cap;
-    LIs_BTM_2016_cap;
+    A2F_BTM_existing_cap;
+    GHI_BTM_existing_cap;
+    NYC_BTM_existing_cap;
+    LIs_BTM_existing_cap;
     A2F_ITM_inc_wind_cap;
     GHI_ITM_inc_wind_cap;
     NYC_ITM_inc_wind_cap;
