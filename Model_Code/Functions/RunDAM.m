@@ -47,6 +47,7 @@ RTM_option = input_params(40);
 case_start = input_params(41);
 d_start = input_params(42);
 Fig_save = input_params(43);
+VERBOSE = input_params(44);
 
 % Define input variables
 A2F_Load_buses = input_vars{1};
@@ -823,7 +824,7 @@ end
 %WIND Profile
 %Max Gen
  profiles(1).values(:,1,:) = most_windy_gen_DAM;
-%Min Gen
+%Min Gen (i.e. normalize max gen profile by curtailment factor)
 if windyCurt == 1
     profiles(2).values(:,1,:) = most_windy_gen_DAM.*windyCurtFactor;
 else
@@ -834,7 +835,7 @@ end
 %HYDRO Profile
 %Max Gen
 profiles(3).values(:,1,:) = most_hydro_gen_DAM;
-%Min Gen
+%Min Gen (i.e. normalize max gen profile by curtailment factor)
 if hydroCurt == 1
     profiles(4).values(:,1,:) = most_hydro_gen_DAM.*hydroCurtFactor;
 else
@@ -845,7 +846,7 @@ end
 %SOLAR Profile
 %Max Gen
 profiles(5).values(:,1,:) = most_solar_gen_DAM;
-%Min Gen
+%Min Gen (i.e. normalize max gen profile by curtailment factor)
 if solarCurt == 1
     profiles(6).values(:,1,:) = most_solar_gen_DAM.*solarCurtFactor;
 else
@@ -856,7 +857,7 @@ end
 %OTHER Profile
 %Max Gen
 profiles(7).values(:,1,:) = most_other_gen_DAM;
-%Min Gen
+%Min Gen (i.e. normalize max gen profile by curtailment factor)
 if otherCurt == 1
     profiles(8).values(:,1,:) = most_other_gen_DAM.*otherCurtFactor;
 else
@@ -878,12 +879,12 @@ if EVSE == 1
 end
 
 
-%% Set Initial Pg for renewable gens
-xgd.InitialPg(iwind) = xgd.InitialPg(iwind) + most_windy_gen_DAM(1,1:15).';
+%% Set Initial PG (first period generation) for renewable gens
+xgd.InitialPg(iwind) = xgd.InitialPg(iwind) + most_windy_gen_DAM(1,:).';
 xgd.InitialPg(iwind) = xgd.InitialPg(iwind) -1;
-xgd.InitialPg(ihydro) = xgd.InitialPg(ihydro) + most_hydro_gen_DAM(1,1:15).';
-xgd.InitialPg(isolar) = xgd.InitialPg(isolar) + most_solar_gen_DAM(1,1:15).';
-xgd.InitialPg(iother) = xgd.InitialPg(iother) + most_other_gen_DAM(1,1:15).';
+xgd.InitialPg(ihydro) = xgd.InitialPg(ihydro) + most_hydro_gen_DAM(1,:).';
+xgd.InitialPg(isolar) = xgd.InitialPg(isolar) + most_solar_gen_DAM(1,:).';
+xgd.InitialPg(iother) = xgd.InitialPg(iother) + most_other_gen_DAM(1,:).';
 
 
 %% Set renewable credit (negative cost) to avoid curtailment
@@ -896,8 +897,8 @@ mpc.gencost(iwind ,4) = 3; %%%%% This is the polynomial order for the cost funct
 
 %% Update generator capacity
 %Determine number of renewable gens
-[all_gen_count,~] = size(mpc.gen(:,9)); 
-ren_gen_count = all_gen_count - therm_gen_count - 32; %%%%%Why 32?????
+[all_gen_count,~] = size(mpc.gen(:, GEN_BUS)); 
+ren_gen_count = all_gen_count - therm_gen_count - 32; %%%%% Why 32????? I think this is the number of load buses that info appears irrelevant.
 
 %Determine size of renewable gen in each region
 A2F_ind = A2F_all_CASE_gencap/A2F_gen_bus_count;
@@ -931,7 +932,7 @@ for ss = 1:ren_gen_count
     mpc.gen(ss+therm_gen_count, PMAX) = ordered_gen_cap(ss); 
 end
 
-%Determine number of intervals in the simulation
+%Number of intervals in the simulation
 nt = most_period_count_DAM; % number of periods
 
 
@@ -946,10 +947,15 @@ end
 %% Run MOST Algorithm
 %Set MOST options
 mpopt = mpoption;
-mpopt = mpoption(mpopt,'most.dc_model', 1); % use DC network model (default)
+% Use DC network model (default)
+mpopt = mpoption(mpopt,'most.dc_model', 1); 
+% Use GUROBI as to solve the mip
 mpopt = mpoption(mpopt,'most.solver', 'GUROBI');
-mpopt = mpoption(mpopt,'verbose', 0);
-mpopt = mpoption(mpopt,'most.skip_prices', 0); %%%%% What does this do?????
+% Set the verbose option
+mpopt = mpoption(mpopt,'verbose', VERBOSE);
+% Skip price computation stage for mixed integer problems, see 'help
+% miqps_matpower' for details.
+mpopt = mpoption(mpopt,'most.skip_prices', 0); 
 
 % Load all data
 clear mdi
@@ -982,7 +988,7 @@ end
 ms = most_summary(mdo); %print results - depending on verbose option
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Analyze DAM Results
 %Initialize Summary
 if RTM_option == 1

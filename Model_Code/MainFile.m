@@ -173,6 +173,10 @@ undrbidfac = 1;
 most_period_count = 288; % This corresponds to a 5-min RTM (i.e., 24*12)
 most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 
+% Set the Matpower verbose option (0 - print nothing, 1 - print a little,
+% 2 - print a lot, 3 - print all)
+VERBOSE = 1;
+
 input_params = [
     IFlims;
     printCurt;
@@ -217,6 +221,7 @@ input_params = [
     case_start;
     d_start;
     Fig_save;
+    VERBOSE;
     ];
 
 %% Define Initial Variables
