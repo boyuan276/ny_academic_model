@@ -1,4 +1,4 @@
-function RE_inprof_vis(YMatrix1)
+function RE_inprof_vis(YMatrix1, VRE)
 %CREATEFIGURE(YMatrix1)
 %  YMATRIX1:  matrix of y data
 
@@ -36,7 +36,8 @@ ylabel('Power Output (MW)');
 xlabel('Time (hour)');
 
 % Create title
-title('Renewable Generation by Region');
+titlestr = strcat(VRE,' Generation by Region');
+title(titlestr);
 
 % Uncomment the following line to preserve the X-limits of the axes
 xlim(axes1,[0 24]);

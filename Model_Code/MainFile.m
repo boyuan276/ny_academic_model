@@ -177,6 +177,9 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 % 2 - print a lot, 3 - print all)
 VERBOSE = 1;
 
+% Visualize input renewable energy profiles [1 = yes; 0 = no]
+vis_prof = 1; 
+
 input_params = [
     IFlims;
     printCurt;
@@ -222,6 +225,7 @@ input_params = [
     d_start;
     Fig_save;
     VERBOSE;
+    vis_prof;
     ];
 
 %% Define Initial Variables

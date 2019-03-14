@@ -48,6 +48,8 @@ case_start = input_params(41);
 d_start = input_params(42);
 Fig_save = input_params(43);
 VERBOSE = input_params(44);
+vis_prof = input_params(45);
+
 
 % Define input variables
 A2F_Load_buses = input_vars{1};
@@ -628,6 +630,11 @@ for int_DAM = int_start_DAM: int_stop_DAM
     end
 end
 
+% Visualize input profiles
+if vis_prof == 1
+    RE_inprof_vis(most_windy_gen_DAM, 'Wind')
+end
+
 
 % Hydro
 most_bus_rengen_hydro = zeros(most_period_count,68);
@@ -655,6 +662,11 @@ for int_DAM = int_start_DAM: int_stop_DAM
     else
         most_hydro_gen_DAM(int_DAM,:) = mean(most_bus_rengen_hydro(int_DAM*12-11:int_DAM*12,:));
     end
+end
+
+% Visualize input profiles
+if vis_prof == 1
+    RE_inprof_vis(most_hydro_gen_DAM, 'Hydro')
 end
 
 
@@ -686,6 +698,10 @@ for int_DAM = int_start_DAM:int_stop_DAM
     end
 end
 
+% Visualize input profiles
+if vis_prof == 1
+    RE_inprof_vis(most_solar_gen_DAM, 'Solar')
+end
 
 % Other
 most_bus_rengen_other = zeros(most_period_count,68);
@@ -715,6 +731,12 @@ for int_DAM = int_start_DAM: int_stop_DAM
     end
 end
 
+% Visualize input profiles
+if vis_prof == 1
+    RE_inprof_vis(most_other_gen_DAM, 'Other')
+    prompt = 'Press any key when you are finished checking the profiles';
+    input(prompt,'s');
+end
 
 %Determine amount of thermal generation needed
 Tot_ITM_Gen = Tot_ITM_CASE_Gen + A2F_existing_ITM_Gen;
