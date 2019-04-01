@@ -106,7 +106,7 @@ REC_hydro = 0;
 RenInOpCost = 0;            %%[1 = yes; 0 = no]
 
 % Electric Vehicle (EVSE) Load?
-EVSE = 0;                   %%[1 = ON; 0 = OFF]
+EVSE = 1;                   %%[1 = ON; 0 = OFF]
 EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
 
 % Is Renewable Curtailable in DAM?
@@ -175,10 +175,10 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 
 % Set the Matpower verbose option (0 - print nothing, 1 - print a little,
 % 2 - print a lot, 3 - print all)
-VERBOSE = 1;
+VERBOSE = 0;
 
 % Visualize input renewable energy profiles [1 = yes; 0 = no]
-vis_prof = 1; 
+vis_prof = 0; 
 
 input_params = [
     IFlims;
