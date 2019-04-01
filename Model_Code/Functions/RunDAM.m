@@ -835,7 +835,9 @@ if EVSE == 1
         NYC_load_bus_count, LIs_load_bus_count, Case);
     
     % Push EV battery data to MOST
-    [~,mpc,xgd,storage] = addstorage(storage,mpc,xgd);
+    [iEVSE,mpc,xgd,storage] = addstorage(storage,mpc,xgd);
+    %Add empty max & min profiles
+    profiles = getprofiles(EVSE_profile(iEVSE), profiles);
     
 end
 
