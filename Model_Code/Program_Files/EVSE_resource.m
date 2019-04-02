@@ -8,7 +8,6 @@ function EV_storage = ...
 %resource from the EV fleet.
 %   Detailed explanation goes here
 
-
 %% Calculate EVSE MWh load at each bus
 %Pick load for the current Case & convert to MWh
 EVSE_Zone = EVSE_Gold_MWh(Case+1,:).*1000; %convert from GWh to MWh

@@ -1,4 +1,5 @@
-function [DAMresults, DAMifFlows, Summaryy] = RunDAM(Case, d, input_params, input_vars)
+function [DAMresults, DAMifFlows, Summaryy] = ...
+    RunDAM(Case, d, date_array, ren_tab_array, input_params)
 %RunDAM takes parameters, run days, cases, and resource profiles as inputs
 %and returns, a
 %   Detailed explanation goes here
@@ -14,44 +15,41 @@ REC_solar = input_params(7);
 REC_hydro = input_params(8);
 RenInOpCost = input_params(9);
 EVSE = input_params(10);
-EVSEfactor = input_params(11);
-windyCurt = input_params(12);
-solarCurt = input_params(13);
-hydroCurt = input_params(14);
-otherCurt = input_params(15);
-windyCurtFactor = input_params(16);
-solarCurtFactor = input_params(17);
-hydroCurtFactor = input_params(18);
-otherCurtFactor = input_params(19);
-IncreasedDAMramp = input_params(20);
-IncreasedRTCramp_Steam = input_params(21);
-IncreasedRTDramp_Steam = input_params(22);
-IncreasedRTCramp_CC = input_params(23);
-IncreasedRTDramp_CC = input_params(24);
+windyCurt = input_params(11);
+solarCurt = input_params(12);
+hydroCurt = input_params(13);
+otherCurt = input_params(14);
+windyCurtFactor = input_params(15);
+solarCurtFactor = input_params(16);
+hydroCurtFactor = input_params(17);
+otherCurtFactor = input_params(18);
+IncreasedDAMramp = input_params(19);
+IncreasedRTCramp_Steam = input_params(20);
+IncreasedRTDramp_Steam = input_params(21);
+IncreasedRTCramp_CC = input_params(22);
+IncreasedRTDramp_CC = input_params(23);
 DAMrampFactor = input_params(25);
-RTCrampFactor_Steam = input_params(26);
-RTDrampFactor_Steam = input_params(27);
-RTCrampFactor_CC = input_params(28);
-IncreasedRTDramp_CC = input_params(29);
-killNuke = input_params(30);
-droppit = input_params(31);
-printRTC = input_params(32);
-Avg5mingencompare = input_params(33);
-minrunshorter = input_params(34);
-useinstant = input_params(35);
-mustRun = input_params(36);
-undrbidfac = input_params(37);
-most_period_count = input_params(38);
-most_period_count_DAM = input_params(39);
-RTM_option = input_params(40);
-case_start = input_params(41);
-d_start = input_params(42);
-Fig_save = input_params(43);
-VERBOSE = input_params(44);
-vis_prof = input_params(45);
+RTCrampFactor_Steam = input_params(25);
+RTDrampFactor_Steam = input_params(26);
+RTCrampFactor_CC = input_params(27);
+IncreasedRTDramp_CC = input_params(28);
+killNuke = input_params(29);
+droppit = input_params(30);
+printRTC = input_params(31);
+Avg5mingencompare = input_params(32);
+minrunshorter = input_params(33);
+useinstant = input_params(34);
+mustRun = input_params(35);
+undrbidfac = input_params(36);
+most_period_count = input_params(37);
+most_period_count_DAM = input_params(38);
+RTM_option = input_params(39);
+case_start = input_params(40);
+d_start = input_params(41);
+Fig_save = input_params(42);
+VERBOSE = input_params(43);
+vis_prof = input_params(44);
 
-
-% Define input variables
 [A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, NYCA_Load_buses, NEw_Load_buses, PJM_Load_buses,...
     A2F_load_bus_count,GHI_load_bus_count, NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, NEw_load_bus_count, PJM_load_bus_count,...
     A2F_Gen_buses, GHI_Gen_buses, NYC_Gen_buses, LIs_Gen_buses, NEw_Gen_buses, PJM_Gen_buses, ...
@@ -60,66 +58,22 @@ vis_prof = input_params(45);
     A2F_gens, GHI_gens, NYC_gens, LIs_gens, NEw_gens, PJM_gens,...
     map_Array, BoundedIF, lims_Array] = NYCArgnparms;
 
-A2F_BTM_inc_cap = input_vars{1};
-GHI_BTM_inc_cap = input_vars{2};
-NYC_BTM_inc_cap = input_vars{3};
-LIs_BTM_inc_cap = input_vars{4};
-A2F_BTM_2016_cap = input_vars{5};
-GHI_BTM_2016_cap = input_vars{6};
-NYC_BTM_2016_cap = input_vars{7};
-LIs_BTM_2016_cap = input_vars{8};
-A2F_ITM_inc_wind_cap = input_vars{9};
-GHI_ITM_inc_wind_cap = input_vars{10};
-NYC_ITM_inc_wind_cap = input_vars{11};
-LIs_ITM_inc_wind_cap = input_vars{12};
-A2F_ITM_inc_hydro_cap = input_vars{13};
-GHI_ITM_inc_hydro_cap = input_vars{14};
-NYC_ITM_inc_hydro_cap = input_vars{15};
-LIs_ITM_inc_hydro_cap = input_vars{16};
-A2F_ITM_inc_PV_cap = input_vars{17};
-GHI_ITM_inc_PV_cap = input_vars{18};
-NYC_ITM_inc_PV_cap = input_vars{19};
-LIs_ITM_inc_PV_cap = input_vars{20};
-A2F_ITM_inc_Bio_cap = input_vars{21};
-GHI_ITM_inc_Bio_cap = input_vars{22};
-NYC_ITM_inc_Bio_cap = input_vars{23};
-LIs_ITM_inc_Bio_cap = input_vars{24};
-A2F_ITM_inc_LFG_cap = input_vars{25};
-GHI_ITM_inc_LFG_cap = input_vars{26};
-NYC_ITM_inc_LFG_cap = input_vars{27};
-LIs_ITM_inc_LFG_cap = input_vars{28};
-A2F_ITM_inc_EES_cap = input_vars{29};
-GHI_ITM_inc_EES_cap = input_vars{30};
-NYC_ITM_inc_EES_cap = input_vars{31};
-LIs_ITM_inc_EES_cap = input_vars{32};
-A2F_existing_ITM_wind_ICAP = input_vars{33};
-A2F_existing_ITM_hydro_ICAP = input_vars{34};
-A2F_existing_ITM_PV_ICAP = input_vars{35};
-A2F_existing_ITM_Bio_ICAP = input_vars{36};
-A2F_existing_ITM_LFG_ICAP = input_vars{37};
-A2F_existing_ITM_EES_ICAP = input_vars{38};
-GHI_existing_ITM_wind_ICAP = input_vars{39};
-GHI_existing_ITM_hydro_ICAP = input_vars{40};
-GHI_existing_ITM_PV_ICAP = input_vars{41};
-GHI_existing_ITM_Bio_ICAP = input_vars{42};
-GHI_existing_ITM_LFG_ICAP = input_vars{43};
-GHI_existing_ITM_EES_ICAP = input_vars{44};
-NYC_existing_ITM_wind_ICAP = input_vars{45};
-NYC_existing_ITM_hydro_ICAP = input_vars{46};
-NYC_existing_ITM_PV_ICAP = input_vars{47};
-NYC_existing_ITM_Bio_ICAP = input_vars{48};
-NYC_existing_ITM_LFG_ICAP = input_vars{49};
-NYC_existing_ITM_EES_ICAP = input_vars{50};
-LIs_existing_ITM_wind_ICAP = input_vars{51};
-LIs_existing_ITM_hydro_ICAP = input_vars{52};
-LIs_existing_ITM_PV_ICAP = input_vars{53};
-LIs_existing_ITM_Bio_ICAP = input_vars{54};
-LIs_existing_ITM_LFG_ICAP = input_vars{55};
-LIs_existing_ITM_PV_ICAP = input_vars{56};
-EVSE_Gold_MWh = input_vars{57};
-EVSE_Gold_MW = input_vars{58};
-date_array = input_vars{59};
-ren_tab_array = input_vars{60};
+% Define case-specific parameters
+[A2F_BTM_inc_cap, GHI_BTM_inc_cap, NYC_BTM_inc_cap, LIs_BTM_inc_cap, NEw_BTM_inc_cap, PJM_BTM_inc_cap,...
+    A2F_ITM_inc_wind_cap, GHI_ITM_inc_wind_cap, NYC_ITM_inc_wind_cap, LIs_ITM_inc_wind_cap, NEw_ITM_inc_wind_cap, PJM_ITM_inc_wind_cap,...
+    A2F_ITM_inc_hydro_cap, GHI_ITM_inc_hydro_cap, NYC_ITM_inc_hydro_cap, LIs_ITM_inc_hydro_cap, NEw_ITM_inc_hydro_cap, PJM_ITM_inc_hydro_cap,...
+    A2F_ITM_inc_PV_cap, GHI_ITM_inc_PV_cap, NYC_ITM_inc_PV_cap, LIs_ITM_inc_PV_cap, NEw_ITM_inc_PV_cap, PJM_ITM_inc_PV_cap, ...
+    A2F_ITM_inc_Bio_cap, GHI_ITM_inc_Bio_cap, NYC_ITM_inc_Bio_cap, LIs_ITM_inc_Bio_cap, NEw_ITM_inc_Bio_cap, PJM_ITM_inc_Bio_cap,...
+    A2F_ITM_inc_LFG_cap, GHI_ITM_inc_LFG_cap, NYC_ITM_inc_LFG_cap, LIs_ITM_inc_LFG_cap, NEw_ITM_inc_LFG_cap, PJM_ITM_inc_LFG_cap,...
+    A2F_ITM_inc_EES_cap, GHI_ITM_inc_EES_cap, NYC_ITM_inc_EES_cap, LIs_ITM_inc_EES_cap, NEw_ITM_inc_EES_cap, PJM_ITM_inc_EES_cap,...
+    A2F_BTM_existing_cap, GHI_BTM_existing_cap, NYC_BTM_existing_cap, LIs_BTM_existing_cap, NEw_BTM_existing_cap, PJM_BTM_existing_cap,...
+    A2F_existing_ITM_wind_ICAP, A2F_existing_ITM_hydro_ICAP, A2F_existing_ITM_PV_ICAP, A2F_existing_ITM_Bio_ICAP, A2F_existing_ITM_LFG_ICAP, A2F_existing_ITM_EES_ICAP,...
+    GHI_existing_ITM_wind_ICAP, GHI_existing_ITM_hydro_ICAP, GHI_existing_ITM_PV_ICAP, GHI_existing_ITM_Bio_ICAP, GHI_existing_ITM_LFG_ICAP, GHI_existing_ITM_EES_ICAP,...
+    NYC_existing_ITM_wind_ICAP, NYC_existing_ITM_hydro_ICAP, NYC_existing_ITM_PV_ICAP, NYC_existing_ITM_Bio_ICAP, NYC_existing_ITM_LFG_ICAP, NYC_existing_ITM_EES_ICAP,...
+    LIs_existing_ITM_wind_ICAP, LIs_existing_ITM_hydro_ICAP, LIs_existing_ITM_PV_ICAP, LIs_existing_ITM_Bio_ICAP, LIs_existing_ITM_LFG_ICAP, LIs_existing_ITM_EES_ICAP,...
+    NEw_existing_ITM_wind_ICAP, NEw_existing_ITM_hydro_ICAP, NEw_existing_ITM_PV_ICAP, NEw_existing_ITM_Bio_ICAP, NEw_existing_ITM_LFG_ICAP, NEw_existing_ITM_EES_ICAP,...
+    PJM_existing_ITM_wind_ICAP, PJM_existing_ITM_hydro_ICAP, PJM_existing_ITM_PV_ICAP, PJM_existing_ITM_Bio_ICAP, PJM_existing_ITM_LFG_ICAP, PJM_existing_ITM_EES_ICAP,...
+    EVSE_Gold_MWh, EVSE_Gold_MW] = NYAM2030;
 
 
 
@@ -183,20 +137,20 @@ NYC_BTM_inc_gen = BTM(10,:);
 LIs_BTM_inc_gen = BTM(11,:);
 
 %Calculate: Load Only (i.e., Net Load + BTM Generation)
-A2F_Load_Only = A2F_2016_net_load + A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*A2F_BTM_2016_cap;
-GHI_Load_Only = GHI_2016_net_load + GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*GHI_BTM_2016_cap;
-NYC_Load_Only = NYC_2016_net_load + NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*NYC_BTM_2016_cap;
-LIs_Load_Only = LIs_2016_net_load + LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*LIs_BTM_2016_cap;
-NYCA_TrueLoad = A2F_Load_Only + GHI_Load_Only+ NYC_Load_Only+ LIs_Load_Only;
+A2F_Load_Only = A2F_2016_net_load + A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*A2F_BTM_existing_cap;
+GHI_Load_Only = GHI_2016_net_load + GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*GHI_BTM_existing_cap;
+NYC_Load_Only = NYC_2016_net_load + NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*NYC_BTM_existing_cap;
+LIs_Load_Only = LIs_2016_net_load + LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*LIs_BTM_existing_cap;
+NYCA_TrueLoad = A2F_Load_Only + GHI_Load_Only + NYC_Load_Only + LIs_Load_Only;
 
 
 %% Calculate Regional BTM Gen
 %Calculate: 2016 BTM Generation
-A2F_2016_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_2016_cap );
-GHI_2016_BTM_gen = GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*(GHI_BTM_2016_cap );
-NYC_2016_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_2016_cap );
-LIs_2016_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_2016_cap );
-NYCA_2016_BTM_gen = A2F_2016_BTM_gen + GHI_2016_BTM_gen + NYC_2016_BTM_gen + LIs_2016_BTM_gen;
+A2F_existing_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_existing_cap );
+GHI_existing_BTM_gen = GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*(GHI_BTM_existing_cap );
+NYC_existing_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_existing_cap );
+LIs_existing_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_existing_cap );
+NYCA_existing_BTM_gen = A2F_existing_BTM_gen + GHI_existing_BTM_gen + NYC_existing_BTM_gen + LIs_existing_BTM_gen;
 
 %INPUT: NEW BTM Capacity (beyond the incremental needed to reach 2030 case)
 A2F_BTM_CASE_cap = A2F_BTM_inc_cap*Case;
@@ -205,10 +159,10 @@ NYC_BTM_CASE_cap = NYC_BTM_inc_cap*Case;
 LIs_BTM_CASE_cap = LIs_BTM_inc_cap*Case;
 
 %Calculate: CASE BTM Generation
-A2F_CASE_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_CASE_cap + A2F_BTM_2016_cap );
-GHI_CASE_BTM_gen = GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*(GHI_BTM_CASE_cap + GHI_BTM_2016_cap );
-NYC_CASE_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_CASE_cap + NYC_BTM_2016_cap );
-LIs_CASE_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_CASE_cap + LIs_BTM_2016_cap );
+A2F_CASE_BTM_gen = A2F_BTM_inc_gen.' ./A2F_BTM_inc_cap .*(A2F_BTM_CASE_cap + A2F_BTM_existing_cap );
+GHI_CASE_BTM_gen = GHI_BTM_inc_gen.' ./GHI_BTM_inc_cap .*(GHI_BTM_CASE_cap + GHI_BTM_existing_cap );
+NYC_CASE_BTM_gen = NYC_BTM_inc_gen.' ./NYC_BTM_inc_cap .*(NYC_BTM_CASE_cap + NYC_BTM_existing_cap );
+LIs_CASE_BTM_gen = LIs_BTM_inc_gen.' ./LIs_BTM_inc_cap .*(LIs_BTM_CASE_cap + LIs_BTM_existing_cap );
 NYCA_CASE_BTM_gen = A2F_CASE_BTM_gen + GHI_CASE_BTM_gen + NYC_CASE_BTM_gen + LIs_CASE_BTM_gen;
 
 
@@ -727,7 +681,7 @@ end
 
 %Determine amount of thermal generation needed
 Tot_ITM_Gen = Tot_ITM_CASE_Gen + A2F_existing_ITM_Gen;
-Tot_BTM_Gen = NYCA_2016_BTM_gen + NYCA_CASE_BTM_gen;
+Tot_BTM_Gen = NYCA_existing_BTM_gen + NYCA_CASE_BTM_gen;
 demand = NYCA_CASE_net_load - Tot_ITM_Gen.';
 
 demand_DAM = zeros(1,24);
@@ -918,18 +872,12 @@ for gen = therm_gen_count+1:all_gen_count
     buss = mpc.gen(gen,1);
     if ismember(buss,A2F_Gen_buses)
         ordered_gen_cap(gen-therm_gen_count) = A2F_ind;
-    else
-        if ismember(buss,GHI_Gen_buses)
-            ordered_gen_cap(gen-therm_gen_count) = GHI_ind;
-        else
-            if ismember(buss,NYC_Gen_buses)
-                ordered_gen_cap(gen-therm_gen_count) = NYC_ind;
-            else
-                if ismember(buss,LIs_Gen_buses)
-                    ordered_gen_cap(gen-therm_gen_count) = LIs_ind;
-                end
-            end
-        end
+    elseif ismember(buss,GHI_Gen_buses)
+        ordered_gen_cap(gen-therm_gen_count) = GHI_ind;
+    elseif ismember(buss,NYC_Gen_buses)
+        ordered_gen_cap(gen-therm_gen_count) = NYC_ind;
+    elseif ismember(buss,LIs_Gen_buses)
+        ordered_gen_cap(gen-therm_gen_count) = LIs_ind;
     end
 end
 
