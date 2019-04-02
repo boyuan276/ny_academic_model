@@ -1,18 +1,47 @@
-function storage = storage_gen(mpc)
+function storage = storage_gen(pcap, NYCA_Load_buses, ...
+    A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, ...
+    A2F_load_bus_count, GHI_load_bus_count, ...
+    NYC_load_bus_count, LIs_load_bus_count)
 %STORAGE_GEN  Storage data file for the New York Academic Model which 
 %initializes storage resources based upon input profiles.
 
-%   MOST
-%   Copyright (c) 2015-2016, Power Systems Engineering Research Center (PSERC)
-%   by Ray Zimmerman, PSERC Cornell
+%   
+%   
+%   
+
+%% Evenly distribute battery capacity
+
+
+%% Add Batteries to each Load Bus
+% Calculate how many batteries we are adding (add one battery to each
+% load bus).
+BatCount = A2F_load_bus_count + GHI_load_bus_count + ...
+    NYC_load_bus_count + LIs_load_bus_count;
+
+for Bat = 1:BatCount
+    % In which region are batteries located?
+    if sum(ismember(NYCA_Load_buses(Bat),A2F_Load_buses)) > 0
+        Region = 1; %Region 1 is A2F
+    elseif sum(ismember(NYCA_Load_buses(Bat),GHI_Load_buses)) > 0
+        Region = 2; %Region 2 is GHI
+    elseif sum(ismember(NYCA_Load_buses(Bat),NYC_Load_buses)) > 0
+        Region = 3; %Region 3 is NYC
+    elseif sum(ismember(NYCA_Load_buses(Bat),LIs_Load_buses)) > 0
+        Region = 4; %Region 4 is LI
+    elseif sum(ismember(NYCA_Load_buses(Bat),LIs_Load_buses)) > 0
+        Region = 5; %Region 5 is NE
+    else %Region 6 is PJM
+        Region = 6;
+    end
 
 %%-----  storage  -----
-ecap = 200;          %% energy capacity
-pcap = ecap * .4; %0.25; %% power capacity
-scost = 45.166667;      %% cost/value of initial/residual stored energy
-%scost = 30;      %% cost/value of initial/residual stored energy
-scost2 = 41.6666667;      %% cost/value of initial/residual stored energy
-scost3 = 53.3333333;      %% cost/value of initial/residual stored energy
+pcap =                      %% power capacity (MW)
+ecap = pcap*(17233/9934);       %% energy capacity (MWh)
+scost = 45.166667;              %% cost/value of initial/residual stored energy
+%scost = 30;                     %% cost/value of initial/residual stored energy
+scost2 = 41.6666667;            %% cost/value of initial/residual stored energy
+scost3 = 53.3333333;            %% cost/value of initial/residual stored energy
+
 %% generator data
 % generator data
 % 1	 GEN_BUS	bus number
@@ -37,11 +66,9 @@ scost3 = 53.3333333;      %% cost/value of initial/residual stored energy
 % 20 RAMP_Q     ramp rate for reactive power (2 sec timescale) (MVAr/min)
 % 21 APF        area participation factor
 
-%   1   2   3   4   5   6   7   8      9       10   11  12  13  14  15  16  17  18  19  20  21
-storage.gen = [
-%	1	0	0	0	0	1	100	1	pcap	-pcap	0	0	0	0	0	0	0	20	20	0	0;
-%	2	0	0	0	0	1	100	1	pcap	-pcap	0	0	0	0	0	0	0	20	20	0	0;
-	3	0	0	0	0	1	100	1	pcap	-pcap	0	0	0	0	0	0	0	20	20	0	0;
+%    1                      2   3   4   5   6   7   8      9       10   11  12  13  14  15  16  17  18  19      20  21
+storage.gen(Bat,:) = [
+	 NYCA_Load_buses(Bat)	0	0	0	0	1	100	1	pcap	-pcap	0	0	0	0	0	0	0	0	pcap	0	0;
 ];
 
 %%-----  OPF Data  -----%%
@@ -68,10 +95,8 @@ storage.xgd_table.colnames = {
 												'NegativeLoadFollowReserveQuantity', ...
 };
 
-storage.xgd_table.data = [
+storage.xgd_table.data(Bat,:) = [
 	2	1	1e-8	2*pcap	2e-8	2*pcap	1e-9	1e-9	1e-6	2*pcap	1e-6	2*pcap;
-%	2	1	1e-8	2*pcap	2e-8	2*pcap	1e-9	1e-9	1e-6	2*pcap	1e-6	2*pcap;
-%	2	1	1e-8	2*pcap	2e-8	2*pcap	1e-9	1e-9	1e-6	2*pcap	1e-6	2*pcap;
 ];
 
 %% StorageData
@@ -93,9 +118,13 @@ storage.sd_table.colnames = {
 											'rho', ...
 };
 
-storage.sd_table.data = [
+storage.sd_table.data(Bat,:) = [
 	0	0	ecap	scost	scost	0	ecap	1	1	1e-5	0;
 %	0	0	ecap	scost2	scost2	0	ecap	1	1	0	0;
 %	0	0	ecap	scost3	scost3	0	ecap	1	1	0	0;
 ];
+
+end
+
+end
     

@@ -52,88 +52,75 @@ vis_prof = input_params(45);
 
 
 % Define input variables
-A2F_Load_buses = input_vars{1};
-GHI_Load_buses = input_vars{2};
-NYC_Load_buses = input_vars{3};
-LIs_Load_buses = input_vars{4};
-NYCA_Load_buses = input_vars{5};
-A2F_load_bus_count = input_vars{6};
-GHI_load_bus_count = input_vars{7};
-NYC_load_bus_count = input_vars{8};
-LIs_load_bus_count = input_vars{9};
-map_Array = input_vars{10};
-BoundedIF = input_vars{11};
-lims_Array = input_vars{12};
-A2F_BTM_inc_cap = input_vars{13};
-GHI_BTM_inc_cap = input_vars{14};
-NYC_BTM_inc_cap = input_vars{15};
-LIs_BTM_inc_cap = input_vars{16};
-A2F_BTM_2016_cap = input_vars{17};
-GHI_BTM_2016_cap = input_vars{18};
-NYC_BTM_2016_cap = input_vars{19};
-LIs_BTM_2016_cap = input_vars{20};
-A2F_ITM_inc_wind_cap = input_vars{21};
-GHI_ITM_inc_wind_cap = input_vars{22};
-NYC_ITM_inc_wind_cap = input_vars{23};
-LIs_ITM_inc_wind_cap = input_vars{24};
-A2F_ITM_inc_hydro_cap = input_vars{25};
-GHI_ITM_inc_hydro_cap = input_vars{26};
-NYC_ITM_inc_hydro_cap = input_vars{27};
-LIs_ITM_inc_hydro_cap = input_vars{28};
-A2F_ITM_inc_PV_cap = input_vars{29};
-GHI_ITM_inc_PV_cap = input_vars{30};
-NYC_ITM_inc_PV_cap = input_vars{31};
-LIs_ITM_inc_PV_cap = input_vars{32};
-A2F_ITM_inc_Bio_cap = input_vars{33};
-GHI_ITM_inc_Bio_cap = input_vars{34};
-NYC_ITM_inc_Bio_cap = input_vars{35};
-LIs_ITM_inc_Bio_cap = input_vars{36};
-A2F_ITM_inc_LFG_cap = input_vars{37};
-GHI_ITM_inc_LFG_cap = input_vars{38};
-NYC_ITM_inc_LFG_cap = input_vars{39};
-LIs_ITM_inc_LFG_cap = input_vars{40};
-A2F_existing_ITM_wind_ICAP = input_vars{41};
-A2F_existing_ITM_hydro_ICAP = input_vars{42};
-A2F_existing_ITM_PV_ICAP = input_vars{43};
-A2F_existing_ITM_Bio_ICAP = input_vars{44};
-A2F_existing_ITM_LFG_ICAP = input_vars{45};
-GHI_existing_ITM_wind_ICAP = input_vars{46};
-GHI_existing_ITM_hydro_ICAP = input_vars{47};
-GHI_existing_ITM_PV_ICAP = input_vars{48};
-GHI_existing_ITM_Bio_ICAP = input_vars{49};
-GHI_existing_ITM_LFG_ICAP = input_vars{50};
-NYC_existing_ITM_wind_ICAP = input_vars{51};
-NYC_existing_ITM_hydro_ICAP = input_vars{52};
-NYC_existing_ITM_PV_ICAP = input_vars{53};
-NYC_existing_ITM_Bio_ICAP = input_vars{54};
-NYC_existing_ITM_LFG_ICAP = input_vars{55};
-LIs_existing_ITM_wind_ICAP = input_vars{56};
-LIs_existing_ITM_hydro_ICAP = input_vars{57};
-LIs_existing_ITM_PV_ICAP = input_vars{58};
-LIs_existing_ITM_Bio_ICAP = input_vars{59};
-LIs_existing_ITM_LFG_ICAP = input_vars{60};
-EVSE_Gold_MWh = input_vars{61};
-EVSE_Gold_MW = input_vars{62};
-date_array = input_vars{63};
-ren_tab_array = input_vars{64};
-A2F_Gen_buses = input_vars{65};
-GHI_Gen_buses = input_vars{66};
-NYC_Gen_buses = input_vars{67};
-LIs_Gen_buses = input_vars{68};
-NEw_Gen_buses = input_vars{69};
-A2F_gen_bus_count = input_vars{70};
-GHI_gen_bus_count = input_vars{71};
-NYC_gen_bus_count = input_vars{72};
-LIs_gen_bus_count = input_vars{73};
-NEw_gen_bus_count = input_vars{74};
-A2F_RE_buses = input_vars{75};
-GHI_RE_buses = input_vars{76};
-NYC_RE_buses = input_vars{77};
-LIs_RE_buses = input_vars{78};
-A2F_gens = input_vars{79}; 
-GHI_gens = input_vars{80};
-NYC_gens = input_vars{81};
-LIs_gens = input_vars{82};
+[A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, NYCA_Load_buses, NEw_Load_buses, PJM_Load_buses,...
+    A2F_load_bus_count,GHI_load_bus_count, NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, NEw_load_bus_count, PJM_load_bus_count,...
+    A2F_Gen_buses, GHI_Gen_buses, NYC_Gen_buses, LIs_Gen_buses, NEw_Gen_buses, PJM_Gen_buses, ...
+    A2F_gen_bus_count, GHI_gen_bus_count, NYC_gen_bus_count, LIs_gen_bus_count, NEw_gen_bus_count, PJM_Gen_bus_count,...
+    A2F_RE_buses, GHI_RE_buses, NYC_RE_buses, LIs_RE_buses, NEw_RE_buses, PJM_RE_buses,...
+    A2F_gens, GHI_gens, NYC_gens, LIs_gens, NEw_gens, PJM_gens,...
+    map_Array, BoundedIF, lims_Array] = NYCArgnparms;
+
+A2F_BTM_inc_cap = input_vars{1};
+GHI_BTM_inc_cap = input_vars{2};
+NYC_BTM_inc_cap = input_vars{3};
+LIs_BTM_inc_cap = input_vars{4};
+A2F_BTM_2016_cap = input_vars{5};
+GHI_BTM_2016_cap = input_vars{6};
+NYC_BTM_2016_cap = input_vars{7};
+LIs_BTM_2016_cap = input_vars{8};
+A2F_ITM_inc_wind_cap = input_vars{9};
+GHI_ITM_inc_wind_cap = input_vars{10};
+NYC_ITM_inc_wind_cap = input_vars{11};
+LIs_ITM_inc_wind_cap = input_vars{12};
+A2F_ITM_inc_hydro_cap = input_vars{13};
+GHI_ITM_inc_hydro_cap = input_vars{14};
+NYC_ITM_inc_hydro_cap = input_vars{15};
+LIs_ITM_inc_hydro_cap = input_vars{16};
+A2F_ITM_inc_PV_cap = input_vars{17};
+GHI_ITM_inc_PV_cap = input_vars{18};
+NYC_ITM_inc_PV_cap = input_vars{19};
+LIs_ITM_inc_PV_cap = input_vars{20};
+A2F_ITM_inc_Bio_cap = input_vars{21};
+GHI_ITM_inc_Bio_cap = input_vars{22};
+NYC_ITM_inc_Bio_cap = input_vars{23};
+LIs_ITM_inc_Bio_cap = input_vars{24};
+A2F_ITM_inc_LFG_cap = input_vars{25};
+GHI_ITM_inc_LFG_cap = input_vars{26};
+NYC_ITM_inc_LFG_cap = input_vars{27};
+LIs_ITM_inc_LFG_cap = input_vars{28};
+A2F_ITM_inc_EES_cap = input_vars{29};
+GHI_ITM_inc_EES_cap = input_vars{30};
+NYC_ITM_inc_EES_cap = input_vars{31};
+LIs_ITM_inc_EES_cap = input_vars{32};
+A2F_existing_ITM_wind_ICAP = input_vars{33};
+A2F_existing_ITM_hydro_ICAP = input_vars{34};
+A2F_existing_ITM_PV_ICAP = input_vars{35};
+A2F_existing_ITM_Bio_ICAP = input_vars{36};
+A2F_existing_ITM_LFG_ICAP = input_vars{37};
+A2F_existing_ITM_EES_ICAP = input_vars{38};
+GHI_existing_ITM_wind_ICAP = input_vars{39};
+GHI_existing_ITM_hydro_ICAP = input_vars{40};
+GHI_existing_ITM_PV_ICAP = input_vars{41};
+GHI_existing_ITM_Bio_ICAP = input_vars{42};
+GHI_existing_ITM_LFG_ICAP = input_vars{43};
+GHI_existing_ITM_EES_ICAP = input_vars{44};
+NYC_existing_ITM_wind_ICAP = input_vars{45};
+NYC_existing_ITM_hydro_ICAP = input_vars{46};
+NYC_existing_ITM_PV_ICAP = input_vars{47};
+NYC_existing_ITM_Bio_ICAP = input_vars{48};
+NYC_existing_ITM_LFG_ICAP = input_vars{49};
+NYC_existing_ITM_EES_ICAP = input_vars{50};
+LIs_existing_ITM_wind_ICAP = input_vars{51};
+LIs_existing_ITM_hydro_ICAP = input_vars{52};
+LIs_existing_ITM_PV_ICAP = input_vars{53};
+LIs_existing_ITM_Bio_ICAP = input_vars{54};
+LIs_existing_ITM_LFG_ICAP = input_vars{55};
+LIs_existing_ITM_PV_ICAP = input_vars{56};
+EVSE_Gold_MWh = input_vars{57};
+EVSE_Gold_MW = input_vars{58};
+date_array = input_vars{59};
+ren_tab_array = input_vars{60};
+
 
 
 %% Create Strings
@@ -793,7 +780,7 @@ end
 %WIND
 %Add wind Generators
 [iwind, mpc, xgd] = addwind('wind_gen', mpc, xgd);
-%Add empty max & min profiles
+%Initialize max & min profiles
 profiles = getprofiles(wind_profile_Pmax(iwind) , iwind);
 profiles = getprofiles(wind_profile_Pmin(iwind) , profiles);
 
@@ -801,7 +788,7 @@ profiles = getprofiles(wind_profile_Pmin(iwind) , profiles);
 %HYDRO
 %Add hydro Generators
 [ihydro, mpc, xgd] = addwind('hydro_gen', mpc, xgd);
-%Add empty max & min profiles
+%Initialize max & min profiles
 profiles = getprofiles(hydro_profile_Pmax(ihydro), profiles);
 profiles = getprofiles(hydro_profile_Pmin(ihydro), profiles);
 
@@ -809,7 +796,7 @@ profiles = getprofiles(hydro_profile_Pmin(ihydro), profiles);
 %SOLAR
 %Add solar Generators
 [isolar, mpc, xgd] = addwind('solar_gen', mpc, xgd);
-%Add empty max & min profiles
+%Initialize max & min profiles
 profiles = getprofiles(solar_profile_Pmax(isolar), profiles); 
 profiles = getprofiles(solar_profile_Pmin(isolar), profiles);
 
@@ -817,27 +804,30 @@ profiles = getprofiles(solar_profile_Pmin(isolar), profiles);
 %OTHER
 %Add other VRE Generators
 [iother, mpc, xgd] = addwind('other_gen' , mpc, xgd);
-%Add empty max & min profiles
+%Initialize max & min profiles
 profiles = getprofiles(other_profile_Pmax(iother) , profiles); 
 profiles = getprofiles(other_profile_Pmin(iother) , profiles);
 
-% Add load profile
+
+%LOAD
+%Initialize load profile
 profiles = getprofiles('load_profile' , profiles);
+
+% 
+% %STORAGE
+% [istorage,mpc,xgd,storage] = addstorage('storage_gen',mpc,xgd);
 
 %EVSE Load
 if EVSE == 1
+    % Add Storage resources and characterize load and storage resource of EVs
+    EV_storage = ...
+    EVSE_resource(EVSE_Gold_MWh, EVSE_Gold_MW, NYCA_Load_buses, ...
+    A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, ...
+    A2F_load_bus_count, GHI_load_bus_count, ...
+    NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, Case);
     
-    % Characterize load and storage resource of EVs
-    [storage, EVSE_PminProfile] = ...
-        EVSE_resource(EVSE_Gold_MWh, EVSE_Gold_MW, NYCA_Load_buses, ...
-        A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, ...
-        A2F_load_bus_count, GHI_load_bus_count, ...
-        NYC_load_bus_count, LIs_load_bus_count, Case);
-    
-    % Push EV battery data to MOST
-    [iEVSE,mpc,xgd,storage] = addstorage(storage,mpc,xgd);
-    %Add empty max & min profiles
-    profiles = getprofiles(EVSE_profile(iEVSE), profiles);
+    % Push battery data to MOST
+    [iEVSE,mpc,xgd,storage] = addstorage(EV_storage,mpc,xgd,storage);
     
 end
 
@@ -890,19 +880,9 @@ else
     profiles(8).values(:,1,:) = most_other_gen_DAM;
 end
 
+
 %LOAD Profile
 profiles(9).values(:,1,:) = most_busload_DAM;
-
-%EVSE Profile
-if EVSE == 1
-   
-    EVSE_PminProfile_DAM = zeros(24,32);
-    for hour = 1:24
-        EVSE_PminProfile_DAM(hour,:) = EVSE_PminProfile;
-    end
-    profiles(10).values(:,1,:) = EVSE_PminProfile_DAM;
-    
-end
 
 
 %% Set Initial PG (first period generation) for renewable gens

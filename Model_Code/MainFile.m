@@ -106,7 +106,7 @@ REC_hydro = 0;
 RenInOpCost = 0;            %%[1 = yes; 0 = no]
 
 % Electric Vehicle (EVSE) Load?
-EVSE = 1;                   %%[1 = ON; 0 = OFF]
+EVSE = 0;                   %%[1 = ON; 0 = OFF]
 EVSEfactor = 1; %"1" is 1x NYISO estimate. "2" will double MW and MWh estimates
 
 % Is Renewable Curtailable in DAM?
@@ -229,121 +229,72 @@ input_params = [
     ];
 
 %% Define Initial Variables
-% Define Load Buses by zone
 
-%     A2F_Load_buses = [1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
-%     GHI_Load_buses = [3 4 7 8 25];
-%     NYC_Load_buses = [12 15 16 18 20 27];
-%     LIs_Load_buses = [21 23 24];
-%     NEw_Load_buses = [];
-%     NYCA_Load_buses = [A2F_Load_buses GHI_Load_buses NYC_Load_buses LIs_Load_buses NEw_Load_buses];
-
-A2F_Load_buses = [1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
-GHI_Load_buses = [3 4 7 8 25];
-NYC_Load_buses = [12 15 16 18 20 27];
-LIs_Load_buses = [21 23 24];
-NYCA_Load_buses = [1 3 4 7 8 9 12 15 16 18 20 21 23 24 25 27 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
-A2F_load_bus_count = length(A2F_Load_buses);
-GHI_load_bus_count = length(GHI_Load_buses);
-NYC_load_bus_count = length(NYC_Load_buses);
-LIs_load_bus_count = length(LIs_Load_buses);
-
-% Define Gen Buses by zone. %%%%% I changed these from column vectors to
-% row vectors, which I checked, and I don't think will cause problems, but
-% I wanted to include this note for sanity's sake.
-%A2F_Gen_buses = [62 63 64 65 66 67 68];
-A2F_Gen_buses = [64 65 66 67 68]; %removed gen at bus 62 for ref bus and bus 63 for no ITM in base case
-GHI_Gen_buses = [53 54 60];
-NYC_Gen_buses = [55 56 57];
-LIs_Gen_buses = [58 59];
-NEw_Gen_buses = [61];
-A2F_gen_bus_count = length(A2F_Gen_buses);
-GHI_gen_bus_count = length(GHI_Gen_buses);
-NYC_gen_bus_count = length(NYC_Gen_buses);
-LIs_gen_bus_count = length(LIs_Gen_buses);
-NEw_gen_bus_count = length(NEw_Gen_buses);
-
-% Define Renewable Energy Buses by zone. %%%%% I pulled these arrays out of
-% the RunDAM.m, but I don't actually know where the values within them
-% come from. Perhaps they are all proper, but I don't have a physical
-% topological map of the system... I should probablly make one.
-A2F_RE_buses = [25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
-GHI_RE_buses = [15 16 22 30 31 37 45 46 52];
-NYC_RE_buses = [17 18 19 32 33 34 47 48 49];
-LIs_RE_buses = [20 21 35 36 20 21];
-
-% Define Generators by zone. Where is gen 9; perhaps NE gen?????
-A2F_gens = [1  4  5 10 25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
-GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];
-NYC_gens = [7 11 12 17 18 19 32 33 34 47 48 49];
-LIs_gens = [8 13 20 21 35 36 50 51];
-
-% Add Transmission Interface Limits
-map_Array  = [  1 -16;...
-    1   1;...
-    2 -16;...
-    2   1;...
-    2  86;...
-    3  13;...
-    3   9;...
-    3   7;...
-    4  28;...
-    4  29;];
-
-BoundedIF = 1; %Row of lims_Array with limits
-
-lims_Array   = [1 -2700 2700;...
-    2 -9000 9000;...
-    3 -9000 9000;...
-    4 -9000 9000;];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input FUTURE Capacity Values Here
+% Input FUTURE Capacity Values (MW) Here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Amount of Incremental BTM Capacity.
+% Amount of INCREMENTAL BTM Capacity.
 A2F_BTM_inc_cap = 1358;
 GHI_BTM_inc_cap =  793;
 NYC_BTM_inc_cap =  419;
 LIs_BTM_inc_cap = 1069;
+NEw_BTM_inc_cap =    0;
+PJM_BTM_inc_cap =    0;
 
-% Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. Where
-% did these come from?????
-A2F_ITM_inc_wind_cap  = 4189;
-GHI_ITM_inc_wind_cap  =    0;
-NYC_ITM_inc_wind_cap  =  408;
-LIs_ITM_inc_wind_cap  =  591;
+% Amount of ITM INCREMENTAL Wind Generation Capacity by Zone. 
+A2F_ITM_inc_wind_cap = 4189;
+GHI_ITM_inc_wind_cap =    0;
+NYC_ITM_inc_wind_cap =  408;
+LIs_ITM_inc_wind_cap =  591;
+NEw_ITM_inc_wind_cap =    0;
+PJM_ITM_inc_wind_cap =    0;
 
-% Amount of ITM INCREMENTAL hydro Generation Capacity by Zone. Where
-% did these come from?????
+% Amount of ITM INCREMENTAL hydro Generation Capacity by region. 
 A2F_ITM_inc_hydro_cap =  542;
 GHI_ITM_inc_hydro_cap =   45;
 NYC_ITM_inc_hydro_cap =    0;
 LIs_ITM_inc_hydro_cap =    0;
+NEw_ITM_inc_hydro_cap =    0;
+PJM_ITM_inc_hydro_cap =    0;
 
 % Amount of ITM INCREMENTAL Utility-scale PV Generation Capacity by
-% Zone. Where did these come from?????
+% region.
 A2F_ITM_inc_PV_cap = 3044;
 GHI_ITM_inc_PV_cap =  438;
 NYC_ITM_inc_PV_cap =    0;
 LIs_ITM_inc_PV_cap =  373;
+NEw_ITM_inc_PV_cap =    0;
+PJM_ITM_inc_PV_cap =    0;
 
-% Amount of ITM INCREMENTAL Bio Generation Capacity by Zone. Where
-% do these come from????? What does "biomass" mean in this context?????
+% Amount of ITM INCREMENTAL Bio Generation Capacity by region.
+% What does "biomass" mean in this context?????
 A2F_ITM_inc_Bio_cap =  122;
 GHI_ITM_inc_Bio_cap =    0;
 NYC_ITM_inc_Bio_cap =    0;
 LIs_ITM_inc_Bio_cap =    0;
+NEw_ITM_inc_Bio_cap =    0;
+PJM_ITM_inc_Bio_cap =    0;
 
-% Amount of ITM INCREMENTAL LFG Generation Capacity by Zone. Where
-% did these come from?????
+% Amount of ITM INCREMENTAL LFG Generation Capacity by region.
 A2F_ITM_inc_LFG_cap =   13;
 GHI_ITM_inc_LFG_cap =    3;
 NYC_ITM_inc_LFG_cap =   34;
 LIs_ITM_inc_LFG_cap =    3;
+NEw_ITM_inc_LFG_cap =    0;
+PJM_ITM_inc_LFG_cap =    0;
+
+% Amount of INCREMENTAL Storage capacity by region.
+A2F_ITM_inc_EES_cap =    0;
+GHI_ITM_inc_EES_cap =    0;
+NYC_ITM_inc_EES_cap =    0;
+LIs_ITM_inc_EES_cap =    0;
+NEw_ITM_inc_EES_cap =    0;
+PJM_ITM_inc_EES_cap =    0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input EXISTING Capacity Values Here
+% Input EXISTING Capacity Values (MW) Here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Existing BTM Capacity (values here are for 2016).
@@ -351,6 +302,8 @@ A2F_BTM_existing_cap =  266;
 GHI_BTM_existing_cap =  155;
 NYC_BTM_existing_cap =   82;
 LIs_BTM_existing_cap =  209;
+NEw_BTM_existing_cap =    0;
+PJM_BTM_existing_cap =    0;
 
 % Existing renewable capacity in A2F (values here are for 2016. Other 
 % regions are set to zero installed capacity due to low penetration).
@@ -359,6 +312,8 @@ A2F_existing_ITM_hydro_ICAP = 5219;
 A2F_existing_ITM_PV_ICAP    =    0;
 A2F_existing_ITM_Bio_ICAP   =  148;
 A2F_existing_ITM_LFG_ICAP   =  126;
+A2F_existing_ITM_EES_ICAP   =    0;
+
 
 % Existing renewable capacity in GHI
 GHI_existing_ITM_wind_ICAP  =    0;
@@ -366,6 +321,8 @@ GHI_existing_ITM_hydro_ICAP =    0;
 GHI_existing_ITM_PV_ICAP    =    0;
 GHI_existing_ITM_Bio_ICAP   =    0;
 GHI_existing_ITM_LFG_ICAP   =    0;
+GHI_existing_ITM_EES_ICAP   =    0;
+
 
 % Existing renewable capacity in NYC
 NYC_existing_ITM_wind_ICAP  =    0;
@@ -373,13 +330,32 @@ NYC_existing_ITM_hydro_ICAP =    0;
 NYC_existing_ITM_PV_ICAP    =    0;
 NYC_existing_ITM_Bio_ICAP   =    0;
 NYC_existing_ITM_LFG_ICAP   =    0;
+NYC_existing_ITM_EES_ICAP   =    0;
 
-% Existing renewable capacity in NYC
+% Existing renewable capacity on LI
 LIs_existing_ITM_wind_ICAP  =    0;
 LIs_existing_ITM_hydro_ICAP =    0;
 LIs_existing_ITM_PV_ICAP    =    0;
 LIs_existing_ITM_Bio_ICAP   =    0;
 LIs_existing_ITM_LFG_ICAP   =    0;
+LIs_existing_ITM_EES_ICAP   =    0;
+
+% Existing renewable capacity in NE
+NEw_existing_ITM_wind_ICAP  =    0;
+NEw_existing_ITM_hydro_ICAP =    0;
+NEw_existing_ITM_PV_ICAP    =    0;
+NEw_existing_ITM_Bio_ICAP   =    0;
+NEw_existing_ITM_LFG_ICAP   =    0;
+NEw_existing_ITM_EES_ICAP   =    0;
+
+% Existing renewable capacity in PJM
+PJM_existing_ITM_wind_ICAP  =    0;
+PJM_existing_ITM_hydro_ICAP =    0;
+PJM_existing_ITM_PV_ICAP    =    0;
+PJM_existing_ITM_Bio_ICAP   =    0;
+PJM_existing_ITM_LFG_ICAP   =    0;
+PJM_existing_ITM_EES_ICAP   =    0;
+
 
 % Get EVSE Load Data (MWh total for the Day)
 % Electric Vehicle Energy Usage Forecast (2018 Gold Book) in GWh
@@ -393,18 +369,6 @@ EVSE_Gold_MW  = [1   1   1   0   1   1   2   1   1   4   7;       %2016
     30 36  35  2   19  40  45  20  29  101 153;].*EVSEfactor;    %2030
 
 input_vars = {
-    A2F_Load_buses;
-    GHI_Load_buses;
-    NYC_Load_buses;
-    LIs_Load_buses;
-    NYCA_Load_buses;
-    A2F_load_bus_count;
-    GHI_load_bus_count;
-    NYC_load_bus_count;
-    LIs_load_bus_count;
-    map_Array;
-    BoundedIF;
-    lims_Array;
     A2F_BTM_inc_cap;
     GHI_BTM_inc_cap;
     NYC_BTM_inc_cap;
@@ -433,48 +397,38 @@ input_vars = {
     GHI_ITM_inc_LFG_cap;
     NYC_ITM_inc_LFG_cap;
     LIs_ITM_inc_LFG_cap;
+    A2F_ITM_inc_EES_cap;
+    GHI_ITM_inc_EES_cap;
+    NYC_ITM_inc_EES_cap;
+    LIs_ITM_inc_EES_cap;
     A2F_existing_ITM_wind_ICAP;
     A2F_existing_ITM_hydro_ICAP;
     A2F_existing_ITM_PV_ICAP;
     A2F_existing_ITM_Bio_ICAP;
     A2F_existing_ITM_LFG_ICAP;
+    A2F_existing_ITM_EES_ICAP;
     GHI_existing_ITM_wind_ICAP;
     GHI_existing_ITM_hydro_ICAP;
     GHI_existing_ITM_PV_ICAP;
     GHI_existing_ITM_Bio_ICAP;
     GHI_existing_ITM_LFG_ICAP;
+    GHI_existing_ITM_EES_ICAP;
     NYC_existing_ITM_wind_ICAP;
     NYC_existing_ITM_hydro_ICAP;
     NYC_existing_ITM_PV_ICAP;
     NYC_existing_ITM_Bio_ICAP;
     NYC_existing_ITM_LFG_ICAP;
+    NYC_existing_ITM_EES_ICAP;
     LIs_existing_ITM_wind_ICAP;
     LIs_existing_ITM_hydro_ICAP;
     LIs_existing_ITM_PV_ICAP;
     LIs_existing_ITM_Bio_ICAP;
     LIs_existing_ITM_LFG_ICAP;
+    LIs_existing_ITM_EES_ICAP;
     EVSE_Gold_MWh;
     EVSE_Gold_MW;
     date_array;
     ren_tab_array;
-    A2F_Gen_buses;
-    GHI_Gen_buses;
-    NYC_Gen_buses;
-    LIs_Gen_buses;
-    NEw_Gen_buses;
-    A2F_gen_bus_count;
-    GHI_gen_bus_count;
-    NYC_gen_bus_count;
-    LIs_gen_bus_count;
-    NEw_gen_bus_count;
-    A2F_RE_buses; 
-    GHI_RE_buses;
-    NYC_RE_buses;
-    LIs_RE_buses;
-    A2F_gens; 
-    GHI_gens;
-    NYC_gens;
-    LIs_gens;
     };
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -531,7 +485,7 @@ toc
 
 % Save a summary of all cases and all days
 if mat_save_all == 1
-    resultsfilestr = ['../../MarketModel_Output/AllCasesRunData.mat'];
+    resultsfilestr = '../../MarketModel_Output/AllCasesRunData.mat';
     save(resultsfilestr, 'AllRunsSummary','case_ids','days')
 end
 
