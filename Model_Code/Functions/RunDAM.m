@@ -767,9 +767,17 @@ profiles = getprofiles(other_profile_Pmin(iother) , profiles);
 %Initialize load profile
 profiles = getprofiles('load_profile' , profiles);
 
-% 
-% %STORAGE
-% [istorage,mpc,xgd,storage] = addstorage('storage_gen',mpc,xgd);
+
+%STORAGE
+%Add utility-scale batteries
+util_bat = storage_gen(...
+    A2F_existing_ITM_EES_ICAP, GHI_existing_ITM_EES_ICAP, NYC_existing_ITM_EES_ICAP, LIs_existing_ITM_EES_ICAP, NEw_existing_ITM_EES_ICAP, PJM_existing_ITM_EES_ICAP,...
+    A2F_ITM_inc_EES_cap, GHI_ITM_inc_EES_cap, NYC_ITM_inc_EES_cap, LIs_ITM_inc_EES_cap, NEw_ITM_inc_EES_cap, PJM_ITM_inc_EES_cap,...
+    A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, NYCA_Load_buses, NEw_Load_buses, PJM_Load_buses,...
+    A2F_load_bus_count,GHI_load_bus_count, NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, NEw_load_bus_count, PJM_load_bus_count);
+
+%Push battery data to MOST
+[iutilbat,mpc,xgd,storage] = addstorage(util_bat,mpc,xgd);
 
 %EVSE Load
 if EVSE == 1
@@ -911,13 +919,9 @@ mpopt = mpoption(mpopt,'verbose', VERBOSE);
 % miqps_matpower' for details.
 mpopt = mpoption(mpopt,'most.skip_prices', 0); 
 
-% Load all data
+% Load all data into the MOST data structure
 clear mdi
-if EVSE == 1
-    mdi = loadmd(mpc, nt, xgd, storage, [], profiles);
-else
-    mdi = loadmd(mpc, nt, xgd, [], [], profiles);
-end
+mdi = loadmd(mpc, nt, xgd, storage, [], profiles);
 
 %Set ramp costs to zero
 mdi.RampWearCostCoeff = zeros(all_gen_count,24);
@@ -938,8 +942,8 @@ else
     mdo = most(mdi, mpopt);
 end
 
-% View Results
-ms = most_summary(mdo); %print results - depending on verbose option
+% View Results (print results - depending on verbose option)
+ms = most_summary(mdo);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
