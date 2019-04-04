@@ -12,7 +12,7 @@ function [A2F_BTM_inc_cap, GHI_BTM_inc_cap, NYC_BTM_inc_cap, LIs_BTM_inc_cap, NE
     LIs_existing_ITM_wind_ICAP, LIs_existing_ITM_hydro_ICAP, LIs_existing_ITM_PV_ICAP, LIs_existing_ITM_Bio_ICAP, LIs_existing_ITM_LFG_ICAP, LIs_existing_ITM_EES_ICAP,...
     NEw_existing_ITM_wind_ICAP, NEw_existing_ITM_hydro_ICAP, NEw_existing_ITM_PV_ICAP, NEw_existing_ITM_Bio_ICAP, NEw_existing_ITM_LFG_ICAP, NEw_existing_ITM_EES_ICAP,...
     PJM_existing_ITM_wind_ICAP, PJM_existing_ITM_hydro_ICAP, PJM_existing_ITM_PV_ICAP, PJM_existing_ITM_Bio_ICAP, PJM_existing_ITM_LFG_ICAP, PJM_existing_ITM_EES_ICAP,...
-    EVSE_Gold_MWh, EVSE_Gold_MW] = NYAM2030
+    EVSE_Gold_MWh, EVSE_Gold_MW, stoch] = NYAM2030
 %NYAM2030 contains the future capacity values for the 2030 case compiled by
 %Steve Burchett and the NYISO
 %   Detailed explanation of data sources and assumptions should be
@@ -158,6 +158,15 @@ EVSE_Gold_MW  = [
     1   1   1   0    1   1   2   1   1    4   7;       %2016
     30 36  35   2   19  40  45  20  29  101 153;       %2030
     ];    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input profile/stochastic information
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+stoch.type = 'history';
+stoch.loadprof = {'Jan-19-2016','Mar-22-2016','Jul-25-2016','Nov-10-2016'};
+stoch.windprof = {'Jan-19-2016','Mar-22-2016','Jul-25-2016','Nov-10-2016'};
+stoch.PVprof = {'Jan-19-2016','Mar-22-2016','Jul-25-2016','Nov-10-2016'};
+stoch.transmat = {[0.25, 0.25, 0.25, 0.25]};
 
 end
 
