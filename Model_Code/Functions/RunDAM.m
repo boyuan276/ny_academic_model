@@ -1,7 +1,6 @@
 function [DAMresults, DAMifFlows, Summaryy] = ...
     RunDAM(Case, d, date_array, ren_tab_array, input_params)
-%RunDAM takes parameters, run days, cases, and resource profiles as inputs
-%and returns, a
+%RunDAM run the day ahead market model for the time period of one day
 %   Detailed explanation goes here
 
 %Define input parameters
@@ -73,8 +72,7 @@ vis_prof = input_params(44);
     LIs_existing_ITM_wind_ICAP, LIs_existing_ITM_hydro_ICAP, LIs_existing_ITM_PV_ICAP, LIs_existing_ITM_Bio_ICAP, LIs_existing_ITM_LFG_ICAP, LIs_existing_ITM_EES_ICAP,...
     NEw_existing_ITM_wind_ICAP, NEw_existing_ITM_hydro_ICAP, NEw_existing_ITM_PV_ICAP, NEw_existing_ITM_Bio_ICAP, NEw_existing_ITM_LFG_ICAP, NEw_existing_ITM_EES_ICAP,...
     PJM_existing_ITM_wind_ICAP, PJM_existing_ITM_hydro_ICAP, PJM_existing_ITM_PV_ICAP, PJM_existing_ITM_Bio_ICAP, PJM_existing_ITM_LFG_ICAP, PJM_existing_ITM_EES_ICAP,...
-    EVSE_Gold_MWh, EVSE_Gold_MW] = NYAM2030;
-
+    EVSE_Gold_MWh, EVSE_Gold_MW, stoch] = NYAM2030;
 
 
 %% Create Strings
@@ -105,27 +103,49 @@ month_str = num2str(mon, '%02i');
 day_str = num2str(day_, '%02i');
 datestring = strcat(year_str,month_str,day_str);
 
+%% Check for stochastic simulation
+if exist('stoch','var') > 0
+    stoed = 1;
+    if iscell(stoch.loadprof) 
+        get_hist_loadprof = 1;
+    elseif ischar(stoch.loadprof)
+        sto_loadprof = load(stoch.loadprof);
+        stoch.loadprof = sto_loadprof;
+    end
+    if iscell(stoch.windprof) 
+        get_hist_windprof = 1;
+    elseif ischar(stoch.windprof)
+        sto_windprof = load(stoch.windprof);
+        stoch.windprof = sto_windprof;
+    end
+    if iscell(stoch.PVprof) 
+        get_hist_PVprof = 1;
+    elseif ischar(stoch.PVprof)
+        sto_PVprof = load(stoch.PVprof);
+        stoch.PVprof = sto_PVprof;
+    end
+    
+else
+    stoed = 0;
+end
 
 %% Get Net Load from OASIS
-%Define the filename
-m_file_loc = '../NYISO Data/ActualLoad5min/';
+[A2F_2016_net_load, GHI_2016_net_load, NYC_2016_net_load, LIs_2016_net_load] = ...
+    NYISOnetloadPRE_DAM(datestring, undrbidfac);
+if get_hist_loadprof == 1
+    load_dates = stoch.loadprof;
+    stoch.loadprof = zeros(24,length(load_dates),4);
+    for ii = 1:length(load_dates)
+        indat = load_dates{ii};
+        [A2F_NL, GHI_NL, NYC_NL, LIs_NL] = ...
+            NYISOnetloadPRE_DAM(indat, undrbidfac, useinstant);
+        stoch.loadprof(:,ii,1) = A2F_NL;
+        stoch.loadprof(:,ii,2) = GHI_NL;
+        stoch.loadprof(:,ii,3) = NYC_NL;
+        stoch.loadprof(:,ii,4) = LIs_NL;
+    end
+end
 
-%Get data file
-RT_actual_load = load([m_file_loc,datestring,'pal.mat']);
-
-%Given: 2016 Net Load (Source: NYISO OASIS)
-periods = 0:most_period_count-1;
-A2F_2016_net_load = (RT_actual_load.M(1 +(periods)*11,2)+...%Zone A
-    RT_actual_load.M(2 +(periods)*11,2)+...                 %Zone B
-    RT_actual_load.M(4 +(periods)*11,2)+...                 %Zone C
-    RT_actual_load.M(7 +(periods)*11,2)+...                 %Zone D
-    RT_actual_load.M(10+(periods)*11,2)+...                 %Zone E
-    RT_actual_load.M(11+(periods)*11,2));                   %Zone F
-GHI_2016_net_load = (RT_actual_load.M(3 +(periods)*11,2)+...%Zone G
-    RT_actual_load.M(5 +(periods)*11,2)+...                 %Zone H
-    RT_actual_load.M(8 +(periods)*11,2));                   %Zone I
-NYC_2016_net_load = (RT_actual_load.M(9 +(periods)*11,2));  %Zone J
-LIs_2016_net_load = (RT_actual_load.M(6 +(periods)*11,2));  %Zone K
 
 
 %% Calculate Regional Load Only
@@ -598,7 +618,7 @@ most_bus_rengen_hydro(:,1:52) = [];
 %DAM Averages - take average of load values in an hour
 most_hydro_gen_DAM = zeros(most_period_count_DAM,15);
 for int_DAM = int_start_DAM: int_stop_DAM
-    if useinstant ==1
+    if useinstant == 1
         most_hydro_gen_DAM(int_DAM,:) = most_bus_rengen_hydro(int_DAM*12-11,:);
     else
         most_hydro_gen_DAM(int_DAM,:) = mean(most_bus_rengen_hydro(int_DAM*12-11:int_DAM*12,:));
