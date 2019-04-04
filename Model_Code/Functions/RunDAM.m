@@ -106,21 +106,21 @@ datestring = strcat(year_str,month_str,day_str);
 %% Check for stochastic simulation
 if exist('stoch','var') > 0
     stoed = 1;
-    if iscell(stoch.loadprof) 
+    if iscell(stoch.loadprof) == 1 
         get_hist_loadprof = 1;
-    elseif ischar(stoch.loadprof)
+    elseif ischar(stoch.loadprof) == 1
         sto_loadprof = load(stoch.loadprof);
         stoch.loadprof = sto_loadprof;
     end
-    if iscell(stoch.windprof) 
+    if iscell(stoch.windprof) == 1 
         get_hist_windprof = 1;
-    elseif ischar(stoch.windprof)
+    elseif ischar(stoch.windprof) == 1
         sto_windprof = load(stoch.windprof);
         stoch.windprof = sto_windprof;
     end
-    if iscell(stoch.PVprof) 
+    if iscell(stoch.PVprof) == 1
         get_hist_PVprof = 1;
-    elseif ischar(stoch.PVprof)
+    elseif ischar(stoch.PVprof) == 1
         sto_PVprof = load(stoch.PVprof);
         stoch.PVprof = sto_PVprof;
     end
@@ -130,14 +130,15 @@ else
 end
 
 %% Get Net Load from OASIS
-[A2F_2016_net_load, GHI_2016_net_load, NYC_2016_net_load, LIs_2016_net_load] = ...
-    NYISOnetloadPRE_DAM(datestring, undrbidfac);
+[A2F_2016_net_load, GHI_2016_net_load, NYC_2016_net_load, LIs_2016_net_load,...
+    ~, ~, ~, ~] = ...
+    NYISOnetloadPRE_DAM(datestring, undrbidfac, useinstant);
 if get_hist_loadprof == 1
     load_dates = stoch.loadprof;
     stoch.loadprof = zeros(24,length(load_dates),4);
     for ii = 1:length(load_dates)
         indat = load_dates{ii};
-        [A2F_NL, GHI_NL, NYC_NL, LIs_NL] = ...
+        [~, ~, ~, ~, A2F_NL, GHI_NL, NYC_NL, LIs_NL] = ...
             NYISOnetloadPRE_DAM(indat, undrbidfac, useinstant);
         stoch.loadprof(:,ii,1) = A2F_NL;
         stoch.loadprof(:,ii,2) = GHI_NL;
