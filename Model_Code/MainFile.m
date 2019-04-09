@@ -83,7 +83,7 @@ mat_save_all = 0;           %%[1 = yes; 0 = no]
 RTM_option = 0;             %%[1 = yes; 0 = no]
 
 % Interface Flow Limits Enforced?
-IFlims = 1;                 %%[1 = yes; 0 = no]
+IFlims = 0;                 %%[1 = yes; 0 = no]
 
 % Plot curtailment and Central-East interface flow?
 printCurt = 1;              %%[1 = yes; 0 = no]

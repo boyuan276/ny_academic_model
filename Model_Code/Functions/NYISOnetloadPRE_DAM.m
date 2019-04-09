@@ -67,10 +67,10 @@ LIs_net_load_RT = (RT_actual_load.M(6 +(periods)*11,2));    %Zone K
 
 % Modify for DAM (24 periods)
 % Take average of load values over each hour
-A2F_net_load = zeros(1,24);
-GHI_net_load = zeros(1,24);
-NYC_net_load = zeros(1,24);
-LIs_net_load = zeros(1,24);
+A2F_net_load = zeros(24,1);
+GHI_net_load = zeros(24,1);
+NYC_net_load = zeros(24,1);
+LIs_net_load = zeros(24,1);
 for int_DAM = 1:24
     if useinstant == 1
         A2F_net_load(int_DAM) = A2F_net_load_RT(int_DAM*12-11);
