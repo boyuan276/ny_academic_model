@@ -58,6 +58,7 @@ fprintf('Changing font sizes to 14 and line width = 1.5\n')
 days = [1];
 d_start = 1;
 d_end   = 1;
+date = 'Jan-19-2016';
 date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
 ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 
@@ -235,7 +236,7 @@ for Case = case_ids
     for d = days
 
         [DAMresults, DAMifFlows, Summaryy] = ...
-        RunDAM(Case, d, date_array, ren_tab_array, input_params);
+        RunDAM(Case, date, input_params);
         
         if RTM_option == 0
             AllRunsSummary(:,(1+3*(Case*4+d-1)):(3+3*(Case*4+d-1))) = Summaryy;
