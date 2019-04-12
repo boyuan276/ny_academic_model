@@ -63,9 +63,11 @@ date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
 ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
-%%%%% I need to figure out what exactly went into developing the 2030 case.
-%%%%% Incrementalism is not a viable option much past 50% in my opinion. Are
-%%%%% numbered variables the way to go on these cases?????
+%%%%% Origional cases are based off NYSERDA projections
+%%%%% New method will be through scen variable which will have a
+%%%%% corresponding input function script. case_* variables are legacy and
+%%%%% will be phased out at some point.
+scen = 'NYAM2030';
 case_ids = [1];
 case_start = 0;
 case_end   = 0;
@@ -236,7 +238,7 @@ for Case = case_ids
     for d = days
 
         [DAMresults, DAMifFlows, Summaryy] = ...
-        RunDAM(Case, date, input_params);
+        RunDAM(scen, Case, date, input_params);
         
         if RTM_option == 0
             AllRunsSummary(:,(1+3*(Case*4+d-1)):(3+3*(Case*4+d-1))) = Summaryy;

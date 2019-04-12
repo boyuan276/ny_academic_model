@@ -1,5 +1,5 @@
 function [wind, hydro, pv, btm, bio, lfg, ees, ev, stoch] = ...
-    NYAM2030_NewFormat(wind, hydro, pv, btm, bio, lfg)
+    NYAM2030(wind, hydro, pv, btm, bio, lfg)
 %NYAM2030 contains the future capacity values for the 2030 case compiled by
 %Steve Burchett and the NYISO
 %   Detailed explanation of data sources and assumptions should be
@@ -10,58 +10,58 @@ function [wind, hydro, pv, btm, bio, lfg, ees, ev, stoch] = ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % FUTURE SCENARIO renewable capacity in A2F
-wind.A2F_cap    = 4189 + 1755;
-hydro.A2F_cap   =  542 + 5219;
-pv.A2F_cap      = 3044 +    0;
-btm.A2F_cap     = 1358 +  266;
-bio.A2F_cap     =  122 +  148;
-lfg.A2F_cap     =   13 +  126;
-ees.A2F_cap     =    0 +    0;
+wind.A2F_cap    = 4189;
+hydro.A2F_cap   =  542;
+pv.A2F_cap      = 3044;
+btm.A2F_cap     = 1358;
+bio.A2F_cap     =  122;
+lfg.A2F_cap     =   13;
+ees.A2F_cap     =    0;
 
 % FUTURE SCENARIO renewable capacity in GHI
-wind.GHI_cap    =    0 + 0;
-hydro.GHI_cap   =   45 + 0;
-pv.GHI_cap      =  438 + 0;
-btm.GHI_cap     =  793 + 155;
-bio.GHI_cap     =    0 + 0;
-lfg.GHI_cap     =    3 + 0;
-ees.GHI_cap     =    0 + 0;
+wind.GHI_cap    =    0;
+hydro.GHI_cap   =   45;
+pv.GHI_cap      =  438;
+btm.GHI_cap     =  793;
+bio.GHI_cap     =    0;
+lfg.GHI_cap     =    3;
+ees.GHI_cap     =    0;
 
 % FUTURE SCENARIO renewable capacity in NYC
-wind.NYC_cap    =  408 + 0;
-hydro.NYC_cap   =    0 + 0;
-pv.NYC_cap      =    0 + 0;
-btm.NYC_cap     =  419 + 82;
-bio.NYC_cap     =    0 + 0;
-lfg.NYC_cap     =   34 + 0;
-ees.NYC_cap     =    0 + 0;
+wind.NYC_cap    =  408;
+hydro.NYC_cap   =    0;
+pv.NYC_cap      =    0;
+btm.NYC_cap     =  419;
+bio.NYC_cap     =    0;
+lfg.NYC_cap     =   34;
+ees.NYC_cap     =    0;
 
 % FUTURE SCENARIO renewable capacity on LI
-wind.LIs_cap    =  591 + 0;
-hydro.LIs_cap   =    0 + 0;
-pv.LIs_cap      =  373 + 0;
-btm.LIs_cap     = 1069 + 209;
-bio.LIs_cap     =    0 + 0;
-lfg.LIs_cap     =    3 + 0;
-ees.LIs_cap     =    0 + 0;
+wind.LIs_cap    =  591;
+hydro.LIs_cap   =    0;
+pv.LIs_cap      =  373;
+btm.LIs_cap     = 1069;
+bio.LIs_cap     =    0;
+lfg.LIs_cap     =    3;
+ees.LIs_cap     =    0;
 
 % FUTURE SCENARIO renewable capacity in NE
-wind.NEw_cap    =    0 + 0;
-hydro.NEw_cap   =    0 + 0;
-pv.NEw_cap      =    0 + 0;
-btm.NEw_cap     =    0 + 0;
-bio.NEw_cap     =    0 + 0;
-lfg.NEw_cap     =    0 + 0;
-ees.NEw_cap     =    0 + 0;
+wind.NEw_cap    =    0;
+hydro.NEw_cap   =    0;
+pv.NEw_cap      =    0;
+btm.NEw_cap     =    0;
+bio.NEw_cap     =    0;
+lfg.NEw_cap     =    0;
+ees.NEw_cap     =    0;
 
 % FUTURE SCENARIO renewable capacity in PJM
-wind.PJM_cap    =    0 + 0;
-hydro.PJM_cap   =    0 + 0;
-pv.PJM_cap      =    0 + 0;
-btm.PJM_cap     =    0 + 0;
-bio.PJM_cap     =    0 + 0;
-lfg.PJM_cap     =    0 + 0;
-ees.PJM_cap     =    0 + 0;
+wind.PJM_cap    =    0;
+hydro.PJM_cap   =    0;
+pv.PJM_cap      =    0;
+btm.PJM_cap     =    0;
+bio.PJM_cap     =    0;
+lfg.PJM_cap     =    0;
+ees.PJM_cap     =    0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,41 +70,41 @@ ees.PJM_cap     =    0 + 0;
 
 % EXISTING renewable capacity in A2F (values here are for 2016. Other 
 % regions are set to zero installed capacity due to low penetration).
-wind.A2F_exist_cap  = 4189;
-hydro.A2F_exist_cap =  542;
-pv.A2F_exist_cap    = 3044;
-btm.A2F_exist_cap   = 1358;
-bio.A2F_exist_cap   =  122;
-lfg.A2F_exist_cap   =   13;
+wind.A2F_exist_cap  = 1755;
+hydro.A2F_exist_cap = 5219;
+pv.A2F_exist_cap    =    0;
+btm.A2F_exist_cap   =  266;
+bio.A2F_exist_cap   =  148;
+lfg.A2F_exist_cap   =  126;
 ees.A2F_exist_cap   =    0;
 
 
 % Existing renewable capacity in GHI
 wind.GHI_exist_cap  =    0;
-hydro.GHI_exist_cap =   45;
-pv.GHI_exist_cap    =  438;
-btm.GHI_exist_cap   =  793;
+hydro.GHI_exist_cap =    0;
+pv.GHI_exist_cap    =    0;
+btm.GHI_exist_cap   =  155;
 bio.GHI_exist_cap   =    0;
-lfg.GHI_exist_cap   =    3;
+lfg.GHI_exist_cap   =    0;
 ees.GHI_exist_cap   =    0;
 
 
 % Existing renewable capacity in NYC
-wind.NYC_exist_cap  =  408;
+wind.NYC_exist_cap  =    0;
 hydro.NYC_exist_cap =    0;
 pv.NYC_exist_cap    =    0;
-btm.NYC_exist_cap   =  419;
+btm.NYC_exist_cap   =   82;
 bio.NYC_exist_cap   =    0;
-lfg.NYC_exist_cap   =   34;
+lfg.NYC_exist_cap   =    0;
 ees.NYC_exist_cap   =    0;
 
 % Existing renewable capacity on LI
-wind.LIs_exist_cap  =  591;
+wind.LIs_exist_cap  =    0;
 hydro.LIs_exist_cap =    0;
-pv.LIs_exist_cap    =  373;
-btm.LIs_exist_cap   = 1069;
+pv.LIs_exist_cap    =    0;
+btm.LIs_exist_cap   =  209;
 bio.LIs_exist_cap   =    0;
-lfg.LIs_exist_cap   =    3;
+lfg.LIs_exist_cap   =    0;
 ees.LIs_exist_cap   =    0;
 
 % Existing renewable capacity in NE
