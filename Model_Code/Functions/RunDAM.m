@@ -252,6 +252,7 @@ most_busload_DAM = most_busload_DAM.*undrbidfac;
 
 %% Renewable Capacity for the current case
 %Renwable capacity by region
+%%%%% WHY ARE SOME OF THESE EXIST AND OHTERS FOR THE SCENARIO?????!!!!!
 A2F_scen_REcap = wind.A2F_exist_cap + hydro.A2F_exist_cap + ...
     pv.A2F_cap + bio.A2F_cap + lfg.A2F_cap;
 GHI_scen_REcap = wind.GHI_exist_cap + hydro.GHI_exist_cap + ...
