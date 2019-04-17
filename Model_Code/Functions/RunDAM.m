@@ -57,6 +57,32 @@ vis_prof = input_params(44);
     A2F_gens, GHI_gens, NYC_gens, LIs_gens, NEw_gens, PJM_gens,...
     map_Array, BoundedIF, lims_Array] = NYCArgnparms;
 
+%Add most constant parameter names
+define_constants;
+
+%Define initial data
+casefile = 'case_nyiso16'; %!!!!!
+mpc = loadcase(casefile);
+xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
+
+%Determine number of thermal gens
+[therm_gen_count,~] =  size(mpc.gen(:, GEN_BUS));
+
+%Reduce RAMP!
+%%%%%Why are only generators 4 - 11 included in this? Generators 12 & 13
+%%%%%are gas turbines, so should be included, and 9 -- the NEISO import --
+%%%%%should probably not be. 
+if IncreasedDAMramp == 1
+    for col = [RAMP_AGC, RAMP_10, RAMP_30] 
+        mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor; 
+    end
+end
+
+%Retire a Nuke Unit?
+for gen = 2:killNuke
+    xgd.CommitKey(gen) = -1;
+end
+
 % Read in renewable energy profiles and/or read data from wrfout files
 date = datestr(date,'yyyymmdd');
 load(strcat(scen,'_REdat_',date), 'wind','hydro','pv','btm','bio','lfg')
@@ -252,14 +278,13 @@ most_busload_DAM = most_busload_DAM.*undrbidfac;
 
 %% Renewable Capacity for the current case
 %Renwable capacity by region
-%%%%% WHY ARE SOME OF THESE EXIST AND OHTERS FOR THE SCENARIO?????!!!!!
-A2F_scen_REcap = wind.A2F_exist_cap + hydro.A2F_exist_cap + ...
+A2F_scen_REcap = wind.A2F_cap + hydro.A2F_cap + ...
     pv.A2F_cap + bio.A2F_cap + lfg.A2F_cap;
 GHI_scen_REcap = wind.GHI_exist_cap + hydro.GHI_exist_cap + ...
     pv.GHI_cap + bio.GHI_cap + lfg.GHI_cap;
-NYC_scen_REcap = wind.NYC_exist_cap + hydro.NYC_exist_cap + ...
+NYC_scen_REcap = wind.NYC_cap + hydro.NYC_cap + ...
     pv.NYC_cap + bio.NYC_cap + lfg.NYC_cap;
-LIs_scen_REcap = wind.LIs_exist_cap + hydro.LIs_exist_cap + ...
+LIs_scen_REcap = wind.LIs_cap + hydro.LIs_cap + ...
     pv.LIs_cap + bio.LIs_cap + lfg.LIs_cap;
 
 %Renewable capacity by type
@@ -328,7 +353,7 @@ end
 %% Format Renewable and Load Profiles for MOST input
 
 % Wind
-most_bus_rengen_windy = zeros(most_period_count,68);
+most_bus_rengen_windy = zeros(most_period_count, length(mpc.bus));
 for int = int_start:int_stop
     %Distribute ITM renewable generation evenly across all wind buses
     i=1:A2F_gen_bus_count;
@@ -503,33 +528,6 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MOST DAM Run
-%Add most constant parameter names
-define_constants;
-
-%Define initial data
-casefile = 'case_nyiso16'; %!!!!!
-mpc = loadcase(casefile);
-xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
-
-%Determine number of thermal gens
-[therm_gen_count,~] =  size(mpc.gen(:, GEN_BUS));
-
-%Reduce RAMP!
-%%%%%Why are only generators 4 - 11 included in this? Generators 12 & 13
-%%%%%are gas turbines, so should be included, and 9 -- the NEISO import --
-%%%%%should probably not be. 
-if IncreasedDAMramp == 1
-    for col = [RAMP_AGC, RAMP_10, RAMP_30] 
-        mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor; 
-    end
-end
-
-%Retire a Nuke Unit?
-for gen = 2:killNuke
-    xgd.CommitKey(gen) = -1;
-end
-
-
 %% Add Renewables to MOST data matpower data and extra generator data
 
 %WIND
@@ -647,7 +645,8 @@ profiles(9).values(:,1,:) = most_busload_DAM;
 
 %% Set Initial PG (first period generation) for renewable gens
 xgd.InitialPg(iwind) = xgd.InitialPg(iwind) + most_windy_gen_DAM(1,:).';
-xgd.InitialPg(iwind) = xgd.InitialPg(iwind) -1;
+% xgd.InitialPg(iwind) = xgd.InitialPg(iwind) - 1; %Why was 1 MW subtracted
+% here?????
 xgd.InitialPg(ihydro) = xgd.InitialPg(ihydro) + most_hydro_gen_DAM(1,:).';
 xgd.InitialPg(isolar) = xgd.InitialPg(isolar) + most_solar_gen_DAM(1,:).';
 xgd.InitialPg(iother) = xgd.InitialPg(iother) + most_other_gen_DAM(1,:).';
@@ -672,7 +671,7 @@ GHI_ind = GHI_scen_REcap/GHI_gen_bus_count;
 NYC_ind = NYC_scen_REcap/NYC_gen_bus_count;
 LIs_ind = LIs_scen_REcap/LIs_gen_bus_count;
 
-%Create vector with gen cap in order
+%Create vector with generator capacity in order
 ordered_gen_cap = zeros(ren_gen_count);
 for gen = therm_gen_count+1:all_gen_count
     buss = mpc.gen(gen,1);
@@ -764,7 +763,7 @@ end
 %Remove NANs
 gen_output_percent(isnan(gen_output_percent)) = 0;
 
-%%%%% This code ARTIFICALLY changes the output: ITS NOT CORRECT IT'S FOR
+%%%%% This code ARTIFICALLY changes the output: ITS NOT CORRECT; IT'S FOR
 %%%%% VISUAL PURPOSES ONLY!!!
 % Modify CF for easy differentiation
 for gen = 1:therm_gen_count
@@ -1255,14 +1254,23 @@ end
 
 %% RENEWABLE CURTAILMENT
 
+% Index renewable generators by region 
+All_REgenbus = mpc.gen(therm_gen_count+1:end, BUS_I);
+A2F_REgen_L = logical([zeros(therm_gen_count,1);sum(A2F_Gen_buses == All_REgenbus,2)]);
+GHI_REgen_L = logical([zeros(therm_gen_count,1);sum(GHI_Gen_buses == All_REgenbus,2)]);
+NYC_REgen_L = logical([zeros(therm_gen_count,1);sum(NYC_Gen_buses == All_REgenbus,2)]);
+LIs_REgen_L = logical([zeros(therm_gen_count,1);sum(LIs_Gen_buses == All_REgenbus,2)]);
+
 % Initialize
 DAMwindy = zeros(24,2);
 for int = 1:24
+    % Get Input renewable generation (available)
     if useinstant == 1
         DAMwindy(int,1) = sum(most_bus_rengen_windy(int*12-11,:));
     else
         DAMwindy(int,1) = sum(mean(most_bus_rengen_windy(int*12-11:int*12,:)));
     end
+    % Get MOST output renewable generation (actual)
     DAMwindy(int,2) = RenGen_windyDAM(int);
 end
 
@@ -1309,62 +1317,61 @@ for hourr = 1:24
     DAMotherCurtMWh = DAMotherCurtMWh + DAMother(hourr,1) - DAMother(hourr,2);
 end
 
-%%%%%%%%%%%%%%%%%%%%%% THIS IS WHERE I STOPPED IN THE SOLAR SPLITTING TASK!
+% DAM renewable Curtailment MWh - By Hour
+DAMCurtMWh_hrly = -(DAMwindy(:,2) - DAMwindy(:,1) + ...
+    DAMhydro(:,2) - DAMhydro(:,1) + ...
+    DAMsolar(:,2) - DAMsolar(:,1) + ...
+    DAMother(:,2) - DAMother(:,1));
 
-% DAM Renewable Curtailment MWh - By Hour
-DAMCurtMWh_hrly = -(RenGen_windyDAM(:) - DAMwindy(:,1) + ...
-    RenGen_hydroDAM(:) - DAMhydro(:,1) + ...
-    RenGen_solarDAM(:) - DAMsolar(:,1) + RenGen_otherDAM(:) - DAMother(:,1));
-
-% DAM Scheduled renewable output by region
+% DAM availble renewable output by region
+%%%%% I feel as if the hard coded values here may not be wrong, but is a
+%%%%% terribly messy and risky way to code this!!!!!
 DAMschedRegion = zeros(4,24);
 for hour = 1:24
     %A2F
     DAMschedRegion(1,hour) = sum(most_windy_gen_DAM(hour,11:15))+...
         sum(most_hydro_gen_DAM(hour,11:15))+...
+        sum(most_solar_gen_DAM(hour,11:15))+...
         sum(most_other_gen_DAM(hour,11:15));
     %GHI
     DAMschedRegion(2,hour) = sum(most_windy_gen_DAM(hour,1:2))+most_windy_gen_DAM(hour,8)+...
         sum(most_hydro_gen_DAM(hour,1:2))+most_hydro_gen_DAM(hour,8)+...
+        sum(most_solar_gen_DAM(hour,1:2))+most_solar_gen_DAM(hour,8)+...
         sum(most_other_gen_DAM(hour,1:2))+most_other_gen_DAM(hour,8);
     %NYC
     DAMschedRegion(3,hour) = sum(most_windy_gen_DAM(hour,3:5))+...
         sum(most_hydro_gen_DAM(hour,3:5))+...
+        sum(most_solar_gen_DAM(hour,3:5))+...
         sum(most_other_gen_DAM(hour,3:5));
     %LIs
     DAMschedRegion(4,hour) = sum(most_windy_gen_DAM(hour,6:7))+...
         sum(most_hydro_gen_DAM(hour,6:7))+...
+        sum(most_solar_gen_DAM(hour,6:7))+...
         sum(most_other_gen_DAM(hour,6:7));
 end
 
-% DAM Actual Renewable Generation by region
+% DAM actual renewable generation by region
 DAMactualRegion = zeros(4,24);
 for hour = 1:24
     %A2F
-    DAMactualRegion(1,hour) = sum(ms.Pg(25:29,hour))+...
-        sum(ms.Pg(40:44,hour))+...
-        sum(ms.Pg(55:59,hour));
+    DAMactualRegion(1,hour) = sum(ms.Pg(A2F_REgen_L,hour));
     %GHI
-    DAMactualRegion(2,hour) = sum(ms.Pg(15:16,hour))+ms.Pg(22,hour)+...
-        sum(ms.Pg(30:31,hour))+ms.Pg(37,hour)+...
-        sum(ms.Pg(45:46,hour))+ms.Pg(52,hour);
+    DAMactualRegion(2,hour) = sum(ms.Pg(GHI_REgen_L,hour));
     %NYC
-    DAMactualRegion(3,hour) = sum(ms.Pg(17:19,hour))+...
-        sum(ms.Pg(32:34,hour))+...
-        sum(ms.Pg(47:49,hour));
+    DAMactualRegion(3,hour) = sum(ms.Pg(NYC_REgen_L,hour));
     %LIs
-    DAMactualRegion(4,hour) = sum(ms.Pg(20:21,hour))+...
-        sum(ms.Pg(35:36,hour))+...
-        sum(ms.Pg(50:51,hour));
+    DAMactualRegion(4,hour) = sum(ms.Pg(LIs_REgen_L,hour));
 end
 
 % Calculate curtailment by region
-DAMcurtRegion = DAMschedRegion - DAMactualRegion;
+ DAMcurtRegion = DAMschedRegion - DAMactualRegion;
 
+%%%%%%%%%%%%%%%%%%%%%% THIS IS WHERE I STOPPED IN THE SOLAR SPLITTING TASK!
 
 %% INTERFACE FLOWS
 
 % Store Constrained Interface Flow Values
+%%%%% Again, should be careful as the lines are hard-coded.
 DAMifFlows = zeros(24,4);
 for hour = 1:24
     DAMifFlows(hour,1) = ms.Pf(1,hour)  - ms.Pf(16,hour);
@@ -1884,7 +1891,7 @@ bar(DAMwindy)
 % Make title
 title('DAM Wind Generation')
 % Make legend and set its positon
-A3 = legend('DAM actual','DAM available');
+A3 = legend('DAM available','DAM actual');
 rect = [.75, 0.76, 0.15, 0.0875]; %[left bottom width height]
 set(A3, 'Position', rect)
 % Set all other plot setting
@@ -1904,7 +1911,7 @@ bar(DAMhydro)
 % Make title
 title('DAM Hydro Generation')
 % Make legend and set its positon
-B3 = legend('DAM actual','DAM available');
+B3 = legend('DAM available','DAM actual');
 rect = [.75, 0.45, 0.15, .12]; %[left bottom width height]
 set(B3, 'Position', rect)
 % Set all other plot setting
@@ -1925,7 +1932,7 @@ bar(DAMsolar)
 % Make title
 title('DAM Solar VRE Generation')
 % Make legend and set its positon
-C3 = legend('DAM actual','DAM available');
+C3 = legend('DAM available','DAM actual');
 rect = [.75, 0.125, 0.15, .12]; %[left bottom width height]
 set(C3, 'Position', rect)
 % Set all other plot setting
@@ -1948,7 +1955,7 @@ bar(DAMother)
 % Make title
 title('DAM Other VRE Generation')
 % Make legend and set its positon
-D3 = legend('DAM actual','DAM available');
+D3 = legend('DAM available','DAM actual');
 rect = [.75, 0.125, 0.15, .12]; %[left bottom width height]
 set(D3, 'Position', rect)
 % Set all other plot setting
