@@ -42,11 +42,13 @@ addpath(genpath(path_fxns))
 path_data = './Program_Files';
 addpath(genpath(path_data))
 
-%% Font Size for publishing
-set(0,'DefaultAxesFontSize',14)
-set(0,'DefaultTextFontSize',14)
-set(0,'DefaultLineLinewidth',1)
-fprintf('Changing font sizes to 14 and line width = 1.5\n')
+%% Publishing Defaults
+FS = 14;
+LW = 1.5;
+set(0,'DefaultAxesFontSize',FS)
+set(0,'DefaultTextFontSize',FS)
+set(0,'DefaultLineLinewidth',LW)
+fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 
 %% Set Simulation Control Parameters
 %%%%% I need to brainstorm how to expand this section to make it more date
@@ -59,19 +61,15 @@ days = [1];
 d_start = 1;
 d_end   = 1;
 date = 'Jan-19-2016';
-date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
-ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
+% date = 'Mar-22-2016';
+% date = 'Jul-25-2016';
+% date = 'Nov-10-2016';
 
-% Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
-%%%%% Origional cases are based off NYSERDA projections
-%%%%% New method will be through scen variable which will have a
-%%%%% corresponding input function script. case_* variables are legacy and
-%%%%% will be phased out at some point.
+% Provide an input scenario
 scen = 'NYAM2030';
 case_ids = [1];
 case_start = 0;
 case_end   = 0;
-case_nam_array = ['Base_Case','2030_Case','2x2030_Case','3x2030_Case'];
 
 % Figure output method
 Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
@@ -246,13 +244,13 @@ for Case = case_ids
         
         if mat_save == 1
             resultsfilestr = ['../../MarketModel_Output/', ...
-                case_nam_array(Case+1),ren_tab_array(d),'DAMRunData.mat'];
+                scen, date,'DAMRunData.mat'];
             save(resultsfilestr, 'DAMresults')
             %save(resultsfilestr, 'CC_results', 'DAMresults')
         end
         
         % Print completion message for this case and day
-        fprintf('DAM competed for Case %d on %s\n', Case, ren_tab_array(d))
+        fprintf('DAM competed for Case %d on %s\n', Case, date)
         
     end
 end
@@ -270,12 +268,12 @@ if RTM_option == 1
             
             if mat_save == 1
                 resultsfilestr = ['../../MarketModel_Output/', ...
-                    case_nam_array(Case+1),ren_tab_array(d),'RTCRunData.mat'];
+                    scen, date,'RTCRunData.mat'];
                 save(resultsfilestr, 'CC_results', 'Summaryy')
             end
             
             % Print completion message for this case and day
-            fprintf('RTM competed for Case %d on %s\n', Case, ren_tab_array(d))
+            fprintf('RTM competed for Case %d on %s\n', Case, date)
             
         end
     end
