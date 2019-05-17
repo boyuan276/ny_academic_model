@@ -84,7 +84,7 @@ mat_save_all = 0;           %%[1 = yes; 0 = no]
 RTM_option = 0;             %%[1 = yes; 0 = no]
 
 % Interface Flow Limits Enforced?
-IFlims = 0;                 %%[1 = yes; 0 = no]
+IFlims = 1;                 %%[1 = yes; 0 = no]
 
 % Plot curtailment and Central-East interface flow?
 printCurt = 1;              %%[1 = yes; 0 = no]
@@ -178,7 +178,7 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 VERBOSE = 0;
 
 % Visualize input renewable energy profiles [1 = yes; 0 = no]
-vis_prof = 1; 
+vis_prof = 0; 
 
 input_params = [
     IFlims;
