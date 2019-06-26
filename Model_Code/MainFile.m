@@ -65,6 +65,7 @@ d_start = 1;
 date = 'Jan-19-2016';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ren_tab_array = {'Jan 19'; 'Mar 22'; 'Jul 25'; 'Nov 10'};
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
@@ -84,6 +85,8 @@ case_ids = [1];
 case_start = 0;
 case_nam_array = {'BaseCase'; '2030Case'; '2x2030Case'; '3x2030Case'};
 =======
+=======
+>>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 % date = 'Mar-22-2016';
 % date = 'Jul-25-2016';
 % date = 'Nov-10-2016';
@@ -94,7 +97,10 @@ case_ids = [1];
 case_start = 0;
 case_end   = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/dam_rtm_split
+=======
+>>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 =======
 >>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 
@@ -278,7 +284,10 @@ for Case = case_ids
             resultsfilestr = ['../../MarketModel_Output/', ...
                 scen, date,'DAMRunData.mat'];
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/dam_rtm_split
+=======
+>>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 =======
 >>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
             save(resultsfilestr, 'DAMresults')
@@ -288,10 +297,14 @@ for Case = case_ids
         % Print completion message for this case and day
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         fprintf('DAM competed for Case %d on %s\n', Case, ren_tab_array{d})
 =======
         fprintf('DAM competed for Case %d on %s\n', Case, date)
 >>>>>>> origin/dam_rtm_split
+=======
+        fprintf('DAM competed for Case %d on %s\n', Case, date)
+>>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 =======
         fprintf('DAM competed for Case %d on %s\n', Case, date)
 >>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
@@ -319,10 +332,14 @@ if RTM_option == 1
             % Print completion message for this case and day
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             fprintf('RTM competed for Case %d on %s\n', Case, ren_tab_array{d})
 =======
             fprintf('RTM competed for Case %d on %s\n', Case, date)
 >>>>>>> origin/dam_rtm_split
+=======
+            fprintf('RTM competed for Case %d on %s\n', Case, date)
+>>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
 =======
             fprintf('RTM competed for Case %d on %s\n', Case, date)
 >>>>>>> 92ba60140f4b8899cfeb8fc8d4a04e3f19c24b97
