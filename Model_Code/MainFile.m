@@ -6,12 +6,15 @@
 
 %% Known Issues/Upcomming Changes
 
-%%%%% One major change that I should make to this model in the near term is
-%%%%% the separation of solar from "Other" given how much of our work is
-%%%%% centered around solar.
+%%%%% For some reason, a small amount of OTHER renewable generation is
+%%%%% being curtailed on for the test case without interface limits. This
+%%%%% probably should not be happening, but it may be due to a bug in my
+%%%%% code or the complexity of the optimization. 
 
-%%%%% Need to use the variables defined in Matpower to get data from
-%%%%% structures. Right now, the column numbers are hard-coded.
+%%%%% Figures should be added to separte functions.
+
+%%%%% Should be able to give an input date and the model will get necessary
+%%%%% load data as well as renewable profile data. 
 
 %%%%% The RunRTCMkt.m script is far from working: I simply copied and
 %%%%% pasted everything that was origionally in this script over to this
@@ -57,10 +60,8 @@ fprintf('Changing font sizes to 14 and line width = 1.5\n')
 % Pick Date Range
 days = [1];
 d_start = 1;
-d_end   = 1;
 date = 'Jan-19-2016';
-date_array = [2016,1,19;2016,3,22;2016,7,25;2016,11,10];
-ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
+ren_tab_array = {'Jan 19'; 'Mar 22'; 'Jul 25'; 'Nov 10'};
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
 %%%%% Origional cases are based off NYSERDA projections
@@ -70,8 +71,7 @@ ren_tab_array = ["Jan 19";"Mar 22";"Jul 25";"Nov 10";];
 scen = 'NYAM2030';
 case_ids = [1];
 case_start = 0;
-case_end   = 0;
-case_nam_array = ['Base_Case','2030_Case','2x2030_Case','3x2030_Case'];
+case_nam_array = {'BaseCase'; '2030Case'; '2x2030Case'; '3x2030Case'};
 
 % Figure output method
 Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
@@ -245,14 +245,15 @@ for Case = case_ids
         end
         
         if mat_save == 1
-            resultsfilestr = ['../../MarketModel_Output/', ...
-                case_nam_array(Case+1),ren_tab_array(d),'DAMRunData.mat'];
+            resultsfilestr = strcat('../../MarketModel_Output/', ...
+                case_nam_array{Case+1}, '_', ren_tab_array{d}, '_DAM.mat');
+            resultsfilestr = resultsfilestr(find(~isspace(resultsfilestr)));
             save(resultsfilestr, 'DAMresults')
             %save(resultsfilestr, 'CC_results', 'DAMresults')
         end
         
         % Print completion message for this case and day
-        fprintf('DAM competed for Case %d on %s\n', Case, ren_tab_array(d))
+        fprintf('DAM competed for Case %d on %s\n', Case, ren_tab_array{d})
         
     end
 end
@@ -275,7 +276,7 @@ if RTM_option == 1
             end
             
             % Print completion message for this case and day
-            fprintf('RTM competed for Case %d on %s\n', Case, ren_tab_array(d))
+            fprintf('RTM competed for Case %d on %s\n', Case, ren_tab_array{d})
             
         end
     end

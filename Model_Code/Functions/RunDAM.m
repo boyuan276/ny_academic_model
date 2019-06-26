@@ -57,7 +57,7 @@ vis_prof = input_params(44);
     A2F_gens, GHI_gens, NYC_gens, LIs_gens, NEw_gens, PJM_gens,...
     map_Array, BoundedIF, lims_Array] = NYCArgnparms;
 
-%Add most constant parameter names
+%Add MOST constant parameter names
 define_constants;
 
 %Define initial data
@@ -355,7 +355,7 @@ end
 % Wind
 most_bus_rengen_windy = zeros(most_period_count, length(mpc.bus));
 for int = int_start:int_stop
-    %Distribute ITM renewable generation evenly across all wind buses
+    %Distribute wind generation evenly across all gen buses
     i=1:A2F_gen_bus_count;
     most_bus_rengen_windy(int, A2F_Gen_buses(i)) = wind.A2F_gen(int)./A2F_gen_bus_count;
     i=1:GHI_gen_bus_count;
@@ -393,7 +393,7 @@ end
 % Hydro
 most_bus_rengen_hydro = zeros(most_period_count,68);
 for int = int_start:int_stop
-    %Distribute ITM renewable generation
+    %Distribute hydro generation evenly across all gen buses
     i=1:A2F_gen_bus_count;
     most_bus_rengen_hydro(int, A2F_Gen_buses(i)) = hydro.A2F_gen(int)./A2F_gen_bus_count;
     i=1:GHI_gen_bus_count;
@@ -431,7 +431,7 @@ end
 % Solar
 most_bus_rengen_solar = zeros(most_period_count,68);
 for int = int_start:int_stop
-    %Distribute ITM renewable generation evenly across all wind buses
+    %Distribute solar generation evenly across all gen buses
     i=1:A2F_gen_bus_count;
     most_bus_rengen_solar(int, A2F_Gen_buses(i)) = pv.A2F_gen(int)./A2F_gen_bus_count;
     i=1:GHI_gen_bus_count;
@@ -468,7 +468,7 @@ end
 % Other
 most_bus_rengen_other = zeros(most_period_count,68);
 for int = int_start:int_stop
-    %Distribute ITM renewable generation
+    %Distribute other renewable generation evenly across all gen buses
     i=1:A2F_gen_bus_count;
     most_bus_rengen_other(int, A2F_Gen_buses(i)) = (bio.A2F_gen(int) + lfg.A2F_gen(int))./A2F_gen_bus_count;
     i=1:GHI_gen_bus_count;
@@ -573,7 +573,7 @@ util_bat = storage_gen(ees, A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_
     A2F_load_bus_count,GHI_load_bus_count, NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, NEw_load_bus_count, PJM_load_bus_count);
 
 %Push battery data to MOST
-[iutilbat,mpc,xgd,storage] = addstorage(util_bat,mpc,xgd);
+[iutilbat, mpc, xgd, storage] = addstorage(util_bat, mpc, xgd);
 
 %EVSE Load
 if EVSE == 1
@@ -585,7 +585,7 @@ if EVSE == 1
     NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, Case);
     
     % Push battery data to MOST
-    [iEVSE,mpc,xgd,storage] = addstorage(EV_storage,mpc,xgd,storage);
+    [iEVSE, mpc, xgd, storage] = addstorage(EV_storage, mpc, xgd, storage);
     
 end
 
@@ -653,6 +653,8 @@ xgd.InitialPg(iother) = xgd.InitialPg(iother) + most_other_gen_DAM(1,:).';
 
 
 %% Set renewable credit (negative cost) to avoid curtailment
+%%%%% Should think about weather or not this accurately captures the
+%%%%% fucnction of RECs in a wholesale market. 
 mpc.gencost(iwind,6) = REC_wind;
 mpc.gencost(ihydro,6) = REC_hydro;
 mpc.gencost(isolar,6) = REC_solar;
@@ -673,22 +675,22 @@ LIs_ind = LIs_scen_REcap/LIs_gen_bus_count;
 
 %Create vector with generator capacity in order
 ordered_gen_cap = zeros(ren_gen_count);
-for gen = therm_gen_count+1:all_gen_count
-    buss = mpc.gen(gen,1);
-    if ismember(buss,A2F_Gen_buses)
+for gen = therm_gen_count + 1:all_gen_count
+    buss = mpc.gen(gen, 1);
+    if ismember(buss, A2F_Gen_buses)
         ordered_gen_cap(gen-therm_gen_count) = A2F_ind;
-    elseif ismember(buss,GHI_Gen_buses)
+    elseif ismember(buss, GHI_Gen_buses)
         ordered_gen_cap(gen-therm_gen_count) = GHI_ind;
-    elseif ismember(buss,NYC_Gen_buses)
+    elseif ismember(buss, NYC_Gen_buses)
         ordered_gen_cap(gen-therm_gen_count) = NYC_ind;
-    elseif ismember(buss,LIs_Gen_buses)
+    elseif ismember(buss, LIs_Gen_buses)
         ordered_gen_cap(gen-therm_gen_count) = LIs_ind;
     end
 end
 
 %Update renewable capacity
 for ss = 1:ren_gen_count
-    mpc.gen(ss+therm_gen_count, PMAX) = ordered_gen_cap(ss); 
+    mpc.gen(ss + therm_gen_count, PMAX) = ordered_gen_cap(ss); 
 end
 
 %Number of intervals in the simulation
