@@ -63,7 +63,9 @@ fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 days = [1];
 d_start = 1;
 date = 'Jan-19-2016';
-ren_tab_array = {'Jan 19'; 'Mar 22'; 'Jul 25'; 'Nov 10'};
+% date = 'Mar-22-2016';
+% date = 'Jul-25-2016';
+% date = 'Nov-10-2016';
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
 %%%%% Origional cases are based off NYSERDA projections
@@ -75,11 +77,6 @@ ren_tab_array = {'Jan 19'; 'Mar 22'; 'Jul 25'; 'Nov 10'};
 scen = 'NYAM2030';
 case_ids = [1];
 case_start = 0;
-case_nam_array = {'BaseCase'; '2030Case'; '2x2030Case'; '3x2030Case'};
-% date = 'Mar-22-2016';
-% date = 'Jul-25-2016';
-% date = 'Nov-10-2016';
-
 
 % Figure output method
 Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
@@ -94,7 +91,7 @@ mat_save_all = 0;           %%[1 = yes; 0 = no]
 RTM_option = 0;             %%[1 = yes; 0 = no]
 
 % Interface Flow Limits Enforced?
-IFlims = 1;                 %%[1 = yes; 0 = no]
+IFlims = 0;                 %%[1 = yes; 0 = no]
 
 % Plot curtailment and Central-East interface flow?
 printCurt = 1;              %%[1 = yes; 0 = no]
@@ -254,7 +251,7 @@ for Case = case_ids
         
         if mat_save == 1
             resultsfilestr = strcat('../../MarketModel_Output/', ...
-                case_nam_array{Case+1}, '_', ren_tab_array{d}, '_DAM.mat');
+                scen, '_', date, '_DAM.mat');
             resultsfilestr = resultsfilestr(find(~isspace(resultsfilestr)));
             save(resultsfilestr, 'DAMresults')
             %save(resultsfilestr, 'CC_results', 'DAMresults')
@@ -278,8 +275,9 @@ if RTM_option == 1
             AllRunsSummary(1:59,(1+8*(Case*4+d-1)):(8+8*(Case*4+d-1))) = Summaryy;
             
             if mat_save == 1
-                resultsfilestr = ['../../MarketModel_Output/', ...
-                    scen, date,'RTCRunData.mat'];
+                resultsfilestr = strcat('../../MarketModel_Output/', ...
+                scen, '_', date, '_RTM.mat');
+            resultsfilestr = resultsfilestr(find(~isspace(resultsfilestr)));
                 save(resultsfilestr, 'CC_results', 'Summaryy')
             end
             
