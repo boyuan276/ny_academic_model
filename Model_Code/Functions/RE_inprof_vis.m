@@ -46,3 +46,7 @@ box(axes1,'on');
 legend1 = legend(axes1,'show');
 set(legend1,'Location','best');
 
+hold(axes1,'off');
+
+end
+

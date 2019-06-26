@@ -1,4 +1,4 @@
-function BTM_inprof_vis(YMatrix1)
+function BTM_inprof_vis(YMatrix1,Zone)
 %BTM_inprof_vis(YMatrix1)
 %  YMATRIX1:  matrix of y data
 
@@ -25,6 +25,14 @@ ylabel('Demand/Generation (MW)');
 xlabel('Time Step');
 
 % Create title
-title('Effect of BTM Generation on Net Load');
+titlestr = sprintf('Effect of BTM Generation on Net Load in %s',Zone);
+title(titlestr);
 
+% Format plot frame
 box(axes1,'on');
+axis tight
+
+% Show legend
+legend('show','Location','Best')
+
+end

@@ -1,4 +1,4 @@
-    function mpc = case_nyiso16
+function mpc = case_nyiso16
 %MATPOWER Case Format : Version 2
 mpc.version = '2';
 

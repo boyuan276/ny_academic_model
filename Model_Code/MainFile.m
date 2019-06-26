@@ -45,11 +45,13 @@ addpath(genpath(path_fxns))
 path_data = './Program_Files';
 addpath(genpath(path_data))
 
-%% Font Size for publishing
-set(0,'DefaultAxesFontSize',14)
-set(0,'DefaultTextFontSize',14)
-set(0,'DefaultLineLinewidth',1)
-fprintf('Changing font sizes to 14 and line width = 1.5\n')
+%% Publishing Defaults
+FS = 14;
+LW = 1.5;
+set(0,'DefaultAxesFontSize',FS)
+set(0,'DefaultTextFontSize',FS)
+set(0,'DefaultLineLinewidth',LW)
+fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 
 %% Set Simulation Control Parameters
 %%%%% I need to brainstorm how to expand this section to make it more date
@@ -61,6 +63,7 @@ fprintf('Changing font sizes to 14 and line width = 1.5\n')
 days = [1];
 d_start = 1;
 date = 'Jan-19-2016';
+<<<<<<< HEAD
 ren_tab_array = {'Jan 19'; 'Mar 22'; 'Jul 25'; 'Nov 10'};
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
@@ -72,6 +75,17 @@ scen = 'NYAM2030';
 case_ids = [1];
 case_start = 0;
 case_nam_array = {'BaseCase'; '2030Case'; '2x2030Case'; '3x2030Case'};
+=======
+% date = 'Mar-22-2016';
+% date = 'Jul-25-2016';
+% date = 'Nov-10-2016';
+
+% Provide an input scenario
+scen = 'NYAM2030';
+case_ids = [1];
+case_start = 0;
+case_end   = 0;
+>>>>>>> origin/dam_rtm_split
 
 % Figure output method
 Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
@@ -86,7 +100,7 @@ mat_save_all = 0;           %%[1 = yes; 0 = no]
 RTM_option = 0;             %%[1 = yes; 0 = no]
 
 % Interface Flow Limits Enforced?
-IFlims = 0;                 %%[1 = yes; 0 = no]
+IFlims = 1;                 %%[1 = yes; 0 = no]
 
 % Plot curtailment and Central-East interface flow?
 printCurt = 1;              %%[1 = yes; 0 = no]
@@ -180,7 +194,7 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 VERBOSE = 0;
 
 % Visualize input renewable energy profiles [1 = yes; 0 = no]
-vis_prof = 1; 
+vis_prof = 0; 
 
 input_params = [
     IFlims;
@@ -245,15 +259,24 @@ for Case = case_ids
         end
         
         if mat_save == 1
+<<<<<<< HEAD
             resultsfilestr = strcat('../../MarketModel_Output/', ...
                 case_nam_array{Case+1}, '_', ren_tab_array{d}, '_DAM.mat');
             resultsfilestr = resultsfilestr(find(~isspace(resultsfilestr)));
+=======
+            resultsfilestr = ['../../MarketModel_Output/', ...
+                scen, date,'DAMRunData.mat'];
+>>>>>>> origin/dam_rtm_split
             save(resultsfilestr, 'DAMresults')
             %save(resultsfilestr, 'CC_results', 'DAMresults')
         end
         
         % Print completion message for this case and day
+<<<<<<< HEAD
         fprintf('DAM competed for Case %d on %s\n', Case, ren_tab_array{d})
+=======
+        fprintf('DAM competed for Case %d on %s\n', Case, date)
+>>>>>>> origin/dam_rtm_split
         
     end
 end
@@ -271,12 +294,16 @@ if RTM_option == 1
             
             if mat_save == 1
                 resultsfilestr = ['../../MarketModel_Output/', ...
-                    case_nam_array(Case+1),ren_tab_array(d),'RTCRunData.mat'];
+                    scen, date,'RTCRunData.mat'];
                 save(resultsfilestr, 'CC_results', 'Summaryy')
             end
             
             % Print completion message for this case and day
+<<<<<<< HEAD
             fprintf('RTM competed for Case %d on %s\n', Case, ren_tab_array{d})
+=======
+            fprintf('RTM competed for Case %d on %s\n', Case, date)
+>>>>>>> origin/dam_rtm_split
             
         end
     end
