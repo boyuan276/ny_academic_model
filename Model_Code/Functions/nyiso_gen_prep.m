@@ -58,7 +58,8 @@ for zn = zones
     unique_unit_type = unique(gen_type_by_zone{:,zone_num});
     jj = 1;
     for type = unique_unit_type'
-        type = cell2mat(type); 
+        type = cell2mat(type);
+        gen_agg_zone{jj,ii} = zn;
         gen_agg_cap{jj,ii} = sum(zone_gen_cap(ismember(gen_type_by_zone{:,zone_num}, type)));
         gen_agg_type{jj,ii} = type;
         c = zone_gen_fuel(ismember(gen_type_by_zone{:,zone_num}, type));
@@ -68,6 +69,58 @@ for zn = zones
     end
     ii = ii + 1;
 end
+
+% Print aggrigated generator information to screen
+Zone = cat(1,gen_agg_zone{:});
+Capacity = cat(1,gen_agg_cap{:});
+Type = cat(1,gen_agg_type{:});
+Fuel = cat(1,gen_agg_fuel(:));
+Fuel = Fuel(~cellfun('isempty',Fuel));
+
+% Write a NYAM Matpower case file
+mpc = loadcase('case_nyiso16');
+[A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, NYCA_Load_buses, NEw_Load_buses, PJM_Load_buses,...
+    A2F_load_bus_count,GHI_load_bus_count, NYC_load_bus_count, LIs_load_bus_count, NYCA_load_bus_count, NEw_load_bus_count, PJM_load_bus_count,...
+    A2F_Gen_buses, GHI_Gen_buses, NYC_Gen_buses, LIs_Gen_buses, NEw_Gen_buses, PJM_Gen_buses, ...
+    A2F_gen_bus_count, GHI_gen_bus_count, NYC_gen_bus_count, LIs_gen_bus_count, NEw_gen_bus_count, PJM_Gen_bus_count,...
+    A2F_RE_buses, GHI_RE_buses, NYC_RE_buses, LIs_RE_buses, NEw_RE_buses, PJM_RE_buses,...
+    A2F_gens, GHI_gens, NYC_gens, LIs_gens, NEw_gens, PJM_gens,...
+    map_Array, BoundedIF, lims_Array] = NYCArgnparms;
+
+
+% Randomly assign generators to generator buses within their region
+Bus = zeros(length(Zone), 1);
+for ii = 1:length(Zone)
+    if Zone(ii) == 'A' || Zone(ii) == 'B' || Zone(ii) == 'C' || Zone(ii) == 'D' || Zone(ii) == 'E' || Zone(ii) == 'F'
+        Bus(ii) = datasample(A2F_Gen_buses, 1);
+    elseif Zone(ii) == 'G' || Zone(ii) == 'H' || Zone(ii) == 'I'
+        Bus(ii) = datasample(GHI_Gen_buses, 1);
+    elseif Zone(ii) == 'J' 
+        Bus(ii) = datasample(NYC_Gen_buses, 1);
+    elseif Zone(ii) == 'K' 
+        Bus(ii) = datasample(LIs_Gen_buses, 1);
+    else
+        fprintf(2, 'Error: Zone %s does not exist', Zone(ii));
+        return
+    end   
+end
+
+T = table(Zone, Bus, Capacity, Type, Fuel);
+fprintf('--------------------------------------------------------------------------\n')
+fprintf('    Aggrigated Generator Summary\n')
+fprintf('--------------------------------------------------------------------------\n\n')
+disp(T)
+
+define_constants;
+len1 = length(mpc.gen(:,1));
+len2 = length(Zone);
+diff = len2 - len1;
+mpc.gen = [mpc.gen; repmat(mpc.gen(end,:),diff,1)]; 
+mpc.gen(:, BUS_I) = Bus;
+mpc.gen(:, PMAX) = Capacity;
+
+
+% savecase('case_nyiso_2019GB', mpc)
 
 end
 
