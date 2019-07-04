@@ -16,6 +16,10 @@ if ~exist('xl_range', 'var')
     xl_range = 'B9:S716';
 end
 
+%Create a path to the EPA data
+path_ren = '../data/epa_cems';
+addpath(genpath(path_ren))
+
 % Read & format generator data 
 fprintf(2,'Warning: this script was designed specifically for the 2019 Gold book data!\n\n')
 [~, ~, raw_gen_dat] = xlsread(in_file, xl_sheet, xl_range);

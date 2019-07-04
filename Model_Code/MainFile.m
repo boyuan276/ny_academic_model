@@ -33,10 +33,10 @@ tic
 
 %% Add Paths
 %Create a path to the 5 minute NYISO Load Data Stock
-path_5minLoad = '../NYISO Data/ActualLoad5min';
+path_5minLoad = '../data/ActualLoad5min';
 addpath(genpath(path_5minLoad))
 %Create a path to the Renewable Data
-path_ren = '../NYISO Data/renewableData';
+path_ren = '../data/renewableData';
 addpath(genpath(path_ren))
 %Create paths for supporting functions
 path_fxns = './Functions';
