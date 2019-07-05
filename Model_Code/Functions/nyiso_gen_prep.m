@@ -123,6 +123,9 @@ mpc.gen = [mpc.gen; repmat(mpc.gen(end,:),diff,1)];
 mpc.gen(:, BUS_I) = Bus;
 mpc.gen(:, PMAX) = Capacity;
 
+opts = detectImportOptions('cemsload_Feb18.csv');
+T = readtable('cemsload_Feb18.csv', opts);
+
 
 % savecase('case_nyiso_2019GB', mpc)
 
