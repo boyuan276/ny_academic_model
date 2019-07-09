@@ -1,7 +1,6 @@
 function [outDATA] = missing_data_NAN(inDATA)
 %missing_data_NAN replaces missing data with a NAN value
-%   inDATA     data vector that will have missing entries filled with NANs
-%   n          time interval (in hours)
+%   inDATA     data table that will have missing entries filled with NANs
 
 %Extract the column names
 cols = inDATA.Properties.VariableNames;
@@ -12,9 +11,13 @@ st_date.Format = 'MMM-dd-yyyy HH:mm:ss';
 end_date = inDATA{end,'Date'};
 end_date = datetime(end_date);
 st_date.Format = 'MMM-dd-yyyy HH:mm:ss';
-%Extract the interval
+%Extract the time interval
 dt = inDATA{2,'Date'} - inDATA{1,'Date'};
 n = hours(dt);
+%Ensure the incoming Type, Status, and Fuel are categorical arrays 
+inDATA.Type = categorical(inDATA.Type);
+inDATA.Status = categorical(inDATA.Status);
+inDATA.Fuel = categorical(inDATA.Fuel);
 
 %Generate all combination of days
 alldays = (st_date:hours(n):end_date)';
@@ -23,14 +26,12 @@ timeidx = ndgrid(1:numel(alldays));
 outDATA = table(NaN(numel(timeidx), 1), NaN(numel(timeidx), 1), ...
     alldays(timeidx(:)), NaN(numel(timeidx), 1),...
     NaN(numel(timeidx), 1), NaN(numel(timeidx), 1),...
-    NaN(numel(timeidx), 1),'VariableNames', cols); 
-%Loop through the columns
-%!If the table columns contain cells, these NaNs also must be within cells!
-for col = cols
-    if iscell(inDATA{1,col})
-        outDATA{:,col} = num2cell(outDATA{:,col});
-    end
-end
+    NaN(numel(timeidx), 1),'VariableNames', cols);
+%Convert Type, Status, and Fuel to categorical arrays
+outDATA.Type = categorical(outDATA.Type);
+outDATA.Status = categorical(outDATA.Status);
+outDATA.Fuel = categorical(outDATA.Fuel);
+
 %Find which dates are present in original data
 [isinorig, rowidx] = ismember(outDATA{:, 'Date'}, inDATA{:, 'Date'}, 'rows');
 %Overwrite the NANs with known data values
@@ -40,7 +41,6 @@ outDATA{isinorig, 'UnitID'} = ...
     inDATA{rowidx(isinorig), 'UnitID'}; 
 outDATA{isinorig, 'Load'} = ...
     inDATA{rowidx(isinorig), 'Load'}; 
-% I need to make outDATA{isinorig, 'Status'} a cells containing NaNs
 outDATA{isinorig, 'Status'} = ...
     inDATA{rowidx(isinorig), 'Status'}; 
 outDATA{isinorig, 'Type'} = ...

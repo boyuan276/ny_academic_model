@@ -40,10 +40,13 @@ for mo = months
     %Aggrigate units attached to each facility
     all_facility = unique(T_tmp{:,'FacilityID'});
     for fac = all_facility
-         
+        %Determine which units are attached to this facility
         
+        %Check for missing data data values for each unit
+         
+        %Aggrigate units after checking
     end
-    %Check for missing data data values
+    
     
     %Put table for each facility in the CEMS.data cell array
     if idx == 1
