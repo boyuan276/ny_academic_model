@@ -2,6 +2,12 @@ function [outDATA] = missing_data_NAN(inDATA)
 %missing_data_NAN replaces missing data with a NAN value
 %   inDATA     data table that will have missing entries filled with NANs
 
+%Ensure that you are not being passed an empty data table
+if isempty(inDATA)
+    fprintf(2,'ERROR: you have passed an empty data table to missing_data_NAN.m\n')
+    return
+end
+
 %Extract the column names
 cols = inDATA.Properties.VariableNames;
 %Extract the start and end date

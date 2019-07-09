@@ -12,7 +12,6 @@ months = {'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',...
 %Initialize the data structure
 CEMS.data = cell(1);
 CEMS.facilityID = [];
-idx = 1;
 for mo = months
     %Read data from the CSV file
     file = sprintf('cemsload_%s18.csv', cell2mat(mo));
@@ -36,24 +35,59 @@ for mo = months
     T_tmp(:,'Year') = [];
     T_tmp(:,'State') = [];
     T_tmp(:,'FacilityName') = [];
+    T_tmp.Type = categorical(T_tmp.Type);
+    T_tmp.Status = categorical(T_tmp.Status);
+    T_tmp.Fuel = categorical(T_tmp.Fuel);
     
     %Aggrigate units attached to each facility
     all_facility = unique(T_tmp{:,'FacilityID'});
-    for fac = all_facility
+    for ii = 1:length(all_facility)
         %Determine which units are attached to this facility
+        [isfac, rowidx] = ismember(T_tmp{:,'FacilityID'}, all_facility(ii), 'rows');
+        Fac_T_tmp = T_tmp(isfac,:);
+        all_units = unique(Fac_T_tmp{:,'UnitID'});
+        uidx = 1;
+        for jj = 1:length(all_units)
+            [isunit, rowidx] = ismember(Fac_T_tmp{:,'UnitID'}, all_units(jj), 'rows');
+            Unit_T_tmp = Fac_T_tmp(isunit,:);
+            %Check for missing data data values for each unit
+            Unit_T_tmp = missing_data_NAN(Unit_T_tmp);
+            %Aggrigate units after checking
+            if uidx == 1
+                Fac_T_agg = Unit_T_tmp;
+            else
+                Fac_T_agg{:,'Load'} = nansum([Fac_T_agg{:,'Load'}, Unit_T_tmp{:,'Load'}], 2);
+                if isempty(Fac_T_agg{isundefined(Fac_T_agg{:,'Status'}),'Status'}) == 0
+                    Fac_T_agg{isundefined(Fac_T_agg{:,'Status'}),'Status'} = ...
+                        Unit_T_tmp{isundefined(Fac_T_agg{:,'Status'}),'Status'};
+                end
+                if isempty(Fac_T_agg{isundefined(Fac_T_agg{:,'Type'}),'Type'}) == 0
+                    Fac_T_agg{isundefined(Fac_T_agg{:,'Type'}),'Type'} = ...
+                        Unit_T_tmp{isundefined(Fac_T_agg{:,'Type'}),'Type'};
+                end
+                if isempty(Fac_T_agg{isundefined(Fac_T_agg{:,'Fuel'}),'Fuel'}) == 0
+                    Fac_T_agg{isundefined(Fac_T_agg{:,'Fuel'}),'Fuel'} = ...
+                        Unit_T_tmp{isundefined(Fac_T_agg{:,'Fuel'}),'Fuel'};
+                end
+            end
+            uidx = uidx + 1;
+        end
+        %Determine if the facility already exists in the CEMS structure
+        [incems, rowidx] = ismember(all_facility(ii), CEMS.facilityID);
+        %Put table for each facility in the CEMS.data cell array
+        if incems
+            CEMS.data{rowidx} = [CEMS.data{rowidx}; Fac_T_agg];
+        else
+            if isempty(CEMS.data{end})
+                CEMS.data{end} = Fac_T_agg;
+            else
+                CEMS.data{end+1} = Fac_T_agg;
+            end
+            CEMS.facilityID = [CEMS.facilityID; all_facility(ii)];
+        end
         
-        %Check for missing data data values for each unit
-         
-        %Aggrigate units after checking
     end
     
     
-    %Put table for each facility in the CEMS.data cell array
-    if idx == 1
-        CEMS.data{idx} = T_tmp;
-    else
-        CEMS.data{idx} = [CEMS.data{idx}; T_tmp];
-    end
-    idx = idx + 1;
 end
 
