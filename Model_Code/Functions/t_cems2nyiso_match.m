@@ -46,6 +46,10 @@ for mo = months
         [isfac, rowidx] = ismember(T_tmp{:,'FacilityID'}, all_facility(ii), 'rows');
         Fac_T_tmp = T_tmp(isfac,:);
         all_units = unique(Fac_T_tmp{:,'UnitID'});
+        %If there are NaNs in the Unit IDs, aggrigate them into Unit 999
+        if sum(isnan(all_units)) ~= 0
+            [Fac_T_tmp, all_units] = agg_NAN_units(Fac_T_tmp, all_units);
+        end
         uidx = 1;
         for jj = 1:length(all_units)
             [isunit, rowidx] = ismember(Fac_T_tmp{:,'UnitID'}, all_units(jj), 'rows');
