@@ -1,7 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script preprocesses EPA AMPD. Specifically, this data was contained
+% within the RGGI hourly unit-level emissions data database. Only data for
+% 2018 was downloaded initially, but in principle, this script should work
+% for any year of data as long as long as there is a file corresponding to
+% each entry in the 'months' cell array.
+%
+% This script writes a .mat file called 'CEMSbyfacility<year>.mat'.
+%
+% Created by Jeff Sward 07/11/2019.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear
 clc
 
-%Import the CEMS data
+% Set the data year for output file for input/output file naming purposes.
+yr = 2018;
+yrstr = num2str(yr);
+yrstr = yrstr(end-1:end);
+optfile = sprintf('cemsload_Feb%s.csv',yrstr);
+outfile = sprintf('CEMSbyfacility%s.mat',yrstr);
 
 % For some reason, not all of these CSVs result in the same opts from the
 % following function. The following one works correctly
@@ -92,6 +109,6 @@ for mo = months
         
     end
     
-    
 end
 
+save(outfile, 'CEMS')

@@ -8,6 +8,7 @@ if ~exist('in_file', 'var')
     % You must be in the Functions directory of the NYAM code for this to
     % work!
     in_file = '../../Excel Files/2019-NYCA-Generators.xlsx';
+%     in_file = '../../Excel Files/2019-NYCA-Generators.csv';
 end
 if ~exist('xl_sheet', 'var')
     xl_sheet = 'NYCA_2019';
@@ -16,18 +17,33 @@ if ~exist('xl_range', 'var')
     xl_range = 'B9:S716';
 end
 
-%Create a path to the EPA data
-path_ren = '../data/epa_cems';
-addpath(genpath(path_ren))
+%Load facility-level generator data from EPA AMPD
+path_cems = '../data/epa_cems';
+addpath(genpath(path_cems))
+yr = 2018;
+yrstr = num2str(yr);
+yrstr = yrstr(end-1:end);
+infile = sprintf('CEMSbyfacility%s.mat',yrstr);
+load(infile,'CEMS')
 
 % Read & format generator data 
 fprintf(2,'Warning: this script was designed specifically for the 2019 Gold book data!\n\n')
 [~, ~, raw_gen_dat] = xlsread(in_file, xl_sheet, xl_range);
 gen_zone = cell2mat(raw_gen_dat(:,3));
+gen_ptid = raw_gen_dat(:,4);
+for ii = 1:length(gen_ptid)
+    if isstr(gen_ptid{ii})
+        gen_ptid{ii} = str2num(gen_ptid{ii});
+    end
+end
+gen_ptid = cell2mat(gen_ptid);
 gen_cap = cell2mat(raw_gen_dat(:,9));
 gen_type = raw_gen_dat(:,15);
 gen_fuel = raw_gen_dat(:,16);
 gen_in_2018 = cell2mat(raw_gen_dat(:,18));
+
+%Match NYISO facilities to NY RGGI facilities
+
 
 % Sort generators by zone 
 gen_cap_by_zone = {gen_cap(gen_zone == 'A') gen_cap(gen_zone == 'B') ...
@@ -123,8 +139,9 @@ mpc.gen = [mpc.gen; repmat(mpc.gen(end,:),diff,1)];
 mpc.gen(:, BUS_I) = Bus;
 mpc.gen(:, PMAX) = Capacity;
 
-% opts = detectImportOptions('cemsload_Feb18.csv');
-% T = readtable('cemsload_Feb18.csv', opts);
+%Extract generator minimums from the CEMS data
+
+%Extract ramping rates from the CEMS data
 
 
 % savecase('case_nyiso_2019GB', mpc)
