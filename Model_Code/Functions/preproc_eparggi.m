@@ -28,7 +28,7 @@ months = {'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',...
 
 %Initialize the data structure
 CEMS.data = cell(1);
-CEMS.facilityID = [];
+CEMS.facilityNAME = [];
 for mo = months
     %Read data from the CSV file
     file = sprintf('cemsload_%s18.csv', cell2mat(mo));
@@ -51,16 +51,16 @@ for mo = months
     T_tmp(:,'Hour') = [];
     T_tmp(:,'Year') = [];
     T_tmp(:,'State') = [];
-    T_tmp(:,'FacilityName') = [];
+%     T_tmp(:,'FacilityName') = [];
     T_tmp.Type = categorical(T_tmp.Type);
     T_tmp.Status = categorical(T_tmp.Status);
     T_tmp.Fuel = categorical(T_tmp.Fuel);
     
-    %Aggrigate units attached to each facility
-    all_facility = unique(T_tmp{:,'FacilityID'});
+    %Separate units based upon facility name
+    all_facility = unique(T_tmp{:,'FacilityName'});
     for ii = 1:length(all_facility)
         %Determine which units are attached to this facility
-        [isfac, rowidx] = ismember(T_tmp{:,'FacilityID'}, all_facility(ii), 'rows');
+        isfac = strcmp(T_tmp{:,'FacilityName'}, all_facility(ii));
         Fac_T_tmp = T_tmp(isfac,:);
         all_units = unique(Fac_T_tmp{:,'UnitID'});
         %If there are NaNs in the Unit IDs, aggrigate them into Unit 999
@@ -69,7 +69,7 @@ for mo = months
         end
         uidx = 1;
         for jj = 1:length(all_units)
-            [isunit, rowidx] = ismember(Fac_T_tmp{:,'UnitID'}, all_units(jj), 'rows');
+            isunit = ismember(Fac_T_tmp{:,'UnitID'}, all_units(jj), 'rows');
             Unit_T_tmp = Fac_T_tmp(isunit,:);
             %Check for missing data data values for each unit
             Unit_T_tmp = missing_data_NAN(Unit_T_tmp);
@@ -94,9 +94,10 @@ for mo = months
             uidx = uidx + 1;
         end
         %Determine if the facility already exists in the CEMS structure
-        [incems, rowidx] = ismember(all_facility(ii), CEMS.facilityID);
+        incems = strcmp(all_facility(ii), CEMS.facilityNAME);
         %Put table for each facility in the CEMS.data cell array
         if incems
+            rowidx = find(incems);
             CEMS.data{rowidx} = [CEMS.data{rowidx}; Fac_T_agg];
         else
             if isempty(CEMS.data{end})
@@ -104,7 +105,7 @@ for mo = months
             else
                 CEMS.data{end+1} = Fac_T_agg;
             end
-            CEMS.facilityID = [CEMS.facilityID; all_facility(ii)];
+            CEMS.facilityNAME = [CEMS.facilityNAME; all_facility(ii)];
         end
         
     end
