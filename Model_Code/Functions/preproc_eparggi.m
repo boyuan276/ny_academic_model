@@ -95,6 +95,7 @@ for mo = months
         end
         %Determine if the facility already exists in the CEMS structure
         incems = strcmp(all_facility(ii), CEMS.facilityNAME);
+        incems = sum(incems) > 0;
         %Put table for each facility in the CEMS.data cell array
         if incems
             rowidx = find(incems);

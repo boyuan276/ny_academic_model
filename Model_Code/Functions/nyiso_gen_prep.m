@@ -135,7 +135,7 @@ define_constants;
 len1 = length(mpc.gen(:,1));
 len2 = length(Zone);
 diff = len2 - len1;
-mpc.gen = [mpc.gen; repmat(mpc.gen(end,:),diff,1)]; 
+mpc.gen = [mpc.gen; repmat(mpc.gen(end,:), diff, 1)]; 
 mpc.gen(:, BUS_I) = Bus;
 mpc.gen(:, PMAX) = Capacity;
 
