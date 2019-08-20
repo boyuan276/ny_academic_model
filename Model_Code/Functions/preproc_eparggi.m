@@ -28,7 +28,7 @@ months = {'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',...
 
 %Initialize the data structure
 CEMS.data = cell(1);
-CEMS.facilityNAME = [];
+CEMS.facilityID = [];
 for mo = months
     %Read data from the CSV file
     file = sprintf('cemsload_%s18.csv', cell2mat(mo));
@@ -56,11 +56,11 @@ for mo = months
     T_tmp.Status = categorical(T_tmp.Status);
     T_tmp.Fuel = categorical(T_tmp.Fuel);
     
-    %Separate units based upon facility name
-    all_facility = unique(T_tmp{:,'FacilityName'});
+    %Separate units based upon facility ID
+    all_facility = unique(T_tmp{:,'FacilityID'});
     for ii = 1:length(all_facility)
         %Determine which units are attached to this facility
-        isfac = strcmp(T_tmp{:,'FacilityName'}, all_facility(ii));
+        isfac = ismember(T_tmp{:,'FacilityID'}, all_facility(ii), 'rows');
         Fac_T_tmp = T_tmp(isfac,:);
         all_units = unique(Fac_T_tmp{:,'UnitID'});
         %If there are NaNs in the Unit IDs, aggrigate them into Unit 999
@@ -94,8 +94,7 @@ for mo = months
             uidx = uidx + 1;
         end
         %Determine if the facility already exists in the CEMS structure
-        incems = strcmp(all_facility(ii), CEMS.facilityNAME);
-        incems = sum(incems) > 0;
+        incems = ismember(CEMS.facilityID, all_facility(ii));
         %Put table for each facility in the CEMS.data cell array
         if incems
             rowidx = find(incems);
@@ -106,7 +105,7 @@ for mo = months
             else
                 CEMS.data{end+1} = Fac_T_agg;
             end
-            CEMS.facilityNAME = [CEMS.facilityNAME; all_facility(ii)];
+            CEMS.facilityID = [CEMS.facilityID; all_facility(ii)];
         end
         
     end
