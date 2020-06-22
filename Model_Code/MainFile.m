@@ -11,7 +11,7 @@
 %%%%% probably should not be happening, but it may be due to a bug in my
 %%%%% code or the complexity of the optimization. 
 
-%%%%% Figures should be added to separte functions.
+%%%%% Figures should be added to separate functions.
 
 %%%%% Should be able to give an input date and the model will get necessary
 %%%%% load data as well as renewable profile data. 
@@ -185,7 +185,7 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 VERBOSE = 0;
 
 % Visualize input renewable energy profiles [1 = yes; 0 = no]
-vis_prof = 0; 
+vis_prof = 1; 
 
 input_params = [
     IFlims;

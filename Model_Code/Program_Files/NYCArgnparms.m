@@ -26,7 +26,8 @@ NYCA_load_bus_count = length(NYCA_Load_buses);
 NEw_load_bus_count = length(NEw_Load_buses);
 PJM_load_bus_count = length(PJM_Load_buses);
 
-%% Define Gen Buses by zone. %%%%% I changed these from column vectors to
+%% Define Gen Buses by zone. 
+%%%%% I changed these from column vectors to
 % row vectors, which I checked, and I don't think will cause problems, but
 % I wanted to include this note for sanity's sake.
 %A2F_Gen_buses = [62 63 64 65 66 67 68];
@@ -44,7 +45,8 @@ LIs_gen_bus_count = length(LIs_Gen_buses);
 NEw_gen_bus_count = length(NEw_Gen_buses);
 PJM_Gen_bus_count = length(PJM_Gen_buses);
 
-%% Define Renewable Energy Buses by zone. %%%%% I pulled these arrays out of
+%% Define Renewable Energy Buses by zone. 
+%%%%% I pulled these arrays out of
 % the RunDAM.m, but I don't actually know where the values within them
 % come from. Perhaps they are all proper, but I don't have a physical
 % topological map of the system... I should probablly make one.
@@ -55,7 +57,8 @@ LIs_RE_buses = [20 21 35 36 20 21];
 NEw_RE_buses = [];
 PJM_RE_buses = [];
 
-%% Define Generators by zone. This is a 16 generator model; what are the
+%% Define Generators by zone. 
+%%%% This is a 16 generator model; what are the
 % remaining 17 - 59?????
 A2F_gens = [1  4  5 10 25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
 GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];

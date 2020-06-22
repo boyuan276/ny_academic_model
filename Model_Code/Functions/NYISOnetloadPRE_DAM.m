@@ -37,7 +37,7 @@ if nargin < 3
 end       
 
 %Define the filename
-m_file_loc = '../NYISO Data/ActualLoad5min/';
+m_file_loc = 'NYISO Data/ActualLoad5min/';
 
 
 if exist(strcat(m_file_loc,date,'pal.mat'),'file')  < 1
