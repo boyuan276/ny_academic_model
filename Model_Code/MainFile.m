@@ -62,8 +62,8 @@ fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 % Pick Date Range
 days = [1];
 d_start = 1;
-date = 'Jan-19-2016';
-% date = 'Mar-22-2016';
+% date = 'Jan-19-2016';
+date = 'Mar-22-2016';
 % date = 'Jul-25-2016';
 % date = 'Nov-10-2016';
 
@@ -185,7 +185,7 @@ most_period_count_DAM = 24; % This corresponds to a 24h DAM.
 VERBOSE = 0;
 
 % Visualize input renewable energy profiles [1 = yes; 0 = no]
-vis_prof = 1; 
+vis_prof = 0; 
 
 input_params = [
     IFlims;
