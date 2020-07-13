@@ -1,4 +1,7 @@
 function mpc = testcase_3
+%% Generator scenario 3 from Leah's thesis
+% 2023 & 2024 Peaker Rule: additional capacity retired
+
 %MATPOWER Case Format : Version 2
 mpc.version = '2';
 

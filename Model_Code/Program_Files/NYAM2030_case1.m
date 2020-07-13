@@ -1,9 +1,7 @@
 function [wind, hydro, pv, btm, bio, lfg, ees, ev, stoch, Case_Name_String]... 
      = NYAM2030_case1(wind, hydro, pv, btm, bio, lfg)
-%NYAM2030 contains the future capacity values for the 2030 case compiled by
-%Steve Burchett and the NYISO
-%   Detailed explanation of data sources and assumptions should be
-%   included here.
+%% Scenario 1 of renewable integration in Leah's thesis
+% Base case + capacities of future projects from the NYISO 2018 Gold Book
 
 Case_Name_String = '2030 Scenario';
 
