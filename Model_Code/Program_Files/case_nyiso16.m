@@ -1,5 +1,13 @@
 function mpc = case_nyiso16
-%MATPOWER Case Format : Version 2
+% Case file defines parameters of buses, generators, branches, and
+% generator costs. Only thermal generators and imports are included now.
+
+% 2016 NPCC 68-bus 16-machine system, developed in 1980s, include NYISO,
+% ISONE, parts of PJM, and eastern Canada. NPCC model's parameters, R, X,
+% B were adjusted to represent NYS power system. An exact match was
+% intentionally avoided to protect confidential information.
+
+% MATPOWER Case Format : Version 2
 mpc.version = '2';
 
 % system MVA base
