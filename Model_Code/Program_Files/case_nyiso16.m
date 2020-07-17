@@ -7,6 +7,9 @@ function mpc = case_nyiso16
 % B were adjusted to represent NYS power system. An exact match was
 % intentionally avoided to protect confidential information.
 
+% 68 buses = 52 load buses + 14 generator buses + 1 reference bus + 1 bus
+% for 2016 ITM renewables
+
 % MATPOWER Case Format : Version 2
 mpc.version = '2';
 

@@ -1,6 +1,6 @@
 function mpc = testcase_1
-%% Generator scenario 1 from Leah's thesis
-% Generator data derived from RGGI data
+% Generator scenario 1 from Leah's thesis
+% Generator data derived from 2019 RGGI data
 
 %MATPOWER Case Format : Version 2
 mpc.version = '2';

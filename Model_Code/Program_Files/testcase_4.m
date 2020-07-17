@@ -1,7 +1,7 @@
 function mpc = testcase_4
-%% Generator scenario 4 from Leah's thesis
+% Generator scenario 4 from Leah's thesis
 % 2025 Peaker Rule: Gas turbine units of NYC and LI removed
-
+    
 %MATPOWER Case Format : Version 2
 mpc.version = '2';
 

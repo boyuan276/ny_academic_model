@@ -1,5 +1,5 @@
 function mpc = testcase_2
-%% Generator scenario 2 from Leah's thesis
+% Generator scenario 2 from Leah's thesis
 % 2021 Peaker Rule: coal generators are eliminated
 
 %MATPOWER Case Format : Version 2
