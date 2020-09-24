@@ -61,7 +61,7 @@ vis_prof = input_params(44);
 define_constants;
 
 %Define initial data
-casefile = 'case_nyiso16'; %!!!!!
+casefile = 'case_nyiso_19'; %!!!!!
 mpc = loadcase(casefile);
 xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
 

@@ -74,7 +74,7 @@ date = 'Mar-22-2016';
 %%%%% will be phased out at some point.
 
 % Provide an input scenario
-scen = 'NYAM2030';
+scen = 'NYAM2019_base';
 case_ids = [1];
 case_start = 0;
 
