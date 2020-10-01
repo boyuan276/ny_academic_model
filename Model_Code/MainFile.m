@@ -63,9 +63,9 @@ fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 days = [1];
 d_start = 1;
 % date = 'Jan-19-2016';
-date = 'Mar-22-2016';
+% date = 'Mar-22-2016';
 % date = 'Jul-25-2016';
-% date = 'Nov-10-2016';
+date = 'Nov-10-2016';
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
 %%%%% Origional cases are based off NYSERDA projections
@@ -76,10 +76,10 @@ date = 'Mar-22-2016';
 % Provide an input scenario
 scen = 'NYAM2019_base';
 case_ids = [1];
-case_start = 0;
+case_start = 1;
 
 % Figure output method
-Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
+Fig_save = 1;               %%[1 = save to pdf; 0 = output to screen]
 
 % Do you want to write data to an output file?
 mat_save = 0;               %%[1 = yes; 0 = no]
