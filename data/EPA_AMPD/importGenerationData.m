@@ -30,17 +30,17 @@ opts.DataLines = dataLines;
 opts.Delimiter = ",";
 
 % Specify column names and types
-opts.VariableNames = ["Var1", "FacilityName", "FacilityID", "UnitID", "Var5", "Var6", "Date", "Hour", "OperatingTime", "GrossLoadMW", "Var11", "Var12", "Var13", "Var14", "Var15", "Var16", "County", "Var18", "Var19", "Var20", "Var21", "UnitType", "FuelTypePrimary", "Var24", "FacilityLatitude", "FacilityLongitude"];
-opts.SelectedVariableNames = ["FacilityName", "FacilityID", "UnitID", "Date", "Hour", "OperatingTime", "GrossLoadMW", "County", "UnitType", "FuelTypePrimary", "FacilityLatitude", "FacilityLongitude"];
-opts.VariableTypes = ["string", "categorical", "categorical", "categorical", "string", "string", "datetime", "double", "double", "double", "string", "string", "string", "string", "string", "string", "categorical", "string", "string", "string", "string", "categorical", "categorical", "string", "double", "double"];
+opts.VariableNames = ["Var1", "FacilityName", "FacilityID", "UnitID", "Var5", "Var6", "Date", "Hour", "OperatingTime", "GrossLoadMW", "Var11", "Var12", "Var13", "Var14", "Var15", "HeatInputMMBtu", "County", "Var18", "Var19", "Var20", "Var21", "UnitType", "FuelTypePrimary", "Var24", "FacilityLatitude", "FacilityLongitude"];
+opts.SelectedVariableNames = ["FacilityName", "FacilityID", "UnitID", "Date", "Hour", "OperatingTime", "GrossLoadMW", "County", "UnitType", "HeatInputMMBtu", "FuelTypePrimary", "FacilityLatitude", "FacilityLongitude"];
+opts.VariableTypes = ["string", "categorical", "categorical", "categorical", "string", "string", "datetime", "double", "double", "double", "string", "string", "string", "string", "string", "double", "categorical", "string", "string", "string", "string", "categorical", "categorical", "string", "double", "double"];
 
 % Specify file level properties
 opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 
 % Specify variable properties
-opts = setvaropts(opts, ["Var1", "Var5", "Var6", "Var11", "Var12", "Var13", "Var14", "Var15", "Var16", "Var18", "Var19", "Var20", "Var21", "Var24"], "WhitespaceRule", "preserve");
-opts = setvaropts(opts, ["Var1", "FacilityName", "FacilityID", "UnitID", "Var5", "Var6", "Var11", "Var12", "Var13", "Var14", "Var15", "Var16", "County", "Var18", "Var19", "Var20", "Var21", "UnitType", "FuelTypePrimary", "Var24"], "EmptyFieldRule", "auto");
+opts = setvaropts(opts, ["Var1", "Var5", "Var6", "Var11", "Var12", "Var13", "Var14", "Var15", "Var18", "Var19", "Var20", "Var21", "Var24"], "WhitespaceRule", "preserve");
+opts = setvaropts(opts, ["Var1", "FacilityName", "FacilityID", "UnitID", "Var5", "Var6", "Var11", "Var12", "Var13", "Var14", "Var15", "County", "Var18", "Var19", "Var20", "Var21", "UnitType", "FuelTypePrimary", "Var24"], "EmptyFieldRule", "auto");
 opts = setvaropts(opts, "Date", "InputFormat", "MM/dd/yyyy");
 
 % Import the data
@@ -48,5 +48,5 @@ generation = readtable(filename, opts);
 
 % Replacing GrossLoad NaN with 0
 generation.GrossLoadMW(ismissing(generation.GrossLoadMW)) = 0;
-
+generation.HeatInputMMBtu(ismissing(generation.HeatInputMMBtu)) = 0;
 end
