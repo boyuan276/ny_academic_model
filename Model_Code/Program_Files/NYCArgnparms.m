@@ -10,12 +10,14 @@ function [A2F_Load_buses, GHI_Load_buses, NYC_Load_buses, LIs_Load_buses, NYCA_L
 %   Detailed explanation goes here
 
 %% Define Load Buses by zone
+% These are indices of PQ buses with non-zero load. Some PQ buses have zero
+% load and they are not included in the following arrays.
 A2F_Load_buses = [1 9 33 36 37 39 40 41 42 44 45 46 47 48 49 50 51 52];
 GHI_Load_buses = [3 4 7 8 25];
 NYC_Load_buses = [12 15 16 18 20 27];
 LIs_Load_buses = [21 23 24];
 NYCA_Load_buses = [A2F_Load_buses GHI_Load_buses NYC_Load_buses LIs_Load_buses];
-NEw_Load_buses = [];
+NEw_Load_buses = [26 28 29];
 PJM_Load_buses = [];
 
 A2F_load_bus_count = length(A2F_Load_buses);
@@ -58,8 +60,9 @@ NEw_RE_buses = [];
 PJM_RE_buses = [];
 
 %% Define Generators by zone. 
-%%%% This is a 16 generator model; what are the
-% remaining 17 - 59?????
+%%%% The first few elements are generator indices in mpc.gen matrix
+% The rest elements are same as RE_buses indiced above
+% This doesn't make sense since it's a mix of bus indices and gen indices.
 A2F_gens = [1  4  5 10 25 26 27 28 29 40 41 42 43 44 55 56 57 58 59]; 
 GHI_gens = [2  3  6 15 16 22 30 31 37 45 46 52];
 NYC_gens = [7 11 12 17 18 19 32 33 34 47 48 49];
@@ -69,21 +72,28 @@ PJM_gens = [];
 
 
 %% Add Transmission Interface Limits
+%%%% The first column is the group of interface limitation. The second column
+% is the branch index in mpc.branch matrix. The sign shows positve flow
+% direction (from_bus to to_bus)or negative flow direction.
+% Steve only studied the Central-East congestion which is the first group
+% of interface limits. The other interface limits were not studied by
+% setting high limitations in the lims_Array shown below.
 map_Array  = [  
-    1 -16;
-    1   1;
-    2 -16;
-    2   1;
-    2  86;
-    3  13;
-    3   9;
-    3   7;
-    4  28;
-    4  29;];
+    1 -16; % A2F bus 8 - GHI bus 9
+    1   1; % A2F bus 1 - GHI bus 2
+    2 -16; % A2F bus 8 - GHI bus 9
+    2   1; % A2F bus 1 - GHI bus 2
+    2  86; % A2F bus 1 - J bus 27 (goes through GHI)
+    3  13; % GHI bus 6 - J bus 11
+    3   9; % GHI bus 4 - J bus 14
+    3   7; % GHI bus 3 - J bus 18
+    4  28; % J bus 16 - K bus 21
+    4  29;]; % J bus 16 - K bus 24
 
 %Row of lims_Array with limits
+% Only study Central-East interface limit
 BoundedIF = 1; 
-
+% IF group, Min flow, Max flow
 lims_Array = [
     1 -2700 2700;
     2 -9000 9000;

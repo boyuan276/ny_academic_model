@@ -79,7 +79,7 @@ case_ids = [1];
 case_start = 1;
 
 % Figure output method
-Fig_save = 1;               %%[1 = save to pdf; 0 = output to screen]
+Fig_save = 0;               %%[1 = save to pdf; 0 = output to screen]
 
 % Do you want to write data to an output file?
 mat_save = 0;               %%[1 = yes; 0 = no]
