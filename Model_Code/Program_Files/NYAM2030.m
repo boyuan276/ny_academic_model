@@ -72,7 +72,7 @@ ees.PJM_cap     =    0 + 0;
 
 % EXISTING renewable capacity in A2F (values here are for 2016. Other 
 % regions are set to zero installed capacity due to low penetration).
-% This could actually be the incremental capacity
+% These are actually the incremental capacity
 % Existing renewable capacity in A2F
 wind.A2F_exist_cap  = 4189;
 hydro.A2F_exist_cap =  542;

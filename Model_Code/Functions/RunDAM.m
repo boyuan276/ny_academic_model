@@ -68,17 +68,23 @@ xgd = loadxgendata('xgd_DAM' , mpc); %!!!!!
 %Determine number of thermal gens
 [therm_gen_count,~] =  size(mpc.gen(:, GEN_BUS));
 
-%Reduce RAMP!
+%Increase ramp rate
 %%%%%Why are only generators 4 - 11 included in this? Generators 12 & 13
-%%%%%are gas turbines, so should be included, and 9 -- the NEISO import --
-%%%%%should probably not be. 
+%%%%%are gas turbines, so should be included, and 9 -- the IOSNE import --
+%%%%%should probably not be. (from Jeff)
+%%%%Generators 1-3 are nuclear generators and their ramp rates are
+%%%%already very low. Generator 12-13 are gas turbines so they have to keep
+%%%%high ramp rates to deal with renewable integration. We only increase
+%%%%ramp rate of ST and CC units.
 if IncreasedDAMramp == 1
     for col = [RAMP_AGC, RAMP_10, RAMP_30] 
         mpc.gen(4:11,col) = mpc.gen(4:11,col).*DAMrampFactor; 
     end
 end
 
-%Retire a Nuke Unit?
+%Retire a GHI Nuke Unit?
+%[2 = eliminate one of the GHI nuke plants; 1 = allow all nukes to
+%operate]. CommitKey = -1 makes the unit offline
 for gen = 2:killNuke
     xgd.CommitKey(gen) = -1;
 end

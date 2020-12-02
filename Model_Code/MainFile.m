@@ -74,7 +74,7 @@ date = 'Nov-10-2016';
 %%%%% will be phased out at some point.
 
 % Provide an input scenario
-scen = 'NYAM2019_base';
+scen = 'NYAM2030_base';
 case_ids = [1];
 case_start = 1;
 
@@ -131,14 +131,14 @@ hydroCurtFactor = 0;
 otherCurtFactor = 0;
 
 % Increase the Ramp Rate: [1 = yes; 0 = no]
-IncreasedDAMramp = 0; %reduces Steam and CC units ramp rate in DAM
-IncreasedRTCramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTDramp_Steam = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTCramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
-IncreasedRTDramp_CC = 1; %reduces Steam and CC units ramp rate in RTC
+IncreasedDAMramp = 0; %increase Steam and CC units ramp rate in DAM
+IncreasedRTCramp_Steam = 1; %increase Steam units ramp rate in RTC
+IncreasedRTDramp_Steam = 1; %increase Steam units ramp rate in RTD
+IncreasedRTCramp_CC = 1; %increase CC units ramp rate in RTC
+IncreasedRTDramp_CC = 1; %increase CC units ramp rate in RTD
 
 % How much should we increase Ramp Rate beyond original mpc.gen input from
-% "Matpower Input Data" excel file?
+% the original mpc settings
 DAMrampFactor = 1.0; %Don't ever change this from 1.0   WHY?????
 RTCrampFactor_Steam = 1.1;
 RTDrampFactor_Steam = 1.1;
