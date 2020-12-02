@@ -63,9 +63,9 @@ fprintf('Changing font sizes to %d and line width = %.1f\n',FS,LW)
 days = [1];
 d_start = 1;
 % date = 'Jan-19-2016';
-% date = 'Mar-22-2016';
+date = 'Mar-22-2016';
 % date = 'Jul-25-2016';
-date = 'Nov-10-2016';
+% date = 'Nov-10-2016';
 
 % Pick Case: 0 = Base Case, 1 = 2030 Case, 2 = 2X2030 Case, 3 = 3X2030 Case
 %%%%% Origional cases are based off NYSERDA projections

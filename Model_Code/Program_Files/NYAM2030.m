@@ -74,99 +74,41 @@ ees.PJM_cap     =    0 + 0;
 % regions are set to zero installed capacity due to low penetration).
 % These are actually the incremental capacity
 % Existing renewable capacity in A2F
-wind.A2F_exist_cap  = 4189;
-hydro.A2F_exist_cap =  542;
-pv.A2F_exist_cap    = 3044;
-btm.A2F_exist_cap   = 1358;
-bio.A2F_exist_cap   =  122;
-lfg.A2F_exist_cap   =   13;
-ees.A2F_exist_cap   =    0;
-
-
-% Existing renewable capacity in GHI
-wind.GHI_exist_cap  =    0;
-hydro.GHI_exist_cap =   45;
-pv.GHI_exist_cap    =  438;
-btm.GHI_exist_cap   =  793;
-bio.GHI_exist_cap   =    0;
-lfg.GHI_exist_cap   =    3;
-ees.GHI_exist_cap   =    0;
-
-
-% Existing renewable capacity in NYC
-wind.NYC_exist_cap  =  408;
-hydro.NYC_exist_cap =    0;
-pv.NYC_exist_cap    =    0;
-btm.NYC_exist_cap   =  419;
-bio.NYC_exist_cap   =    0;
-lfg.NYC_exist_cap   =   34;
-ees.NYC_exist_cap   =    0;
-
-% Existing renewable capacity on LI
-wind.LIs_exist_cap  =  591;
-hydro.LIs_exist_cap =    0;
-pv.LIs_exist_cap    =  373;
-btm.LIs_exist_cap   = 1069;
-bio.LIs_exist_cap   =    0;
-lfg.LIs_exist_cap   =    3;
-ees.LIs_exist_cap   =    0;
-
-% Existing renewable capacity in NE
-wind.NEw_exist_cap  =    0;
-hydro.NEw_exist_cap =    0;
-pv.NEw_exist_cap    =    0;
-btm.NEw_exist_cap   =    0;
-bio.NEw_exist_cap   =    0;
-lfg.NEw_exist_cap   =    0;
-ees.NEw_exist_cap   =    0;
-
-% Existing renewable capacity in PJM
-wind.PJM_exist_cap  =    0;
-hydro.PJM_exist_cap =    0;
-pv.PJM_exist_cap    =    0;
-btm.PJM_exist_cap   =    0;
-bio.PJM_exist_cap   =    0;
-lfg.PJM_exist_cap   =    0;
-ees.PJM_exist_cap   =    0;
-
-%% Real existing capacity in 2016
-% EXISTING renewable capacity in A2F (values here are for 2016. Other 
-% regions are set to zero installed capacity due to low penetration).
-% wind.A2F_exist_cap  = 1755;
-% hydro.A2F_exist_cap = 5219;
-% pv.A2F_exist_cap    =    0;
-% btm.A2F_exist_cap   =  266;
-% bio.A2F_exist_cap   =  148;
-% lfg.A2F_exist_cap   =  126;
+% wind.A2F_exist_cap  = 4189;
+% hydro.A2F_exist_cap =  542;
+% pv.A2F_exist_cap    = 3044;
+% btm.A2F_exist_cap   = 1358;
+% bio.A2F_exist_cap   =  122;
+% lfg.A2F_exist_cap   =   13;
 % ees.A2F_exist_cap   =    0;
 % 
 % 
 % % Existing renewable capacity in GHI
 % wind.GHI_exist_cap  =    0;
-% hydro.GHI_exist_cap =    0;
-% pv.GHI_exist_cap    =    0;
-% btm.GHI_exist_cap   =  155;
+% hydro.GHI_exist_cap =   45;
+% pv.GHI_exist_cap    =  438;
+% btm.GHI_exist_cap   =  793;
 % bio.GHI_exist_cap   =    0;
-% lfg.GHI_exist_cap   =    0;
+% lfg.GHI_exist_cap   =    3;
 % ees.GHI_exist_cap   =    0;
 % 
 % 
 % % Existing renewable capacity in NYC
-% wind.NYC_exist_cap  =    0;
+% wind.NYC_exist_cap  =  408;
 % hydro.NYC_exist_cap =    0;
 % pv.NYC_exist_cap    =    0;
-% btm.NYC_exist_cap   =   82;
+% btm.NYC_exist_cap   =  419;
 % bio.NYC_exist_cap   =    0;
-% lfg.NYC_exist_cap   =    0;
+% lfg.NYC_exist_cap   =   34;
 % ees.NYC_exist_cap   =    0;
 % 
 % % Existing renewable capacity on LI
-% wind.LIs_exist_cap  =    0;
+% wind.LIs_exist_cap  =  591;
 % hydro.LIs_exist_cap =    0;
-% pv.LIs_exist_cap    =    0;
-% btm.LIs_exist_cap   =  209;
+% pv.LIs_exist_cap    =  373;
+% btm.LIs_exist_cap   = 1069;
 % bio.LIs_exist_cap   =    0;
-% lfg.LIs_exist_cap   =    0;
+% lfg.LIs_exist_cap   =    3;
 % ees.LIs_exist_cap   =    0;
 % 
 % % Existing renewable capacity in NE
@@ -186,6 +128,64 @@ ees.PJM_exist_cap   =    0;
 % bio.PJM_exist_cap   =    0;
 % lfg.PJM_exist_cap   =    0;
 % ees.PJM_exist_cap   =    0;
+
+%% Real existing capacity in 2016
+% EXISTING renewable capacity in A2F (values here are for 2016. Other 
+% regions are set to zero installed capacity due to low penetration).
+wind.A2F_exist_cap  = 1755;
+hydro.A2F_exist_cap = 5219;
+pv.A2F_exist_cap    =    0;
+btm.A2F_exist_cap   =  266;
+bio.A2F_exist_cap   =  148;
+lfg.A2F_exist_cap   =  126;
+ees.A2F_exist_cap   =    0;
+
+
+% Existing renewable capacity in GHI
+wind.GHI_exist_cap  =    0;
+hydro.GHI_exist_cap =    0;
+pv.GHI_exist_cap    =    0;
+btm.GHI_exist_cap   =  155;
+bio.GHI_exist_cap   =    0;
+lfg.GHI_exist_cap   =    0;
+ees.GHI_exist_cap   =    0;
+
+
+% Existing renewable capacity in NYC
+wind.NYC_exist_cap  =    0;
+hydro.NYC_exist_cap =    0;
+pv.NYC_exist_cap    =    0;
+btm.NYC_exist_cap   =   82;
+bio.NYC_exist_cap   =    0;
+lfg.NYC_exist_cap   =    0;
+ees.NYC_exist_cap   =    0;
+
+% Existing renewable capacity on LI
+wind.LIs_exist_cap  =    0;
+hydro.LIs_exist_cap =    0;
+pv.LIs_exist_cap    =    0;
+btm.LIs_exist_cap   =  209;
+bio.LIs_exist_cap   =    0;
+lfg.LIs_exist_cap   =    0;
+ees.LIs_exist_cap   =    0;
+
+% Existing renewable capacity in NE
+wind.NEw_exist_cap  =    0;
+hydro.NEw_exist_cap =    0;
+pv.NEw_exist_cap    =    0;
+btm.NEw_exist_cap   =    0;
+bio.NEw_exist_cap   =    0;
+lfg.NEw_exist_cap   =    0;
+ees.NEw_exist_cap   =    0;
+
+% Existing renewable capacity in PJM
+wind.PJM_exist_cap  =    0;
+hydro.PJM_exist_cap =    0;
+pv.PJM_exist_cap    =    0;
+btm.PJM_exist_cap   =    0;
+bio.PJM_exist_cap   =    0;
+lfg.PJM_exist_cap   =    0;
+ees.PJM_exist_cap   =    0;
 
 %% Get EVSE Load Data (MWh total for the Day)
 % Electric Vehicle Energy Usage Forecast (2018 Gold Book) in GWh

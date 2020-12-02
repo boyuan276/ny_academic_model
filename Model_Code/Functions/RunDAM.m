@@ -130,6 +130,9 @@ datestring = datestr(datetime(date,'InputFormat','yyyyMMdd'), 'mmm-dd-yyyy');
 %% Get Net Load from OASIS
 [A2F_exist_NL, GHI_exist_NL, NYC_exist_NL, LIs_exist_NL,~,~,~,~] = NYISOnetloadPRE_DAM(datestring, undrbidfac, useinstant);
 
+%% Get Net Load from NYISO CARIS 2019 Report Forecast
+disp("net load success");
+
 %%%%% The following code is not ready for implementation yet...
 % if get_hist_loadprof == 1
 %     load_dates = stoch.loadprof;
@@ -409,6 +412,7 @@ if vis_prof == 1
     input(prompt,'s');
 end
 
+disp("data preparation success");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MOST DAM Run
@@ -589,6 +593,8 @@ if IFlims == 1
 end
 
 
+disp("renewable gen add success");
+
 %% Run MOST Algorithm
 %Set MOST options
 mpopt = mpoption;
@@ -617,6 +623,8 @@ for tt = 1:24
     mdi.offer(tt).NegativeLoadFollowReservePrice = zeros(all_gen_count,1);
 end
 
+disp("mdi success");
+
 % Run the UC/ED algorithm
 clear mdo
 if IFlims == 1
@@ -626,6 +634,7 @@ else
 end
 
 % View Results (print results - depending on verbose option)
+disp(mdo.results.success);
 ms = most_summary(mdo);
 
 
