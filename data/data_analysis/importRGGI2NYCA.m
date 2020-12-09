@@ -1,6 +1,6 @@
 function RGGI2NYCA2019 = importRGGI2NYCA(workbookFile, sheetName, dataLines)
-%IMPORTFILE Import data from a spreadsheet
-%  RGGI2NYCA2019 = IMPORTFILE(FILE) reads data from the first worksheet
+%importRGGI2NYCA Import data from a spreadsheet
+%  RGGI2NYCA2019 = importRGGI2NYCA(FILE) reads data from the first worksheet
 %  in the Microsoft Excel spreadsheet file named FILE.  Returns the data
 %  as a table.
 %
